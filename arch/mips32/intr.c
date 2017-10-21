@@ -38,7 +38,7 @@ int disable_interrupts()
         "mfc0 $t0, $12\n\t"
         "andi %0,  $t0, 0x1\n\t"
         "li   $t1, 0xfffffffe\n\t"
-        "andi $t0, $t0, $t1\n\t"
+        "and  $t0, $t0, $t1\n\t"
         "mtc0 $t0, $12"
         : "=r"(old));
     return old;
