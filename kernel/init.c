@@ -1,5 +1,17 @@
 #include <arch.h>
+#include <exc.h>
 #include <init_place_holder.h>
+#include <intr.h>
+#include <xsu/syscall.h>
+
+void test_syscall4()
+{
+    asm volatile(
+        "li $a0, 0x00ff\n\t"
+        "li $v0, 4\n\t"
+        "syscall\n\t"
+        "nop\n\t");
+}
 
 void init_kernel()
 {
@@ -22,6 +34,7 @@ void init_kernel()
     init_interrupts();
     // Init finished, write seg
     *GPIO_SEG = 0x11223344;
+    test_syscall4();
     // Halt
     while (1)
         ;

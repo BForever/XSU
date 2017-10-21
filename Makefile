@@ -71,7 +71,7 @@ find-all-objs:
 
 .PHONY: show-info
 show-info:
-	@echo Building ZJUNIX kernel for $(ARCH)
+	@echo Building XSU kernel for $(ARCH)
 
 # need to be placed at the end of the file
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
