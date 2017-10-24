@@ -169,14 +169,36 @@ int kernel_vprintf(const char* format, va_list ap)
         } else {
             format++;
             switch (*format) {
-            case 'c': {
+            case 'c':
                 char valch = va_arg(ap, int);
                 kernel_putchar(valch, 0xfff, 0);
                 format++;
                 cnt++;
                 break;
-            }
+            case 'd':
+                int valint = va_arg(ap, int);
+                kernel_putint(valint, 0xfff, 0);
+                format++;
+                cnt++;
+                break;
+            case 's':
+                char* valstr = va_arg(ap, char*);
+                kernel_puts(valstr, 0xfff, 0);
+                format++;
+                cnt++;
+                break;
+            case 'x':
+                unsigned int valhex = va_arg(ap, int);
+                kernel_putint_hex(valhex, 0xfff, 0);
+                format++;
+                cnt++;
+                break;
+            default:
+                cnt = -1;
+                goto exit;
             }
         }
     }
+exit:
+    return cnt;
 }

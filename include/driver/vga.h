@@ -18,6 +18,10 @@ struct screen_color {
     int background;
 };
 
+typedef int bool;
+#define true 1
+#define false 0
+
 void init_vga();
 void kernel_set_cursor();
 void kernel_clear_screen(int scope);
