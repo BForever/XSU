@@ -30,7 +30,9 @@ void kernel_putchar_at(int ch, int fc, int bg, int row, int col);
 int kernel_putchar(int ch, int fc, int bg);
 int kernel_puts(const char* s, int fc, int bg);
 int kernel_putint(int x, int fc, int bg);
-int kernel_putint_hex(unsigned int x, int fc, int bg);
+unsigned int kernel_putuint(unsigned int x, int fc, int bg);
+unsigned int kernel_putint_octal(unsigned int x, int fc, int bg);
+unsigned int kernel_putint_hex(unsigned int x, int fc, int bg, bool capital);
 int kernel_vprintf(const char* format, va_list ap);
 int kernel_printf(const char* format, ...);
 

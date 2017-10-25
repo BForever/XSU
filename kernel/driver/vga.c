@@ -140,8 +140,47 @@ int kernel_putint(int x, int fc, int bg)
     return x;
 }
 
-static const char* HEX_MAP = "0123456789abcdef";
-int kernel_putint_hex(unsigned int x, int fc, int bg)
+unsigned int kernel_putuint(unsigned int x, int fc, int bg)
+{
+    char buffer[12];
+    char* ptr = buffer + 11;
+    int neg = 0;
+    buffer[11] = 0;
+    if (x == 0) {
+        kernel_putchar('0', fc, bg);
+        return x;
+    }
+    while (x) {
+        ptr--;
+        *ptr = (x % 10) + '0';
+        x /= 10;
+    }
+    kernel_puts(ptr, fc, bg);
+    return x;
+}
+
+unsigned int kernel_putint_octal(unsigned int x, int fc, int bg)
+{
+    char buffer[12];
+    char* ptr = buffer + 11;
+    int neg = 0;
+    buffer[11] = 0;
+    if (x == 0) {
+        kernel_putchar('0', fc, bg);
+        return x;
+    }
+    while (x) {
+        ptr--;
+        *ptr = (x & 7) + '0';
+        x >>= 3;
+    }
+    kernel_puts(ptr, fc, bg);
+    return x;
+}
+
+static const char* hex_MAP = "0123456789abcdef";
+static const char* HEX_MAP = "0123456789ABCDEF";
+unsigned int kernel_putint_hex(unsigned int x, int fc, int bg, bool capital)
 {
     char buffer[12];
     char* ptr = buffer + 11;
@@ -152,14 +191,13 @@ int kernel_putint_hex(unsigned int x, int fc, int bg)
     }
     while (x) {
         ptr--;
-        *ptr = HEX_MAP[x & 15];
+        *ptr = (capital == true) ? HEX_MAP[x & 15] : hex_MAP[x & 15];
         x >>= 4;
     }
     kernel_puts(ptr, fc, bg);
     return x;
 }
 
-// Too difficult ...
 int kernel_vprintf(const char* format, va_list ap)
 {
     int cnt = 0;
@@ -169,28 +207,50 @@ int kernel_vprintf(const char* format, va_list ap)
         } else {
             format++;
             switch (*format) {
-            case 'c':
-                char valch = va_arg(ap, int);
+            case 'c': // char
+                char valch = va_arg(ap, char);
                 kernel_putchar(valch, 0xfff, 0);
                 format++;
                 cnt++;
                 break;
-            case 'd':
+            case 'd': // signed int
                 int valint = va_arg(ap, int);
                 kernel_putint(valint, 0xfff, 0);
                 format++;
                 cnt++;
                 break;
-            case 's':
+            case 'o': // unsigned octal
+                unsigned int valoctal = va_arg(ap, unsigned int);
+                kernel_putint_octal(valoctal, 0xfff, 0);
+                format++;
+                cnt++;
+                break;
+            case 's': // string
                 char* valstr = va_arg(ap, char*);
                 kernel_puts(valstr, 0xfff, 0);
                 format++;
                 cnt++;
                 break;
-            case 'x':
-                unsigned int valhex = va_arg(ap, int);
-                kernel_putint_hex(valhex, 0xfff, 0);
+            case 'u': // unsigned int
+                unsigned int = valuint = va_arg(ap, unsigned int);
+                kernel_putuint(valuint, 0xfff, 0);
                 format++;
+                cnt++;
+                break;
+            case 'x': // unsigned hexdecimal (lower case)
+                unsigned int valhex = va_arg(ap, unsigned int);
+                kernel_putint_hex(valhex, 0xfff, 0, false);
+                format++;
+                cnt++;
+                break;
+            case 'X': // unsigned hexdecimal (upper case)
+                unsigned int valhex = va_arg(ap, unsigned int);
+                kernel_putint_hex(valhex, 0xfff, 0, true);
+                format++;
+                cnt++;
+                break;
+            case '%': // %
+                kernel_putchar(*format++, 0xfff, 0);
                 cnt++;
                 break;
             default:
@@ -200,5 +260,15 @@ int kernel_vprintf(const char* format, va_list ap)
         }
     }
 exit:
+    return cnt;
+}
+
+int kernel_printf(const char* format, ...)
+{
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, format);
+    cnt = kernel_vprintf(format, ap);
+    va_end(ap);
     return cnt;
 }
