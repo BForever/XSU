@@ -1,41 +1,62 @@
+#include "../usr/ps.h"
 #include <arch.h>
+#include <dirver/vga.h>
+#include <driver/ps2.h>
 #include <exc.h>
 #include <init_place_holder.h>
 #include <intr.h>
+#include <xsu/log.h>
 #include <xsu/syscall.h>
+#include <xsu/time.h>
 
-void test_syscall4()
+void machine_info()
 {
-    asm volatile(
-        "li $a0, 0x00ff\n\t"
-        "li $v0, 4\n\t"
-        "syscall\n\t"
-        "nop\n\t");
+    int row;
+    int col;
+    kernel_printf("\n%s\n", "XSU V1.0");
+    row = cursor_row;
+    col = cursor_col;
+    cursor_row = 29;
+    kernel_printf("%s", "Created by Deep Dark Fantasy, Zhejiang University.");
+    cursor_row = row;
+    cursor_col = col;
+    kernel_set_cursor();
 }
 
 void init_kernel()
 {
+    kernel_clear_screen(31);
     // Exception
     init_exception();
-    // System call
-    init_syscall();
     // Page table
     init_pgtable();
     // Drivers
     init_vga();
     init_ps2();
+    init_time();
     // Memory management
+    log(LOG_START, "Memory Modules.");
     init_mem();
-    // file system
+    log(LOG_END, "Memory Modules.");
+    // File system
+    log(LOG_START, "File System.");
     init_fs();
+    log(LOG_END, "File System.");
+    // System call
+    log(LOG_START, "System Calls.");
+    init_syscall();
+    log(LOG_END, "System Calls.");
     // Process control
+    log(LOG_START, "Process Control Module.");
     init_pc();
+    log(LOG_END, "Process Control Module.");
     // Interrupts
+    log(LOG_START, "Enable Interrupts.");
     init_interrupts();
-    // Init finished, write seg
+    log(LOG_END, "Enable Interrupts.");
+    // Init finished
+    machine_info();
     *GPIO_SEG = 0x11223344;
-    test_syscall4();
-    // Halt
-    while (1)
-        ;
+    // Enter shell
+    ps();
 }

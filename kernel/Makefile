@@ -1,4 +1,4 @@
 OBJS := init.o
-DIRS := syscall
+DIRS := dirver syscall time
 
 include $(SUB_MAKE_INCLUDE)

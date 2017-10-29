@@ -203,39 +203,7 @@ int kernel_vprintf(const char* format, va_list ap)
     int cnt = 0;
     while (*format) {
         if (*format != '%') {
-            if (*format != '\\') {
-                kernel_putchar(*format++, 0xfff, 0);
-            } else {
-                // Escape characters.
-                format++;
-                switch (*format) {
-                case 'n': // \n
-                    kernel_putchar('\n', 0xfff, 0);
-                    format++;
-                    cnt++;
-                    break;
-                case 'r': // \r
-                    kernel_putchar('\r', 0xfff, 0);
-                    format++;
-                    cnt++;
-                    break;
-                case 't': // \t
-                    kernel_putchar('\t', 0xfff, 0);
-                    format++;
-                    cnt++;
-                    break;
-                case '\\':
-                case '\'':
-                case '"':
-                case '?':
-                    kernel_putchar(*format++, 0xfff, 0);
-                    cnt++;
-                    break;
-                default:
-                    cnt = -1;
-                    goto exit;
-                }
-            }
+            kernel_putchar(*format++, 0xfff, 0);
         } else {
             format++;
             switch (*format) {
