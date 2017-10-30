@@ -6,6 +6,7 @@
 *.ko
 *.obj
 *.elf
+*.bin # This is for our project
 
 # Linker output
 *.ilk
