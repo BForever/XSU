@@ -1,5 +1,5 @@
-#ifndef _ZJUNIX_UITILS_H
-#define _ZJUNIX_UITILS_H
+#ifndef _XSU_UITILS_H
+#define _XSU_UITILS_H
 
 #define container_of(ptr, type, member) ((type*)((char*)ptr - (char*)&(((type*)0)->member)))
 
@@ -20,4 +20,4 @@ typedef unsigned char* va_list;
 #define va_arg(ap, t) (*(t*)((ap += _INTSIZEOF(t)) - _INTSIZEOF(t)))
 #define va_end(ap) (ap = (va_list)0)
 
-#endif // ! _ZJUNIX_UITILS_H
+#endif

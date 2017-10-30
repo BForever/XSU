@@ -2,8 +2,8 @@
 #include <driver/ps2.h>
 #include <driver/sd.h>
 #include <driver/vga.h>
-#include <zjunix/time.h>
-#include <zjunix/utils.h>
+#include <xsu/time.h>
+#include <xsu/utils.h>
 
 char ps_buffer[64];
 int ps_buffer_index;

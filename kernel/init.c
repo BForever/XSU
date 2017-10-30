@@ -1,6 +1,6 @@
 #include "../usr/ps.h"
 #include <arch.h>
-#include <dirver/vga.h>
+#include <driver/vga.h>
 #include <driver/ps2.h>
 #include <exc.h>
 #include <init_place_holder.h>

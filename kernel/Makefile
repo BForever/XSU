@@ -1,4 +1,4 @@
 OBJS := init.o
-DIRS := dirver syscall time
+DIRS := driver syscall time
 
 include $(SUB_MAKE_INCLUDE)

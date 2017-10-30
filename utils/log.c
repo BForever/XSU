@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <zjunix/log.h>
-#include <zjunix/time.h>
+#include <xsu/log.h>
+#include <xsu/time.h>
 
 #define MAX_LEVEL 4
 #define MIN_LEVEL 0
