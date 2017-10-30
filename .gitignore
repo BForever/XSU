@@ -6,7 +6,6 @@
 *.ko
 *.obj
 *.elf
-*.bin # This is for our project
 
 # Linker output
 *.ilk
@@ -30,6 +29,7 @@
 *.dylib
 
 # Executables
+*.bin # This is for our project
 *.exe
 *.out
 *.app
