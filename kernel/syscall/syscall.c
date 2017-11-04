@@ -1,6 +1,7 @@
 #include "syscall4.h"
 #include <exc.h>
 #include <xsu/syscall.h>
+#include <xsu/pc.h>
 
 sys_fn syscalls[256];
 
@@ -12,17 +13,12 @@ void init_syscall()
     register_syscall(4, syscall4);
 }
 
-void syscall(unsigned int status, unsigned int cause, unsigned int* sp)
+void syscall(unsigned int status, unsigned int cause, context* context)
 {
-    unsigned int a0, a1, a2, a3, v0;
-    a0 = *(sp + 4);
-    a1 = *(sp + 5);
-    a2 = *(sp + 6);
-    a3 = *(sp + 7);
-    v0 = *(sp + 2) % 255;
-    *(sp + 0) += 4; // EPC
-    if (syscalls[v0]) {
-        syscalls[v0](a0, a1, a2, a3);
+    context->v0 &= 255;
+    context->epc += 4;
+    if (syscalls[context->v0]) {
+        syscalls[context->v0](status,cause,context);
     }
 }
 

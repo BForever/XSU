@@ -8,6 +8,7 @@
 #include <xsu/log.h>
 #include <xsu/syscall.h>
 #include <xsu/time.h>
+#include <xsu/pc.h>
 
 void machine_info()
 {
@@ -58,5 +59,8 @@ void init_kernel()
     machine_info();
     *GPIO_SEG = 0x11223344;
     // Enter shell
-    ps();
+
+    while (1);
+    
+    //ps();
 }

@@ -5,12 +5,12 @@
 
 exc_fn exceptions[32];
 
-void do_exceptions(unsigned int status, unsigned int cause, unsigned int* sp)
+void do_exceptions(unsigned int status, unsigned int cause, context* context)
 {
     int index = cause >> 2;
     index &= 0x1f;
     if (exceptions[index]) {
-        exceptions[index](status, cause, sp);
+        exceptions[index](status, cause, context);
     } else {
         while (1)
             ;
