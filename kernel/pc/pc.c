@@ -59,7 +59,7 @@ void init_pc() {
 
     start:
     pc_create_union(1,ps,init_gp,"ps");//create process powershell
-    pcb[0].task.state = PROC_STATE_WAITING;//hung up itself
+    //pcb[0].task.state = PROC_STATE_WAITING;//hung up itself
 
     register_syscall(10, pc_kill_syscall);
     register_interrupt_handler(7, pc_schedule);
@@ -69,14 +69,6 @@ void init_pc() {
         "li $v0, 500000\n\t"
         "mtc0 $v0, $11\n\t"
         "mtc0 $zero, $9");
-        
-    while (1){//if waked up, execute itself again
-        if (pcb[0].task.state == PROC_STATE_RUNNING){
-            goto start;
-        }
-    }
-
-    
 }
 
 
@@ -104,8 +96,8 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context) {
             
     }
     if (i == 8){ 
-        
-
+       kernel_printf("No process running!!!\n");
+       while(1); 
     }
     // Load context
     copy_context(&(pcb[curr_proc].task.context), pt_context);

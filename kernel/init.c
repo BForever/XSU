@@ -60,6 +60,7 @@ void init_kernel()
     *GPIO_SEG = 0x11223344;
     // Enter shell
 
+    // init process busy waiting here
     while (1);
     
     //ps();
