@@ -127,7 +127,7 @@ int pc_peek() {
 
 void pc_create_union(int asid, void (*func)(), unsigned int init_gp, char* name) {
     pcb[asid].task.context.epc = (unsigned int)func;
-    pcb[asid].task.context.sp = (void*)(pcb[asid].kernel_stack + 4096);
+    pcb[asid].task.context.sp = (unsigned int)(pcb[asid].kernel_stack + 4096);
     pcb[asid].task.context.gp = init_gp;
     kernel_strcpy(pcb[asid].task.name, name);
     pcb[asid].task.ASID = asid;
