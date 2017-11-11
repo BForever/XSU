@@ -7,13 +7,14 @@
 static volatile unsigned int* const SD_CTRL = (unsigned int*)0xbfc09100;
 static volatile unsigned int* const SD_BUF = (unsigned int*)0xbfc08000;
 
-static int sd_send_cmd_blocking(int cmd, int argument) {
+static int sd_send_cmd_blocking(int cmd, int argument)
+{
     int t;
     SD_CTRL[1] = cmd;
     SD_CTRL[0] = argument;
     t = 4096;
     while (t--)
-        ;  // Wait for command transaction
+        ; // Wait for command transaction
     do {
         t = SD_CTRL[13];
     } while (t == 0);
@@ -23,7 +24,8 @@ static int sd_send_cmd_blocking(int cmd, int argument) {
         return t;
 }
 
-int sd_read_sector_blocking(int id, void* buffer) {
+int sd_read_sector_blocking(int id, void* buffer)
+{
     // Disable interrupts
     unsigned int prev_status;
     asm volatile(
@@ -37,8 +39,8 @@ int sd_read_sector_blocking(int id, void* buffer) {
     int* buffer_int = (int*)buffer;
     int i;
 
-    SD_CTRL[18] = 0;  // DMA address
-    SD_CTRL[15] = 0;  // Data transfer events
+    SD_CTRL[18] = 0; // DMA address
+    SD_CTRL[15] = 0; // Data transfer events
     code = sd_send_cmd_blocking(0x1139, id);
     if (code != 0)
         goto ret;
@@ -52,11 +54,14 @@ int sd_read_sector_blocking(int id, void* buffer) {
     }
 ret:
     // Enable interrupts
-    asm volatile("mtc0 %0, $12\n\t" : : "r"(prev_status));
+    asm volatile("mtc0 %0, $12\n\t"
+                 :
+                 : "r"(prev_status));
     return code;
 }
 
-int sd_write_sector_blocking(int id, void* buffer) {
+int sd_write_sector_blocking(int id, void* buffer)
+{
     // Disable interrupts
     unsigned int prev_status;
     asm volatile(
@@ -69,8 +74,8 @@ int sd_write_sector_blocking(int id, void* buffer) {
     int code;
     int* buffer_int = (int*)buffer;
     int i;
-    SD_CTRL[18] = 0;  // DMA address
-    SD_CTRL[15] = 0;  // Clear data transfer events
+    SD_CTRL[18] = 0; // DMA address
+    SD_CTRL[15] = 0; // Clear data transfer events
     // Fill buffer
     for (i = 0; i < 128; i++)
         SD_BUF[i] = buffer_int[i];
@@ -84,15 +89,14 @@ int sd_write_sector_blocking(int id, void* buffer) {
         code = 0;
 ret:
     // Enable interrupts
-    asm volatile("mtc0 %0, $12\n\t" : : "r"(prev_status));
+    asm volatile("mtc0 %0, $12\n\t"
+                 :
+                 : "r"(prev_status));
     return code;
 }
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned long u32;
-
-u32 sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count) {
+u32 sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count)
+{
     u32 i;
     u32 result;
     if (1 == count) {
@@ -110,7 +114,8 @@ u32 sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count) {
     }
 }
 
-u32 sd_write_block(unsigned char* buf, unsigned long addr, unsigned long count) {
+u32 sd_write_block(unsigned char* buf, unsigned long addr, unsigned long count)
+{
     u32 i;
     u32 result;
 #ifdef SD_DEBUG

@@ -8,7 +8,8 @@
 char ps_buffer[64];
 int ps_buffer_index;
 
-void test_syscall4() {
+void test_syscall4()
+{
     asm volatile(
         "li $a0, 0x00ff\n\t"
         "li $v0, 4\n\t"
@@ -16,7 +17,8 @@ void test_syscall4() {
         "nop\n\t");
 }
 
-void ps() {
+void ps()
+{
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
@@ -53,14 +55,15 @@ void ps() {
     }
 }
 
-void parse_cmd() {
+void parse_cmd()
+{
     unsigned int result = 0;
     char dir[32];
     char c;
     kernel_putchar('\n', 0, 0);
     char sd_buffer[8192];
     int i = 0;
-    char *param;
+    char* param;
     for (i = 0; i < 63; i++) {
         if (ps_buffer[i] == ' ') {
             ps_buffer[i] = 0;
