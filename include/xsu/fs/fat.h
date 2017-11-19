@@ -33,24 +33,24 @@ union dir_entry {
 
 // File struct.
 typedef struct fat_file {
-    unsigned char path[256];
+    u8 path[256];
     // Current file pointer.
-    unsigned long loc;
+    u32 loc;
     // Current directory entry position.
-    unsigned long dir_entry_pos;
-    unsigned long dir_entry_sector;
+    u32 dir_entry_pos;
+    u32 dir_entry_sector;
     // Current directory entry.
     union dir_entry entry;
     // Buffer clock head.
-    unsigned long clock_head;
+    u32 clock_head;
     // For normal FAT32, cluster size is 4k.
     BUF_4K data_buf[LOCAL_DATA_BUF_NUM];
 } FILE;
 
 typedef struct fs_fat_dir {
-    unsigned long cur_sector;
-    unsigned long loc;
-    unsigned long sec;
+    u32 cur_sector;
+    u32 loc;
+    u32 sec;
 } FS_FAT_DIR;
 
 struct __attribute__((__packed__)) BPB_attr {
@@ -107,22 +107,22 @@ struct fs_info {
     u8 fat_fs_info[SECTOR_SIZE];
 };
 
-unsigned long fs_find(FILE* file);
-unsigned long init_fs();
-unsigned long fs_open(FILE* file, unsigned char* filename);
-unsigned long fs_close(FILE* file);
-unsigned long fs_read(FILE* file, unsigned char* buf, unsigned long count);
-unsigned long fs_write(FILE* file, const unsigned char* buf, unsigned long count);
-unsigned long fs_fflush();
-void fs_lseek(FILE* file, unsigned long new_loc);
-unsigned long fs_create(unsigned char* filename);
-unsigned long fs_mkdir(unsigned char* filename);
-unsigned long fs_rm(unsigned char* filename);
-unsigned long fs_mv(unsigned char* src, unsigned char* dest);
-unsigned long fs_open_dir(FS_FAT_DIR* dir, unsigned char* filename);
-unsigned long fs_read_dir(FS_FAT_DIR* dir, unsigned char* buf);
-unsigned long fs_cat(unsigned char* path);
-void get_filename(unsigned char* entry, unsigned char* buf);
+u32 fs_find(FILE* file);
+u32 init_fs();
+u32 fs_open(FILE* file, u8* filename);
+u32 fs_close(FILE* file);
+u32 fs_read(FILE* file, u8* buf, u32 count);
+u32 fs_write(FILE* file, const u8* buf, u32 count);
+u32 fs_fflush();
+void fs_lseek(FILE* file, u32 new_loc);
+u32 fs_create(u8* filename);
+u32 fs_mkdir(u8* filename);
+u32 fs_rm(u8* filename);
+u32 fs_mv(u8* src, u8* dest);
+u32 fs_open_dir(FS_FAT_DIR* dir, u8* filename);
+u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf);
+u32 fs_cat(u8* path);
+void get_filename(u8* entry, u8* buf);
 u32 read_block(u8* buf, u32 addr, u32 count);
 u32 write_block(u8* buf, u32 addr, u32 count);
 u32 get_entry_filesize(u8* entry);

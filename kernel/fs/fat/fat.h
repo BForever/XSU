@@ -13,5 +13,12 @@ extern struct fs_info fat_info;
 
 u32 fs_create_with_attr(u8* filename, u8 attr);
 u32 read_fat_sector(u32 ThisFATSecNum);
+u32 write_fat_sector(u32 index);
+
+u32 init_fat_info();
+void init_fat_buf();
+void init_dir_buf();
+u32 fs_next_slash(u8* f);
+u32 fs_cmp_filename(u8* f1, u8* f2);
 
 #endif
