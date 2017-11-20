@@ -31,7 +31,7 @@ u32 init_fat_info()
 
     // Get MBR sector.
     if (read_block(meta_buf, 0, 1) == 1) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
     log(LOG_OK, "Get MBR Sector info");
     // MBR partition 1 entry starts from +446, and LBA starts from +8.
@@ -39,7 +39,7 @@ u32 init_fat_info()
 
     // Get FAT BPB.
     if (read_block(fat_info.BPB.data, fat_info.base_addr, 1) == 1) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
     log(LOG_OK, "Get FAT BPB");
 #ifdef FS_DEBUG
@@ -49,21 +49,21 @@ u32 init_fat_info()
     // Sector size (MBR[11]) must be SECTOR_SIZE bytes.
     if (fat_info.BPB.attr.sector_size != SECTOR_SIZE) {
         log(LOG_FAIL, "FAT sector size must be %d bytes, but get %d bytes.", SECTOR_SIZE, fat_info.BPB.attr.sector_size);
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
 
     // Determine FAT type.
     // For FAT32, max root dir entries must be 0.
     if (fat_info.BPB.attr.max_root_dir_entries != 0) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
     // For FAT32, sectors per fat at BPB[0x16] is 0.
     if (fat_info.BPB.attr.sectors_per_fat != 0) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
     // For FAT32, total sectors at BPB[0x16] is 0.
     if (fat_info.BPB.attr.num_of_small_sectors != 0) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
     // If not FAT32, goto error state.
     u32 total_sectors = fat_info.BPB.attr.num_of_sectors;
@@ -73,7 +73,7 @@ u32 init_fat_info()
     u8 sectors_per_cluster = fat_info.BPB.attr.sectors_per_cluster;
     fat_info.total_data_clusters = total_data_sectors / sectors_per_cluster;
     if (fat_info.total_data_clusters < 65525) {
-        goto init_fat_info_erroror;
+        goto init_fat_info_error;
     }
 
     // Get root dir sector.
@@ -90,7 +90,7 @@ u32 init_fat_info()
 
     // Init success.
     return 0;
-init_fat_info_erroror:
+init_fat_info_error:
     return 1;
 }
 
@@ -115,12 +115,12 @@ u32 init_fs()
 {
     u32 success = init_fat_info();
     if (success != 0) {
-        goto fs_init_erroror;
+        goto fs_init_error;
     }
     init_fat_buf();
     init_dir_buf();
     return 0;
-fs_init_erroror:
+fs_init_error:
     log(LOG_FAIL, "File system inits fail.");
     return 1;
 }
@@ -131,13 +131,13 @@ u32 write_fat_sector(u32 index)
     if ((fat_buf[index].cur != 0xffffffff) && (((fat_buf[index].state) & 0x02) != 0)) {
         // Write FAT and FAT copy.
         if (write_block(fat_buf[index].buf, fat_buf[index].cur, 1) == 1)
-            goto write_fat_sector_erroror;
+            goto write_fat_sector_error;
         if (write_block(fat_buf[index].buf, fat_info.BPB.attr.num_of_sectors_per_fat + fat_buf[index].cur, 1) == 1)
-            goto write_fat_sector_erroror;
+            goto write_fat_sector_error;
         fat_buf[index].state &= 0x01;
     }
     return 0;
-write_fat_sector_erroror:
+write_fat_sector_error:
     return 1;
 }
 
@@ -153,10 +153,10 @@ u32 read_fat_sector(u32 ThisFATSecNum)
     if (index == FAT_BUF_NUM) {
         index = fs_victim_512(fat_buf, &fat_clock_head, FAT_BUF_NUM);
         if (write_fat_sector(index) == 1) {
-            goto read_fat_sector_erroror;
+            goto read_fat_sector_error;
         }
         if (read_block(fat_buf[index].buf, ThisFATSecNum, 1) == 1) {
-            goto read_fat_sector_erroror;
+            goto read_fat_sector_error;
         }
 
         fat_buf[index].cur = ThisFATSecNum;
@@ -166,7 +166,7 @@ u32 read_fat_sector(u32 ThisFATSecNum)
     }
 
     return index;
-read_fat_sector_erroror:
+read_fat_sector_error:
     return 0xffffffff;
 }
 
@@ -230,12 +230,12 @@ u32 fs_find(FILE* file)
     u32 sec;
 
     if (*(f++) != '/') {
-        goto fs_find_erroror;
+        goto fs_find_error;
     }
     index = fs_read_512(dir_data_buf, fs_data_cluster_to_sector(2), &dir_data_clock_head, DIR_DATA_BUF_NUM);
     // Open root directory.
     if (index == 0xffffffff) {
-        goto fs_find_erroror;
+        goto fs_find_error;
     }
 
     // Find directory entry.
@@ -268,17 +268,17 @@ u32 fs_find(FILE* file)
                 if (sec < fat_info.BPB.attr.sectors_per_cluster) {
                     index = fs_read_512(dir_data_buf, dir_data_buf[index].cur + 1, &dir_data_clock_head, DIR_DATA_BUF_NUM);
                     if (index == 0xffffffff) {
-                        goto fs_find_erroror;
+                        goto fs_find_error;
                     }
                 } else {
                     // Read next cluster of current directory.
                     if (get_fat_entry_value(dir_data_buf[index].cur - fat_info.BPB.attr.sectors_per_cluster + 1, &next_clus) == 1) {
-                        goto fs_find_erroror;
+                        goto fs_find_error;
                     }
                     if (next_clus <= fat_info.total_data_clusters + 1) {
                         index = fs_read_512(dir_data_buf, fs_data_cluster_to_sector(next_clus), &dir_data_clock_head, DIR_DATA_BUF_NUM);
                         if (index == 0xffffffff) {
-                            goto fs_find_erroror;
+                            goto fs_find_error;
                         }
                     } else {
                         goto after_fs_find;
@@ -297,7 +297,7 @@ u32 fs_find(FILE* file)
         }
         // If not a sub-directory.
         if ((file->entry.data[11] & 0x10) == 0) {
-            goto fs_find_erroror;
+            goto fs_find_error;
         }
         f += next_slash + 1;
 
@@ -306,15 +306,15 @@ u32 fs_find(FILE* file)
         if (next_clus <= fat_info.total_data_clusters + 1) {
             index = fs_read_512(dir_data_buf, fs_data_cluster_to_sector(next_clus), &dir_data_clock_head, DIR_DATA_BUF_NUM);
             if (index == 0xffffffff) {
-                goto fs_find_erroror;
+                goto fs_find_error;
             }
         } else {
-            goto fs_find_erroror;
+            goto fs_find_error;
         }
     }
 fs_find_ok:
     return 0;
-fs_find_erroror:
+fs_find_error:
     return 1;
 }
 
@@ -328,14 +328,12 @@ u32 fs_open(FILE* file, u8* filename)
         file->data_buf[i].cur = 0xffffffff;
         file->data_buf[i].state = 0;
     }
-
     file->clock_head = 0;
-
     for (i = 0; i < 256; i++)
         file->path[i] = 0;
+
     for (i = 0; i < 256 && filename[i] != 0; i++)
         file->path[i] = filename[i];
-
     file->loc = 0;
 
     if (fs_find(file) == 1)
@@ -386,16 +384,15 @@ u32 fs_close(FILE* file)
     index = fs_read_512(dir_data_buf, file->dir_entry_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
     if (index == 0xffffffff)
         goto fs_close_error;
-
     dir_data_buf[index].state = 3;
 
     //FIXME: Issue: need file->dir_entry to be local partition offset.
     for (i = 0; i < 32; i++)
         *(dir_data_buf[index].buf + file->dir_entry_pos + i) = file->entry.data[i];
-    // do fflush to write global buffers.
+    // Do fflush to write global buffers.
     if (fs_fflush() == 1)
         goto fs_close_error;
-    // write local data buffer.
+    // Write local data buffer.
     for (i = 0; i < LOCAL_DATA_BUF_NUM; i++)
         if (fs_write_4k(file->data_buf + i) == 1)
             goto fs_close_error;
@@ -488,22 +485,22 @@ fs_read_end:
     file->loc += count;
     return cc;
 fs_read_error:
-    return 0xFFFFFFFF;
+    return 0xffffffff;
 }
 
 // Find a free data cluster.
 u32 fs_next_free(u32 start, u32* next_free)
 {
     u32 clus;
-    u32 ClusEntryVal;
+    u32 clusEntryVal;
 
-    *next_free = 0xFFFFFFFF;
+    *next_free = 0xffffffff;
 
     for (clus = start; clus <= fat_info.total_data_clusters + 1; clus++) {
-        if (get_fat_entry_value(clus, &ClusEntryVal) == 1)
+        if (get_fat_entry_value(clus, &clusEntryVal) == 1)
             goto fs_next_free_error;
 
-        if (ClusEntryVal == 0) {
+        if (clusEntryVal == 0) {
             *next_free = clus;
             break;
         }
@@ -527,12 +524,12 @@ u32 fs_alloc(u32* new_alloc)
         if (fs_next_free(2, &clus) == 1)
             goto fs_alloc_error;
 
-        if (fs_modify_fat(clus, 0xFFFFFFFF) == 1)
+        if (fs_modify_fat(clus, 0xffffffff) == 1)
             goto fs_alloc_error;
     }
 
     // FAT allocated and update FSI_Nxt_Free.
-    if (fs_modify_fat(clus, 0xFFFFFFFF) == 1)
+    if (fs_modify_fat(clus, 0xffffffff) == 1)
         goto fs_alloc_error;
 
     if (fs_next_free(clus, &next_free) == 1)
@@ -700,7 +697,7 @@ u32 fs_find_empty_entry(u32* empty_entry, u32 index)
                     if (fs_alloc(&next_clus) == 1)
                         goto fs_find_empty_entry_error;
 
-                    if (fs_modify_fat(fs_sec2dataclus(dir_data_buf[index].cur - fat_info.BPB.attr.sectors_per_cluster + 1), next_clus) == 1)
+                    if (fs_modify_fat(fs_sector_to_data_cluster(dir_data_buf[index].cur - fat_info.BPB.attr.sectors_per_cluster + 1), next_clus) == 1)
                         goto fs_find_empty_entry_error;
 
                     *empty_entry = 0;

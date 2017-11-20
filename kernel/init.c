@@ -3,12 +3,8 @@
 #include <driver/vga.h>
 #include <exc.h>
 #include <intr.h>
-#include <page.h>
-#include <xsu/bootmm.h>
-#include <xsu/buddy.h>
 #include <xsu/fs/fat.h>
 #include <xsu/log.h>
-#include <xsu/slab.h>
 #include <xsu/syscall.h>
 #include <xsu/time.h>
 #include "../usr/ps.h"

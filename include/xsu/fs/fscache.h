@@ -5,16 +5,16 @@
 
 // 4k byte buffer.
 typedef struct buf_4k {
-    unsigned char buf[4096];
-    unsigned long cur;
-    unsigned long state;
+    u8 buf[4096];
+    u32 cur;
+    u32 state;
 } BUF_4K;
 
 // 512 byte buffer.
 typedef struct buf_512 {
-    unsigned char buf[512];
-    unsigned long cur;
-    unsigned long state;
+    u8 buf[512];
+    u32 cur;
+    u32 state;
 } BUF_512;
 
 u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size);
