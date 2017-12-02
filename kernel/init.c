@@ -8,6 +8,7 @@
 #include <xsu/syscall.h>
 #include <xsu/time.h>
 #include "../usr/ps.h"
+#include <init_place_holder.h>
 
 void machine_info()
 {

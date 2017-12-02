@@ -19,6 +19,6 @@ u32 init_fat_info();
 void init_fat_buf();
 void init_dir_buf();
 u32 fs_next_slash(u8* f);
-u32 fs_cmp_filename(u8* f1, u8* f2);
+u32 fs_cmp_filename(const u8* f1, const u8* f2);
 
 #endif

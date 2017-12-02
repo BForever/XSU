@@ -257,7 +257,7 @@ u32 fs_find(FILE* file)
                         file->dir_entry_sector = dir_data_buf[index].cur - fat_info.base_addr;
 
                         for (k = 0; k < 32; k++) {
-                            file->entry_data[k] = *(dir_data_buf[index].buf + i + k);
+                            file->entry.data[k] = *(dir_data_buf[index].buf + i + k);
                         }
 
                         goto after_fs_find;

@@ -94,7 +94,7 @@ struct __attribute__((__packed__)) BPB_attr {
 union BPB_info {
     u8 data[512];
     struct BPB_attr attr;
-}
+};
 
 struct fs_info {
     u32 base_addr;

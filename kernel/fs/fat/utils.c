@@ -63,7 +63,7 @@ u32 get_entry_attr(u8* entry)
 // DIR_FIRST_CLUSTER_HI/LO to cluster.
 u32 get_start_cluster(const FILE* file)
 {
-    return (file->entry.attr.starthi << 16) + (file->entry.attr.startlo);
+    return (file->entry.attr.starthi << 16) + (file->entry.attr.startlow);
 }
 
 // Get FAT entry value for a cluster.
@@ -111,7 +111,7 @@ fs_modify_fat_error:
 }
 
 // Determine FAT entry for cluster.
-void cluster_to_fat_entry(u32 clus, u32* thisFATSecNUm, u32* thisFATEntOffset)
+void cluster_to_fat_entry(u32 clus, u32* thisFATSecNum, u32* thisFATEntOffset)
 {
     u32 FATOffset = clus << 2;
     *thisFATSecNum = fat_info.BPB.attr.reserved_sectors + (FATOffset >> 9) + fat_info.base_addr;
