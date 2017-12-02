@@ -1,14 +1,14 @@
+#include "../usr/ps.h"
 #include <arch.h>
 #include <driver/ps2.h>
 #include <driver/vga.h>
 #include <exc.h>
+#include <init_place_holder.h>
 #include <intr.h>
 #include <xsu/fs/fat.h>
 #include <xsu/log.h>
 #include <xsu/syscall.h>
 #include <xsu/time.h>
-#include "../usr/ps.h"
-#include <init_place_holder.h>
 
 void machine_info()
 {

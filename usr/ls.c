@@ -1,8 +1,9 @@
 #include <driver/vga.h>
 #include <xsu/fs/fat.h>
 
-char *cut_front_blank(char *str) {
-    char *s = str;
+char* cut_front_blank(char* str)
+{
+    char* s = str;
     unsigned int index = 0;
 
     while (*s == ' ') {
@@ -24,14 +25,16 @@ char *cut_front_blank(char *str) {
     return str;
 }
 
-unsigned int strlen(unsigned char *str) {
+unsigned int strlen(unsigned char* str)
+{
     unsigned int len = 0;
     while (str[len])
         ++len;
     return len;
 }
 
-unsigned int each_param(char *para, char *word, unsigned int off, char ch) {
+unsigned int each_param(char* para, char* word, unsigned int off, char ch)
+{
     int index = 0;
 
     while (para[off] && para[off] != ch) {
@@ -45,11 +48,12 @@ unsigned int each_param(char *para, char *word, unsigned int off, char ch) {
     return off;
 }
 
-int ls(char *para) {
+int ls(char* para)
+{
     char pwd[128];
     struct dir_entry_attr entry;
     char name[32];
-    char *p = para;
+    char* p = para;
     unsigned int next;
     unsigned int r;
     unsigned int p_len;
@@ -65,13 +69,13 @@ int ls(char *para) {
     }
 
 readdir:
-    r = fs_read_dir(&dir, (unsigned char *)&entry);
+    r = fs_read_dir(&dir, (unsigned char*)&entry);
     if (1 != r) {
         if (-1 == r) {
             kernel_printf("\n");
         } else {
-            get_filename((unsigned char *)&entry, name);
-            if (entry.attr == 0x10)  // sub dir
+            get_filename((unsigned char*)&entry, name);
+            if (entry.attr == 0x10) // sub dir
                 kernel_printf("%s/", name);
             else
                 kernel_printf("%s", name);

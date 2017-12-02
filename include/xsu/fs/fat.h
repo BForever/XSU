@@ -1,8 +1,8 @@
 #ifndef _XSU_FS_FAT_H
 #define _XSU_FS_FAT_H
 
-#include <xsu/type.h>
 #include <xsu/fs/fscache.h>
+#include <xsu/type.h>
 
 /* 4k data buffer number in each file struct */
 #define LOCAL_DATA_BUF_NUM 4
@@ -10,21 +10,20 @@
 #define SECTOR_SIZE 512
 #define CLUSTER_SIZE 4096
 
-
 struct __attribute__((__packed__)) dir_entry_attr {
-    u8 name[8];                   /* Name */
-    u8 ext[3];                    /* Extension */
-    u8 attr;                      /* attribute bits */
-    u8 lcase;                     /* Case for base and extension */
-    u8 ctime_cs;                  /* Creation time, centiseconds (0-199) */
-    u16 ctime;                    /* Creation time */
-    u16 cdate;                    /* Creation date */
-    u16 adate;                    /* Last access date */
-    u16 starthi;                  /* Start cluster (Hight 16 bits) */
-    u16 time;                     /* Last modify time */
-    u16 date;                     /* Last modify date */
-    u16 startlow;                 /* Start cluster (Low 16 bits) */
-    u32 size;                     /* file size (in bytes) */
+    u8 name[8]; /* Name */
+    u8 ext[3]; /* Extension */
+    u8 attr; /* attribute bits */
+    u8 lcase; /* Case for base and extension */
+    u8 ctime_cs; /* Creation time, centiseconds (0-199) */
+    u16 ctime; /* Creation time */
+    u16 cdate; /* Creation date */
+    u16 adate; /* Last access date */
+    u16 starthi; /* Start cluster (Hight 16 bits) */
+    u16 time; /* Last modify time */
+    u16 date; /* Last modify date */
+    u16 startlow; /* Start cluster (Low 16 bits) */
+    u32 size; /* file size (in bytes) */
 };
 
 union dir_entry {
@@ -108,25 +107,25 @@ struct fs_info {
     u8 fat_fs_info[SECTOR_SIZE];
 };
 
-unsigned long fs_find(FILE *file);
+unsigned long fs_find(FILE* file);
 unsigned long init_fs();
-unsigned long fs_open(FILE *file, unsigned char *filename);
-unsigned long fs_close(FILE *file);
-unsigned long fs_read(FILE *file, unsigned char *buf, unsigned long count);
-unsigned long fs_write(FILE *file, const unsigned char *buf, unsigned long count);
+unsigned long fs_open(FILE* file, unsigned char* filename);
+unsigned long fs_close(FILE* file);
+unsigned long fs_read(FILE* file, unsigned char* buf, unsigned long count);
+unsigned long fs_write(FILE* file, const unsigned char* buf, unsigned long count);
 unsigned long fs_fflush();
-void fs_lseek(FILE *file, unsigned long new_loc);
-unsigned long fs_create(unsigned char *filename);
-unsigned long fs_mkdir(unsigned char *filename);
-unsigned long fs_rm(unsigned char *filename);
-unsigned long fs_mv(unsigned char *src, unsigned char *dest);
-unsigned long fs_open_dir(FS_FAT_DIR *dir, unsigned char *filename);
-unsigned long fs_read_dir(FS_FAT_DIR *dir, unsigned char *buf);
-unsigned long fs_cat(unsigned char * path);
-void get_filename(unsigned char *entry, unsigned char *buf);
-u32 read_block(u8 *buf, u32 addr, u32 count);
-u32 write_block(u8 *buf, u32 addr, u32 count);
-u32 get_entry_filesize(u8 *entry);
-u32 get_entry_attr(u8 *entry);
+void fs_lseek(FILE* file, unsigned long new_loc);
+unsigned long fs_create(unsigned char* filename);
+unsigned long fs_mkdir(unsigned char* filename);
+unsigned long fs_rm(unsigned char* filename);
+unsigned long fs_mv(unsigned char* src, unsigned char* dest);
+unsigned long fs_open_dir(FS_FAT_DIR* dir, unsigned char* filename);
+unsigned long fs_read_dir(FS_FAT_DIR* dir, unsigned char* buf);
+unsigned long fs_cat(unsigned char* path);
+void get_filename(unsigned char* entry, unsigned char* buf);
+u32 read_block(u8* buf, u32 addr, u32 count);
+u32 write_block(u8* buf, u32 addr, u32 count);
+u32 get_entry_filesize(u8* entry);
+u32 get_entry_attr(u8* entry);
 
 #endif

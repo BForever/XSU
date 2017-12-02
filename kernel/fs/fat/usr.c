@@ -1,13 +1,14 @@
-#include <driver/vga.h>
-#include <xsu/log.h>
 #include "fat.h"
 #include "utils.h"
+#include <driver/vga.h>
+#include <xsu/log.h>
 
 u8 mk_dir_buf[32];
 FILE file_create;
 
-/* remove directory entry */
-u32 fs_rm(u8 *filename) {
+// Remove directory entry.
+u32 fs_rm(u8* filename)
+{
     u32 clus;
     u32 next_clus;
     FILE mk_dir;
@@ -15,10 +16,10 @@ u32 fs_rm(u8 *filename) {
     if (fs_open(&mk_dir, filename) == 1)
         goto fs_rm_err;
 
-    /* Mark 0xE5 */
+    // Mark 0xE5.
     mk_dir.entry.data[0] = 0xE5;
 
-    /* Release all allocated block */
+    // Release all allocated block.
     clus = get_start_cluster(&mk_dir);
 
     while (clus != 0 && clus <= fat_info.total_data_clusters + 1) {
@@ -39,39 +40,40 @@ fs_rm_err:
     return 1;
 }
 
-/* move directory entry */
-u32 fs_mv(u8 *src, u8 *dest) {
+// Move directory entry.
+u32 fs_mv(u8* src, u8* dest)
+{
     u32 i;
     FILE mk_dir;
     u8 filename11[13];
 
-    /* if src not exists */
+    // If src not exists.
     if (fs_open(&mk_dir, src) == 1)
         goto fs_mv_err;
 
-    /* create dest */
+    // Create dest.
     if (fs_create_with_attr(dest, mk_dir.entry.data[11]) == 1)
         goto fs_mv_err;
 
-    /* copy directory entry */
+    // Copy directory entry.
     for (i = 0; i < 32; i++)
         mk_dir_buf[i] = mk_dir.entry.data[i];
 
-    /* new path */
+    // New path.
     for (i = 0; i < 11; i++)
         mk_dir_buf[i] = filename11[i];
 
     if (fs_open(&file_create, dest) == 1)
         goto fs_mv_err;
 
-    /* copy directory entry to dest */
+    // Copy directory entry to dest.
     for (i = 0; i < 32; i++)
         file_create.entry.data[i] = mk_dir_buf[i];
 
     if (fs_close(&file_create) == 1)
         goto fs_mv_err;
 
-    /* mark src directory entry 0xE5 */
+    // Mark src directory entry 0xE5.
     mk_dir.entry.data[0] = 0xE5;
 
     if (fs_close(&mk_dir) == 1)
@@ -82,8 +84,9 @@ fs_mv_err:
     return 1;
 }
 
-/* mkdir, create a new file and write . and .. */
-u32 fs_mkdir(u8 *filename) {
+// mkdir, create a new file and write . and ..
+u32 fs_mkdir(u8* filename)
+{
     u32 i;
     FILE mk_dir;
     FILE file_creat;

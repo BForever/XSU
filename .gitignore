@@ -29,7 +29,7 @@
 *.dylib
 
 # Executables
-*.bin # This is for our project
+*.bin
 *.exe
 *.out
 *.app

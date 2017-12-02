@@ -5,6 +5,6 @@
 #include <xsu/fs/fat.h>
 void dump_bpb_info(struct BPB_attr* BPB);
 void dump_fat_info(struct fs_info* info);
-#endif  // ! FS_DEBUG
+#endif // ! FS_DEBUG
 
 #endif
