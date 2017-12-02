@@ -43,10 +43,9 @@ void set_u32(u8* ch, u32 num)
 // work around.
 u32 fs_wa(u32 num)
 {
-    // return the bits of `num`.
-    // FIXME: the original version returns n-1 for the n-bit `num`.
+    // Return the exponent of 2.
     u32 i;
-    for (i = 0; num >= 1; num >>= 1, i++)
+    for (i = 0; num > 1; num >>= 1, i++)
         ;
     return i;
 }

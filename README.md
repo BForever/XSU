@@ -53,3 +53,11 @@ XSU is an acronym for XSU is Simple Unix.
    - 系统调用的添加
    - 简单的shell实现
      - `ls`、`ps`、`top`、`rm`、`mkdir`、`cd` 等指令
+
+
+
+# 文件系统初步计划
+
+- 虚拟文件系统 VFS
+- 在命令提示符中包含当前路径
+- 带参数的命令解析
