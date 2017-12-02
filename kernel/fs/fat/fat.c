@@ -193,7 +193,6 @@ u32 fs_next_slash(u8* f)
     for (j = 0; (chr11[j] != 0) && (j < 12); j++) {
         if (chr11[j] == '.')
             break;
-
         filename11[j] = chr11[j];
     }
 
@@ -203,7 +202,6 @@ u32 fs_next_slash(u8* f)
             filename11[k] = chr11[j];
         }
     }
-
     filename11[11] = 0;
 
     return i;
@@ -242,7 +240,6 @@ u32 fs_find(FILE* file)
     // Find directory entry.
     while (1) {
         file->dir_entry_pos = 0xFFFFFFFF;
-
         next_slash = fs_next_slash(f);
 
         while (1) {
@@ -287,7 +284,7 @@ u32 fs_find(FILE* file)
     after_fs_find:
         // If not found.
         if (file->dir_entry_pos == 0xFFFFFFFF)
-            goto fs_find_ok;
+            goto fs_find_err;
 
         // If path parsing completes.
         if (f[next_slash] == 0)
@@ -300,6 +297,7 @@ u32 fs_find(FILE* file)
         f += next_slash + 1;
 
         // Open sub directory, high word(+20), low word(+26).
+        // TODO: confused.
         next_clus = get_start_cluster(file);
 
         if (next_clus <= fat_info.total_data_clusters + 1) {
@@ -338,10 +336,6 @@ u32 fs_open(FILE* file, u8* filename)
     if (fs_find(file) == 1)
         goto fs_open_err;
 
-    // If file not exists.
-    if (file->dir_entry_pos == 0xFFFFFFFF)
-        goto fs_open_err;
-
     return 0;
 fs_open_err:
     return 1;
@@ -352,7 +346,7 @@ u32 fs_fflush()
 {
     u32 i;
 
-    // FSInfo should add base_addr
+    // FSInfo should add base_addr.
     if (write_block(fat_info.fat_fs_info, 1 + fat_info.base_addr, 1) == 1)
         goto fs_fflush_err;
 
@@ -373,7 +367,7 @@ fs_fflush_err:
     return 1;
 }
 
-// Close: write all buf in memory to SD.
+// Close: write all buf in memory to sd.
 u32 fs_close(FILE* file)
 {
     u32 i;
@@ -383,10 +377,9 @@ u32 fs_close(FILE* file)
     index = fs_read_512(dir_data_buf, file->dir_entry_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
     if (index == 0xffffffff)
         goto fs_close_err;
-
     dir_data_buf[index].state = 3;
 
-    // Issue: need file->dir_entry to be local partition offset.
+    // issue: need file->dir_entry to be local partition offset.
     for (i = 0; i < 32; i++)
         *(dir_data_buf[index].buf + file->dir_entry_pos + i) = file->entry.data[i];
     // Do fflush to write global buffers.
@@ -728,6 +721,7 @@ u32 fs_create_with_attr(u8* filename, u8 attr)
     u32 clus;
     u32 index;
     FILE file_creat;
+
     // If file exists.
     if (fs_open(&file_creat, filename) == 0)
         goto fs_creat_err;
@@ -750,10 +744,6 @@ u32 fs_create_with_attr(u8* filename, u8 attr)
             file_creat.path[i] = 0;
 
         if (fs_find(&file_creat) == 1)
-            goto fs_creat_err;
-
-        // If path not found.
-        if (file_creat.dir_entry_pos == 0xFFFFFFFF)
             goto fs_creat_err;
 
         clus = get_start_cluster(&file_creat);

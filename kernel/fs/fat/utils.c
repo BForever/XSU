@@ -43,8 +43,8 @@ void set_u32(u8* ch, u32 num)
 // work around.
 u32 fs_wa(u32 num)
 {
-    // return the bits of `num`
-    // FIXME: the original version returns n-1 for the n-bit `num`. After I change it, seems also work fine?
+    // return the bits of `num`.
+    // FIXME: the original version returns n-1 for the n-bit `num`.
     u32 i;
     for (i = 0; num >= 1; num >>= 1, i++)
         ;
