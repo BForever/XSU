@@ -14,4 +14,4 @@ void dump_fat_info(struct fs_info* info) {
     kernel_printf("First data sector: %x\n", info->first_data_sector);
     kernel_printf("Total data clusters: %x\n", info->total_data_clusters);
 }
-#endif  // ! FS_DEBUG
+#endif

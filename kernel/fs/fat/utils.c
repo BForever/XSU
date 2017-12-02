@@ -2,7 +2,7 @@
 #include <driver/sd.h>
 #include "fat.h"
 
-/* Read/Write block for FAT (starts from first block of partition 1) */
+// Read/Write block for FAT (starts from first block of partition 1).
 u32 read_block(u8 *buf, u32 addr, u32 count) {
     return sd_read_block(buf, addr, count);
 }
@@ -11,7 +11,8 @@ u32 write_block(u8 *buf, u32 addr, u32 count) {
     return sd_write_block(buf, addr, count);
 }
 
-/* char to u16/u32 */
+// char to u16/u32.
+// Little endian.
 u16 get_u16(u8 *ch) {
     return (*ch) + ((*(ch + 1)) << 8);
 }
@@ -20,7 +21,7 @@ u32 get_u32(u8 *ch) {
     return (*ch) + ((*(ch + 1)) << 8) + ((*(ch + 2)) << 16) + ((*(ch + 3)) << 24);
 }
 
-/* u16/u32 to char */
+// u16/u32 to char.
 void set_u16(u8 *ch, u16 num) {
     *ch = (u8)(num & 0xFF);
     *(ch + 1) = (u8)((num >> 8) & 0xFF);
@@ -33,11 +34,12 @@ void set_u32(u8 *ch, u32 num) {
     *(ch + 3) = (u8)((num >> 24) & 0xFF);
 }
 
-/* work around */
+// work around.
 u32 fs_wa(u32 num) {
     // return the bits of `num`
+    // FIXME: the original version returns n-1 for the n-bit `num. After I change it, seems also work fine?
     u32 i;
-    for (i = 0; num > 1; num >>= 1, i++)
+    for (i = 0; num >= 1; num >>= 1, i++)
         ;
     return i;
 }
