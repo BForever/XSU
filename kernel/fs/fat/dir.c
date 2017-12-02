@@ -1,34 +1,33 @@
 #include "dir.h"
+#include <xsu/fs/fscache.h>
 #include "fat.h"
 #include "utils.h"
-#include <xsu/fs/fscache.h>
 
-// used to find or create a directory entry.
+/* used to find or create a directory entry */
 #define DIR_DATA_BUF_NUM 4
 FILE dir_find;
 extern BUF_512 dir_data_buf[DIR_DATA_BUF_NUM];
 extern u32 dir_data_clock_head;
 extern struct fs_info fat_info;
 
-// open directory.
-u32 fs_open_dir(FS_FAT_DIR* dir, u8* filename)
-{
+/* open directory */
+u32 fs_open_dir(FS_FAT_DIR *dir, u8 *filename) {
     u32 index;
     u32 i;
 
     if (filename[0] != '/')
-        goto fs_open_dir_error;
+        goto fs_open_dir_err;
 
-    dir->cur_sector = fs_data_cluster_to_sector(2);
+    dir->cur_sector = fs_dataclus2sec(2);
     dir->loc = 0;
     dir->sec = 1;
 
-    // Open root directory.
+    /* Open root directory */
     index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
     if (index == 0xffffffff)
-        goto fs_open_dir_error;
+        goto fs_open_dir_err;
 
-    // If not root directory.
+    /* if not root directory */
     if (filename[1] != 0) {
         for (i = 0; i < 256; i++)
             dir_find.path[i] = 0;
@@ -36,33 +35,32 @@ u32 fs_open_dir(FS_FAT_DIR* dir, u8* filename)
             dir_find.path[i] = filename[i];
 
         if (fs_find(&dir_find) == 1)
-            goto fs_open_dir_error;
+            goto fs_open_dir_err;
 
-        // If file not exists.
+        /* If file not exists */
         if (dir_find.dir_entry_pos == 0xFFFFFFFF)
-            goto fs_open_dir_error;
+            goto fs_open_dir_err;
 
-        // If not a sub directory.
+        /* If not a sub directory */
         if ((dir_find.entry.data[11] & 0x10) == 0)
-            goto fs_open_dir_error;
+            goto fs_open_dir_err;
 
-        dir->cur_sector = fs_data_cluster_to_sector(get_start_cluster(&dir_find));
+        dir->cur_sector = fs_dataclus2sec(get_start_cluster(&dir_find));
 
-        // Open first sector.
+        /* open first sector */
         index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
         if (index == 0xffffffff)
-            goto fs_open_dir_error;
+            goto fs_open_dir_err;
     }
 
     return 0;
 
-fs_open_dir_error:
+fs_open_dir_err:
     return 1;
 }
 
-// read dir.
-u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf)
-{
+/* read dir */
+u32 fs_read_dir(FS_FAT_DIR *dir, u8 *buf) {
     u32 sec;
     u32 i;
     u32 index;
@@ -71,16 +69,16 @@ u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf)
 
     index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
     if (index == 0xffffffff)
-        goto fs_read_dir_error;
+        goto fs_read_dir_err;
 
     while (1) {
         for (sec = dir->sec; sec <= fat_info.BPB.attr.sectors_per_cluster; sec++) {
-            // Find directory entry in current cluster.
+            /* Find directory entry in current cluster */
             for (i = dir->loc; i < 512; i += 32) {
                 if (*(dir_data_buf[index].buf + i) == 0)
                     goto after_fs_read_dir_nomore;
 
-                // Ignore long path and deleted file.
+                /* Ignore long path and deleted file */
                 if ((*(dir_data_buf[index].buf + i) != 0xE5) && ((*(dir_data_buf[index].buf + i + 11) & 0x08) == 0)) {
                     dir->loc = i + 32;
 
@@ -90,7 +88,7 @@ u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf)
                     goto after_fs_read_dir;
                 }
             }
-            // next sector in current cluster.
+            /* next sector in current cluster */
             if (sec < fat_info.BPB.attr.sectors_per_cluster) {
                 dir->sec = sec + 1;
                 dir->loc = 0;
@@ -98,20 +96,20 @@ u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf)
 
                 index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
                 if (index == 0xffffffff)
-                    goto fs_read_dir_error;
+                    goto fs_read_dir_err;
             } else {
-                // Read next cluster of current directory.
+                /* Read next cluster of current directory */
                 if (get_fat_entry_value(dir_data_buf[index].cur - fat_info.BPB.attr.sectors_per_cluster + 1, &next_clus) == 1)
-                    goto fs_read_dir_error;
+                    goto fs_read_dir_err;
 
                 if (next_clus <= fat_info.total_data_clusters + 1) {
                     dir->sec = 1;
                     dir->loc = 0;
-                    dir->cur_sector = fs_data_cluster_to_sector(next_clus);
+                    dir->cur_sector = fs_dataclus2sec(next_clus);
 
                     index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
                     if (index == 0xffffffff)
-                        goto fs_read_dir_error;
+                        goto fs_read_dir_err;
                 } else
                     goto after_fs_read_dir_nomore;
             }
@@ -122,6 +120,6 @@ after_fs_read_dir:
     return 0;
 after_fs_read_dir_nomore:
     return 0xffffffff;
-fs_read_dir_error:
+fs_read_dir_err:
     return 1;
 }

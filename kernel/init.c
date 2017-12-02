@@ -14,7 +14,7 @@ void machine_info()
 {
     int row;
     int col;
-    kernel_printf("\n%s\n", "XSU V1.0");
+    kernel_printf("\n%s\n", "XSU File System Test V1.0");
     row = cursor_row;
     col = cursor_col;
     cursor_row = 29;
@@ -36,9 +36,9 @@ void init_kernel()
     init_ps2();
     init_time();
     // Memory management
-    log(LOG_START, "Memory Modules.");
+    // log(LOG_START, "Memory Modules.");
     init_mem();
-    log(LOG_END, "Memory Modules.");
+    // log(LOG_END, "Memory Modules.");
     // File system
     log(LOG_START, "File System.");
     init_fs();
@@ -48,9 +48,9 @@ void init_kernel()
     init_syscall();
     log(LOG_END, "System Calls.");
     // Process control
-    log(LOG_START, "Process Control Module.");
+    // log(LOG_START, "Process Control Module.");
     init_pc();
-    log(LOG_END, "Process Control Module.");
+    // log(LOG_END, "Process Control Module.");
     // Interrupts
     log(LOG_START, "Enable Interrupts.");
     init_interrupts();
