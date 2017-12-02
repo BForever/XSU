@@ -1,19 +1,17 @@
 #include "ps.h"
+#include "../usr/ls.h"
 #include <driver/ps2.h>
 #include <driver/sd.h>
 #include <driver/vga.h>
-#include <xsu/bootmm.h>
-#include <xsu/buddy.h>
 #include <xsu/fs/fat.h>
-#include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
-#include "../usr/ls.h"
 
 char ps_buffer[64];
 int ps_buffer_index;
 
-void test_syscall4() {
+void test_syscall4()
+{
     asm volatile(
         "li $a0, 0x00ff\n\t"
         "li $v0, 4\n\t"
@@ -21,34 +19,40 @@ void test_syscall4() {
         "nop\n\t");
 }
 
-void test_proc() {
+void test_proc()
+{
     unsigned int timestamp;
     unsigned int currTime;
     unsigned int data;
-    asm volatile("mfc0 %0, $9, 6\n\t" : "=r"(timestamp));
+    asm volatile("mfc0 %0, $9, 6\n\t"
+                 : "=r"(timestamp));
     data = timestamp & 0xff;
     while (1) {
-        asm volatile("mfc0 %0, $9, 6\n\t" : "=r"(currTime));
+        asm volatile("mfc0 %0, $9, 6\n\t"
+                     : "=r"(currTime));
         if (currTime - timestamp > 100000000) {
             timestamp += 100000000;
-            *((unsigned int *)0xbfc09018) = data;
+            *((unsigned int*)0xbfc09018) = data;
         }
     }
 }
 
-int proc_demo_create() {
+int proc_demo_create()
+{
     int asid = pc_peek();
     if (asid < 0) {
         kernel_puts("Failed to allocate pid.\n", 0xfff, 0);
         return 1;
     }
     unsigned int init_gp;
-    asm volatile("la %0, _gp\n\t" : "=r"(init_gp));
+    asm volatile("la %0, _gp\n\t"
+                 : "=r"(init_gp));
     pc_create(asid, test_proc, (unsigned int)kmalloc(4096), init_gp, "test");
     return 0;
 }
 
-void ps() {
+void ps()
+{
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
@@ -85,14 +89,15 @@ void ps() {
     }
 }
 
-void parse_cmd() {
+void parse_cmd()
+{
     unsigned int result = 0;
     char dir[32];
     char c;
     kernel_putchar('\n', 0, 0);
     char sd_buffer[8192];
     int i = 0;
-    char *param;
+    char* param;
     for (i = 0; i < 63; i++) {
         if (ps_buffer[i] == ' ') {
             ps_buffer[i] = 0;
@@ -147,7 +152,8 @@ void parse_cmd() {
         kernel_printf("kill return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "time") == 0) {
         unsigned int init_gp;
-        asm volatile("la %0, _gp\n\t" : "=r"(init_gp));
+        asm volatile("la %0, _gp\n\t"
+                     : "=r"(init_gp));
         pc_create(2, system_time_proc, (unsigned int)kmalloc(4096), init_gp, "time");
     } else if (kernel_strcmp(ps_buffer, "proc") == 0) {
         result = proc_demo_create();

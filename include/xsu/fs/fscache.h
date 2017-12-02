@@ -12,9 +12,9 @@ typedef struct buf_4k {
 
 // 512 byte buffer.
 typedef struct buf_512 {
-    u8 buf[512];
-    u32 cur;
-    u32 state;
+    u8 buf[512]; // data.
+    u32 cur; // which sector it is.
+    u32 state; // reference/dirty bit.
 } BUF_512;
 
 u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size);

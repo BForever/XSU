@@ -10,15 +10,15 @@ u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size)
 
     // sweep 1.
     for (i = 0; i < size; i++) {
-        // if reference bit is zero.
+        // If reference bit is zero.
         if (((buf[*clock_head].state) & 0x01) == 0) {
-            // if dirty bit is also zero, it is the victim.
+            // If dirty bit is also zero, it is the victim.
             if (((buf[*clock_head].state) & 0x02) == 0) {
                 index = *clock_head;
                 goto fs_victim_4k_ok;
             }
         }
-        // otherwise, clean reference bit.
+        // Otherwise, clean reference bit.
         else
             buf[*clock_head].state &= 0xfe;
 
@@ -28,7 +28,7 @@ u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size)
 
     // sweep 2.
     for (i = 0; i < size; i++) {
-        // since reference bit has cleaned in sweep 1, only check dirty bit.
+        // Since reference bit has cleaned in sweep 1, only check dirty bit.
         if (((buf[*clock_head].state) & 0x02) == 0) {
             index = *clock_head;
             goto fs_victim_4k_ok;
@@ -38,11 +38,10 @@ u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size)
             *clock_head = 0;
     }
 
-    // if all blocks are dirty, just use clock head.
+    // If all blocks are dirty, just use clock head.
     index = *clock_head;
 
 fs_victim_4k_ok:
-
     if ((++(*clock_head)) >= size)
         *clock_head = 0;
 
@@ -52,13 +51,13 @@ fs_victim_4k_ok:
 // Write current 4k buffer.
 u32 fs_write_4k(BUF_4K* f)
 {
+    // If the dirty bit is 1.
     if ((f->cur != 0xffffffff) && (((f->state) & 0x02) != 0)) {
         if (write_block(f->buf, f->cur, fat_info.BPB.attr.sectors_per_cluster) == 1)
             goto fs_write_4k_error;
-
+        // Reset the dirty bit and set the reference bit.
         f->state &= 0x01;
     }
-
     return 0;
 
 fs_write_4k_error:
@@ -70,11 +69,11 @@ u32 fs_read_4k(BUF_4K* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
 {
     u32 index;
     u32 FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
-    // try to find in buffer.
+    // Try to find in buffer.
     for (index = 0; (index < size) && (f[index].cur != FirstSecWithOfs); index++) {
     }
 
-    // if not in buffer, find victim & replace, otherwise set reference bit.
+    // If not in buffer, find victim & replace, otherwise set reference bit.
     if (index == size) {
         index = fs_victim_4k(f, clock_head, size);
 
@@ -90,11 +89,12 @@ u32 fs_read_4k(BUF_4K* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
         f[index].state |= 0x01;
 
     return index;
+
 fs_read_4k_error:
     return 0xffffffff;
 }
 
-// clear a buffer block, used to avoid reading a new erased block from sd.
+// Clear a buffer block, used to avoid reading a new erased block from sd.
 u32 fs_clear_4k(BUF_4K* buf, u32* clock_head, u32 size, u32 cur)
 {
     u32 index;
@@ -117,7 +117,7 @@ fs_clear_4k_error:
     return 1;
 }
 
-// find victim in 512-byte/4k buffer.
+// Find victim in 512-byte buffer.
 u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size)
 {
     u32 i;
@@ -125,15 +125,15 @@ u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size)
 
     // sweep 1.
     for (i = 0; i < size; i++) {
-        // if reference bit is zero.
+        // If reference bit is zero.
         if (((buf[*clock_head].state) & 0x01) == 0) {
-            // if dirty bit is also zero, it is the victim.
+            // If dirty bit is also zero, it is the victim.
             if (((buf[*clock_head].state) & 0x02) == 0) {
                 index = *clock_head;
                 goto fs_victim_512_ok;
             }
         }
-        // otherwise, clean reference bit.
+        // Otherwise, clean reference bit.
         else
             buf[*clock_head].state &= 0xfe;
 
@@ -143,7 +143,7 @@ u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size)
 
     // sweep 2.
     for (i = 0; i < size; i++) {
-        // since reference bit has cleaned in sweep 1, only check dirty bit.
+        // Since reference bit has cleaned in sweep 1, only check dirty bit.
         if (((buf[*clock_head].state) & 0x02) == 0) {
             index = *clock_head;
             goto fs_victim_512_ok;
@@ -153,11 +153,10 @@ u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size)
             *clock_head = 0;
     }
 
-    // if all blocks are dirty, just use clock head.
+    // If all blocks are dirty, just use clock head.
     index = *clock_head;
 
 fs_victim_512_ok:
-
     if ((++(*clock_head)) >= size)
         *clock_head = 0;
 
@@ -167,13 +166,13 @@ fs_victim_512_ok:
 // Write current 512 buffer.
 u32 fs_write_512(BUF_512* f)
 {
+    // If the dirty bit is 1.
     if ((f->cur != 0xffffffff) && (((f->state) & 0x02) != 0)) {
         if (write_block(f->buf, f->cur, 1) == 1)
             goto fs_write_512_error;
-
+        // Reset the dirty bit and set the reference bit.
         f->state &= 0x01;
     }
-
     return 0;
 
 fs_write_512_error:
@@ -185,11 +184,11 @@ u32 fs_read_512(BUF_512* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
 {
     u32 index;
     u32 FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
-    // try to find in buffer.
+    // Try to find in buffer.
     for (index = 0; (index < size) && (f[index].cur != FirstSecWithOfs); index++) {
     }
 
-    // if not in buffer, find victim & replace, otherwise set reference bit.
+    // If not in buffer, find victim & replace, otherwise set reference bit.
     if (index == size) {
         index = fs_victim_512(f, clock_head, size);
 
@@ -205,6 +204,7 @@ u32 fs_read_512(BUF_512* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
         f[index].state |= 0x01;
 
     return index;
+
 fs_read_512_error:
     return 0xffffffff;
 }

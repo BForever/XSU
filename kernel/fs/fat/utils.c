@@ -98,6 +98,7 @@ u32 fs_modify_fat(u32 clus, u32 clusEntryVal)
     if (index == 0xffffffff) {
         goto fs_modify_fat_error;
     }
+    // Set the reference and dirty bit to 1.
     fat_buf[index].state = 3;
 
     clusEntryVal &= 0x0fffffff;
