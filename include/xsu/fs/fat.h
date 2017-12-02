@@ -109,43 +109,24 @@ struct fs_info {
 };
 
 unsigned long fs_find(FILE *file);
-
 unsigned long init_fs();
-
 unsigned long fs_open(FILE *file, unsigned char *filename);
-
 unsigned long fs_close(FILE *file);
-
 unsigned long fs_read(FILE *file, unsigned char *buf, unsigned long count);
-
 unsigned long fs_write(FILE *file, const unsigned char *buf, unsigned long count);
-
 unsigned long fs_fflush();
-
 void fs_lseek(FILE *file, unsigned long new_loc);
-
 unsigned long fs_create(unsigned char *filename);
-
 unsigned long fs_mkdir(unsigned char *filename);
-
 unsigned long fs_rm(unsigned char *filename);
-
 unsigned long fs_mv(unsigned char *src, unsigned char *dest);
-
 unsigned long fs_open_dir(FS_FAT_DIR *dir, unsigned char *filename);
-
 unsigned long fs_read_dir(FS_FAT_DIR *dir, unsigned char *buf);
-
 unsigned long fs_cat(unsigned char * path);
-
 void get_filename(unsigned char *entry, unsigned char *buf);
-
 u32 read_block(u8 *buf, u32 addr, u32 count);
-
 u32 write_block(u8 *buf, u32 addr, u32 count);
-
 u32 get_entry_filesize(u8 *entry);
-
 u32 get_entry_attr(u8 *entry);
 
-#endif  // !_ZJUNIX_FS_FAT_H
+#endif

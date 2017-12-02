@@ -3,4 +3,4 @@
 
 #include <xsu/fs/fat.h>
 
-#endif  // ! _FAT_DIR_H
+#endif

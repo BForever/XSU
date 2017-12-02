@@ -3,4 +3,4 @@
 
 #include <xsu/fs/fscache.h>
 
-#endif  // _FSCACHE_H
+#endif

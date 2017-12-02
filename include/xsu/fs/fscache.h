@@ -27,5 +27,4 @@ u32 fs_write_512(BUF_512 *f);
 u32 fs_read_512(BUF_512 *f, u32 FirstSectorOfCluster, u32 *clock_head, u32 size);
 u32 fs_clr_512(BUF_512 *buf, u32 *clock_head, u32 size, u32 cur);
 
-
-#endif // ! _ZJUNIX_FSCACHE_H
+#endif
