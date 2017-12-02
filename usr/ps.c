@@ -140,6 +140,15 @@ void parse_cmd()
     } else if (kernel_strcmp(ps_buffer, "ls") == 0) {
         result = ls(param);
         kernel_printf("ls return with %d\n", result);
+    } else if (kernel_strcmp(ps_buffer, "mkdir") == 0) {
+        result = fs_mkdir(ps_buffer);
+        kernel_printf("mkdir return with %d\n", result);
+    } else if (kernel_strcmp(ps_buffer, "create") == 0) {
+        result = fs_create(ps_buffer);
+        kernel_printf("create return with %d\n", result);
+    } else if (kernel_strcmp(ps_buffer, "rm") == 0) {
+        result = fs_rm(ps_buffer);
+        kernel_printf("rm return with %d\n", result);
     } else {
         kernel_puts(ps_buffer, 0xfff, 0);
         kernel_puts(": command not found\n", 0xfff, 0);
