@@ -141,13 +141,13 @@ void parse_cmd()
         result = ls(param);
         kernel_printf("ls return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "mkdir") == 0) {
-        result = fs_mkdir("fuck");
+        result = fs_mkdir(param);
         kernel_printf("mkdir return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "create") == 0) {
-        result = fs_create("test1.txt");
+        result = fs_create(param);
         kernel_printf("create return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "rm") == 0) {
-        result = fs_rm("test1.txt");
+        result = fs_rm(param);
         kernel_printf("rm return with %d\n", result);
     } else {
         kernel_puts(ps_buffer, 0xfff, 0);
