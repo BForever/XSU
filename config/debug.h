@@ -20,7 +20,7 @@
 // #define MYVI_DEBUG
 
 // file system
-// #define FS_DEBUG
+#define FS_DEBUG
 
 // exec
 // #define EXEC_DEBUG
