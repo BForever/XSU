@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <driver/vga.h>
 #include <xsu/log.h>
+#include <xsu/slab.h>
 
 u8 mk_dir_buf[32];
 FILE file_create;
@@ -145,23 +146,23 @@ fs_mkdir_err:
     return 1;
 }
 
-// u32 fs_cat(u8 *path) {
-//     u8 filename[12];
-//     FILE cat_file;
+u32 fs_cat(u8 *path) {
+    u8 filename[12];
+    FILE cat_file;
 
-//     /* Open */
-//     if (0 != fs_open(&cat_file, path)) {
-//         log(LOG_FAIL, "File %s open failed", path);
-//         return 1;
-//     }
+    /* Open */
+    if (0 != fs_open(&cat_file, path)) {
+        log(LOG_FAIL, "File %s open failed", path);
+        return 1;
+    }
 
-//     /* Read */
-//     u32 file_size = get_entry_filesize(cat_file.entry.data);
-//     u8 *buf = (u8 *)kmalloc(file_size + 1);
-//     fs_read(&cat_file, buf, file_size);
-//     buf[file_size] = 0;
-//     kernel_printf("%s\n", buf);
-//     fs_close(&cat_file);
-//     kfree(buf);
-//     return 0;
-// }
+    /* Read */
+    u32 file_size = get_entry_filesize(cat_file.entry.data);
+    u8 *buf = (u8 *)kmalloc(file_size + 1);
+    fs_read(&cat_file, buf, file_size);
+    buf[file_size] = 0;
+    kernel_printf("%s\n", buf);
+    fs_close(&cat_file);
+    kfree(buf);
+    return 0;
+}

@@ -149,6 +149,9 @@ void parse_cmd()
     } else if (kernel_strcmp(ps_buffer, "rm") == 0) {
         result = fs_rm(param);
         kernel_printf("rm return with %d\n", result);
+    } else if (kernel_strcmp(ps_buffer, "cat") == 0) {
+        result = fs_cat(param);
+        kernel_printf("cat return with %d\n", result);
     } else {
         kernel_puts(ps_buffer, 0xfff, 0);
         kernel_puts(": command not found\n", 0xfff, 0);

@@ -9,6 +9,10 @@
 #include <xsu/log.h>
 #include <xsu/syscall.h>
 #include <xsu/time.h>
+#include <page.h>
+#include <xsu/bootmm.h>
+#include <xsu/buddy.h>
+#include <xsu/slab.h>
 
 void machine_info()
 {
@@ -36,9 +40,14 @@ void init_kernel()
     init_ps2();
     init_time();
     // Memory management
-    // log(LOG_START, "Memory Modules.");
-    init_mem();
-    // log(LOG_END, "Memory Modules.");
+    log(LOG_START, "Memory Modules.");
+    init_bootmm();
+    log(LOG_OK, "Bootmem.");
+    init_buddy();
+    log(LOG_OK, "Buddy.");
+    init_slab();
+    log(LOG_OK, "Slab.");
+    log(LOG_END, "Memory Modules.");
     // File system
     log(LOG_START, "File System.");
     init_fs();
