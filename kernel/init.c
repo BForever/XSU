@@ -5,14 +5,15 @@
 #include <exc.h>
 #include <init_place_holder.h>
 #include <intr.h>
-#include <xsu/fs/fat.h>
-#include <xsu/log.h>
-#include <xsu/syscall.h>
-#include <xsu/time.h>
 #include <page.h>
 #include <xsu/bootmm.h>
 #include <xsu/buddy.h>
+#include <xsu/fs/fat.h>
+#include <xsu/fs/vfs.h>
+#include <xsu/log.h>
 #include <xsu/slab.h>
+#include <xsu/syscall.h>
+#include <xsu/time.h>
 
 void machine_info()
 {
@@ -48,6 +49,10 @@ void init_kernel()
     init_slab();
     log(LOG_OK, "Slab.");
     log(LOG_END, "Memory Modules.");
+    // Virtual file system
+    log(LOG_START, "Virtual File System.");
+    init_vfs();
+    log(LOG_END, "Virtual File System.");
     // File system
     log(LOG_START, "File System.");
     init_fs();

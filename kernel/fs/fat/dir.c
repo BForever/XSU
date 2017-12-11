@@ -7,14 +7,14 @@
 #define DIR_DATA_BUF_NUM 4
 FILE dir_find;
 extern BUF_512 dir_data_buf[DIR_DATA_BUF_NUM];
-extern u32 dir_data_clock_head;
+extern uint32_t dir_data_clock_head;
 extern struct fs_info fat_info;
 
 // Open directory.
-u32 fs_open_dir(FS_FAT_DIR* dir, u8* filename)
+uint32_t fs_open_dir(FS_FAT_DIR* dir, uint8_t* filename)
 {
-    u32 index;
-    u32 i;
+    uint32_t index;
+    uint32_t i;
 
     if (filename[0] != '/')
         goto fs_open_dir_err;
@@ -61,13 +61,13 @@ fs_open_dir_err:
 }
 
 // Read dir.
-u32 fs_read_dir(FS_FAT_DIR* dir, u8* buf)
+uint32_t fs_read_dir(FS_FAT_DIR* dir, uint8_t* buf)
 {
-    u32 sec;
-    u32 i;
-    u32 index;
-    u32 k;
-    u32 next_clus;
+    uint32_t sec;
+    uint32_t i;
+    uint32_t index;
+    uint32_t k;
+    uint32_t next_clus;
 
     index = fs_read_512(dir_data_buf, dir->cur_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
     if (index == 0xffffffff)

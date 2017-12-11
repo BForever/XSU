@@ -11,7 +11,7 @@ extern BUF_512 fat_buf[FAT_BUF_NUM];
 
 extern struct fs_info fat_info;
 
-u32 fs_create_with_attr(u8* filename, u8 attr);
-u32 read_fat_sector(u32 ThisFATSecNum);
+uint32_t fs_create_with_attr(uint8_t* filename, uint8_t attr);
+uint32_t read_fat_sector(uint32_t ThisFATSecNum);
 
 #endif

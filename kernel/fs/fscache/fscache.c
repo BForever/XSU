@@ -3,10 +3,10 @@
 
 extern struct fs_info fat_info;
 
-u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size)
+uint32_t fs_victim_4k(BUF_4K* buf, uint32_t* clock_head, uint32_t size)
 {
-    u32 i;
-    u32 index = *clock_head;
+    uint32_t i;
+    uint32_t index = *clock_head;
 
     /* sweep 1 */
     for (i = 0; i < size; i++) {
@@ -50,7 +50,7 @@ fs_victim_4k_ok:
 }
 
 // Write current 4k buffer.
-u32 fs_write_4k(BUF_4K* f)
+uint32_t fs_write_4k(BUF_4K* f)
 {
     if ((f->cur != 0xffffffff) && (((f->state) & 0x02) != 0)) {
         if (write_block(f->buf, f->cur, fat_info.BPB.attr.sectors_per_cluster) == 1)
@@ -66,10 +66,10 @@ fs_write_4k_err:
 }
 
 // Read 4k cluster.
-u32 fs_read_4k(BUF_4K* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
+uint32_t fs_read_4k(BUF_4K* f, uint32_t FirstSectorOfCluster, uint32_t* clock_head, uint32_t size)
 {
-    u32 index;
-    u32 FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
+    uint32_t index;
+    uint32_t FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
     // Try to find in buffer.
     for (index = 0; (index < size) && (f[index].cur != FirstSecWithOfs); index++) {
     }
@@ -95,10 +95,10 @@ fs_read_4k_err:
 }
 
 // Clear a buffer block, used to avoid reading a new erased block from sd.
-u32 fs_clr_4k(BUF_4K* buf, u32* clock_head, u32 size, u32 cur)
+uint32_t fs_clr_4k(BUF_4K* buf, uint32_t* clock_head, uint32_t size, uint32_t cur)
 {
-    u32 index;
-    u32 i;
+    uint32_t index;
+    uint32_t i;
 
     index = fs_victim_4k(buf, clock_head, size);
 
@@ -118,10 +118,10 @@ fs_clr_4k_err:
 }
 
 // Find victim in 512-byte/4k buffer.
-u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size)
+uint32_t fs_victim_512(BUF_512* buf, uint32_t* clock_head, uint32_t size)
 {
-    u32 i;
-    u32 index = *clock_head;
+    uint32_t i;
+    uint32_t index = *clock_head;
 
     /* sweep 1 */
     for (i = 0; i < size; i++) {
@@ -165,7 +165,7 @@ fs_victim_512_ok:
 }
 
 // Write current 512 buffer.
-u32 fs_write_512(BUF_512* f)
+uint32_t fs_write_512(BUF_512* f)
 {
     if ((f->cur != 0xffffffff) && (((f->state) & 0x02) != 0)) {
         if (write_block(f->buf, f->cur, 1) == 1)
@@ -181,10 +181,10 @@ fs_write_512_err:
 }
 
 // Read 512 sector.
-u32 fs_read_512(BUF_512* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size)
+uint32_t fs_read_512(BUF_512* f, uint32_t FirstSectorOfCluster, uint32_t* clock_head, uint32_t size)
 {
-    u32 index;
-    u32 FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
+    uint32_t index;
+    uint32_t FirstSecWithOfs = FirstSectorOfCluster + fat_info.base_addr;
     // Try to find in buffer.
     for (index = 0; (index < size) && (f[index].cur != FirstSecWithOfs); index++) {
     }
@@ -209,10 +209,10 @@ fs_read_512_err:
     return 0xffffffff;
 }
 
-u32 fs_clr_512(BUF_512* buf, u32* clock_head, u32 size, u32 cur)
+uint32_t fs_clr_512(BUF_512* buf, uint32_t* clock_head, uint32_t size, uint32_t cur)
 {
-    u32 index;
-    u32 i;
+    uint32_t index;
+    uint32_t i;
 
     index = fs_victim_512(buf, clock_head, size);
 

@@ -4,14 +4,14 @@
 #include <xsu/log.h>
 #include <xsu/slab.h>
 
-u8 mk_dir_buf[32];
+uint8_t mk_dir_buf[32];
 FILE file_create;
 
 // Remove directory entry.
-u32 fs_rm(u8* filename)
+uint32_t fs_rm(uint8_t* filename)
 {
-    u32 clus;
-    u32 next_clus;
+    uint32_t clus;
+    uint32_t next_clus;
     FILE mk_dir;
 
     if (fs_open(&mk_dir, filename) == 1)
@@ -42,11 +42,11 @@ fs_rm_err:
 }
 
 // Move directory entry.
-u32 fs_mv(u8* src, u8* dest)
+uint32_t fs_mv(uint8_t* src, uint8_t* dest)
 {
-    u32 i;
+    uint32_t i;
     FILE mk_dir;
-    u8 filename11[13];
+    uint8_t filename11[13];
 
     // If src not exists.
     if (fs_open(&mk_dir, src) == 1)
@@ -86,9 +86,9 @@ fs_mv_err:
 }
 
 // mkdir, create a new file and write . and ..
-u32 fs_mkdir(u8* filename)
+uint32_t fs_mkdir(uint8_t* filename)
 {
-    u32 i;
+    uint32_t i;
     FILE mk_dir;
     FILE file_creat;
 
@@ -129,8 +129,8 @@ u32 fs_mkdir(u8* filename)
     for (i = 12; i < 32; i++)
         mk_dir_buf[i] = 0;
 
-    set_u16(mk_dir_buf + 20, (file_creat.dir_entry_pos >> 16) & 0xFFFF);
-    set_u16(mk_dir_buf + 26, file_creat.dir_entry_pos & 0xFFFF);
+    set_uint16_t(mk_dir_buf + 20, (file_creat.dir_entry_pos >> 16) & 0xFFFF);
+    set_uint16_t(mk_dir_buf + 26, file_creat.dir_entry_pos & 0xFFFF);
 
     if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
         goto fs_mkdir_err;
@@ -146,8 +146,9 @@ fs_mkdir_err:
     return 1;
 }
 
-u32 fs_cat(u8 *path) {
-    u8 filename[12];
+uint32_t fs_cat(uint8_t* path)
+{
+    uint8_t filename[12];
     FILE cat_file;
 
     /* Open */
@@ -157,8 +158,8 @@ u32 fs_cat(u8 *path) {
     }
 
     /* Read */
-    u32 file_size = get_entry_filesize(cat_file.entry.data);
-    u8 *buf = (u8 *)kmalloc(file_size + 1);
+    uint32_t file_size = get_entry_filesize(cat_file.entry.data);
+    uint8_t* buf = (uint8_t*)kmalloc(file_size + 1);
     fs_read(&cat_file, buf, file_size);
     buf[file_size] = 0;
     kernel_printf("%s\n", buf);

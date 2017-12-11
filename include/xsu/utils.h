@@ -9,10 +9,19 @@ unsigned int* kernel_memset_word(unsigned int* dest, unsigned int w, int len);
 int kernel_strcmp(const char* dest, const char* src);
 int pow(int x, int z);
 void kernel_cache(unsigned int block_index);
+
+/*
+ * C string functions.
+ *
+ * kstrdup is like strdup, but calls kmalloc instead of malloc.
+ * If out of memory, it returns NULL.
+ */
 char* kernel_strcpy(char* dest, const char* src);
+char* kernel_strdup(const char* str);
 void kernel_serial_puts(char* str);
 void kernel_serial_putc(char c);
 unsigned int is_bound(unsigned int val, unsigned int bound);
+const char *strerror(int errcode);
 
 typedef unsigned char* va_list;
 #define _INTSIZEOF(n) ((sizeof(n) + sizeof(unsigned int) - 1) & ~(sizeof(unsigned int) - 1))

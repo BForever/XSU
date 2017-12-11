@@ -10,21 +10,21 @@
 #endif // ! FS_DEBUG
 
 /* fat buffer clock head */
-u32 fat_clock_head = 0;
+uint32_t fat_clock_head = 0;
 BUF_512 fat_buf[FAT_BUF_NUM];
 
-u8 filename11[13];
-u8 new_alloc_empty[PAGE_SIZE];
+uint8_t filename11[13];
+uint8_t new_alloc_empty[PAGE_SIZE];
 
 #define DIR_DATA_BUF_NUM 4
 BUF_512 dir_data_buf[DIR_DATA_BUF_NUM];
-u32 dir_data_clock_head = 0;
+uint32_t dir_data_clock_head = 0;
 
 struct fs_info fat_info;
 
-u32 init_fat_info()
+uint32_t init_fat_info()
 {
-    u8 meta_buf[512];
+    uint8_t meta_buf[512];
 
     // Init buffers.
     kernel_memset(meta_buf, 0, sizeof(meta_buf));
@@ -36,7 +36,7 @@ u32 init_fat_info()
     }
     log(LOG_OK, "Get MBR sector info");
     // MBR partition 1 entry starts from +446, and LBA starts from +8.
-    fat_info.base_addr = get_u32(meta_buf + 446 + 8);
+    fat_info.base_addr = get_uint32_t(meta_buf + 446 + 8);
 
     // Get FAT BPB.
     if (read_block(fat_info.BPB.data, fat_info.base_addr, 1) == 1)
@@ -66,11 +66,11 @@ u32 init_fat_info()
         goto init_fat_info_err;
     }
     // If not FAT32, goto error state.
-    u32 total_sectors = fat_info.BPB.attr.num_of_sectors;
-    u32 reserved_sectors = fat_info.BPB.attr.reserved_sectors;
-    u32 sectors_per_fat = fat_info.BPB.attr.num_of_sectors_per_fat;
-    u32 total_data_sectors = total_sectors - reserved_sectors - sectors_per_fat * 2;
-    u8 sectors_per_cluster = fat_info.BPB.attr.sectors_per_cluster;
+    uint32_t total_sectors = fat_info.BPB.attr.num_of_sectors;
+    uint32_t reserved_sectors = fat_info.BPB.attr.reserved_sectors;
+    uint32_t sectors_per_fat = fat_info.BPB.attr.num_of_sectors_per_fat;
+    uint32_t total_data_sectors = total_sectors - reserved_sectors - sectors_per_fat * 2;
+    uint8_t sectors_per_cluster = fat_info.BPB.attr.sectors_per_cluster;
     fat_info.total_data_clusters = total_data_sectors / sectors_per_cluster;
     if (fat_info.total_data_clusters < 65525) {
         goto init_fat_info_err;
@@ -113,9 +113,9 @@ void init_dir_buf()
 }
 
 // FAT initialize.
-u32 init_fs()
+uint32_t init_fs()
 {
-    u32 succ = init_fat_info();
+    uint32_t succ = init_fat_info();
     if (0 != succ)
         goto fs_init_err;
     init_fat_buf();
@@ -128,7 +128,7 @@ fs_init_err:
 }
 
 // Write current fat sector.
-u32 write_fat_sector(u32 index)
+uint32_t write_fat_sector(uint32_t index)
 {
     if ((fat_buf[index].cur != 0xffffffff) && (((fat_buf[index].state) & 0x02) != 0)) {
         // Write FAT and FAT copy.
@@ -144,9 +144,9 @@ write_fat_sector_err:
 }
 
 // Read fat sector.
-u32 read_fat_sector(u32 ThisFATSecNum)
+uint32_t read_fat_sector(uint32_t ThisFATSecNum)
 {
-    u32 index;
+    uint32_t index;
     // Try to find in buffer.
     for (index = 0; (index < FAT_BUF_NUM) && (fat_buf[index].cur != ThisFATSecNum); index++)
         ;
@@ -172,10 +172,10 @@ read_fat_sector_err:
 }
 
 // Path convertion.
-u32 fs_next_slash(u8* f)
+uint32_t fs_next_slash(uint8_t* f)
 {
-    u32 i, j, k;
-    u8 chr11[13];
+    uint32_t i, j, k;
+    uint8_t chr11[13];
     for (i = 0; (*(f + i) != 0) && (*(f + i) != '/'); i++)
         ;
 
@@ -186,7 +186,7 @@ u32 fs_next_slash(u8* f)
     for (j = 0; j < 12 && j < i; j++) {
         chr11[j] = *(f + j);
         if (chr11[j] >= 'a' && chr11[j] <= 'z')
-            chr11[j] = (u8)(chr11[j] - 'a' + 'A');
+            chr11[j] = (uint8_t)(chr11[j] - 'a' + 'A');
     }
     chr11[12] = 0;
 
@@ -208,9 +208,9 @@ u32 fs_next_slash(u8* f)
 }
 
 // strcmp
-u32 fs_cmp_filename(const u8* f1, const u8* f2)
+uint32_t fs_cmp_filename(const uint8_t* f1, const uint8_t* f2)
 {
-    u32 i;
+    uint32_t i;
     for (i = 0; i < 11; i++) {
         if (f1[i] != f2[i])
             return 1;
@@ -220,14 +220,14 @@ u32 fs_cmp_filename(const u8* f1, const u8* f2)
 }
 
 // Find a file, only absolute path with starting '/' accepted.
-u32 fs_find(FILE* file)
+uint32_t fs_find(FILE* file)
 {
-    u8* f = file->path;
-    u32 next_slash;
-    u32 i, k;
-    u32 next_clus;
-    u32 index;
-    u32 sec;
+    uint8_t* f = file->path;
+    uint32_t next_slash;
+    uint32_t i, k;
+    uint32_t next_clus;
+    uint32_t index;
+    uint32_t sec;
 
     if (*(f++) != '/')
         goto fs_find_err;
@@ -314,9 +314,9 @@ fs_find_err:
 }
 
 // Open: just do initializing & fs_find.
-u32 fs_open(FILE* file, u8* filename)
+uint32_t fs_open(FILE* file, uint8_t* filename)
 {
-    u32 i;
+    uint32_t i;
 
     // Local buffer initialize.
     for (i = 0; i < LOCAL_DATA_BUF_NUM; i++) {
@@ -342,9 +342,9 @@ fs_open_err:
 }
 
 // fflush, write global buffers to sd.
-u32 fs_fflush()
+uint32_t fs_fflush()
 {
-    u32 i;
+    uint32_t i;
 
     // FSInfo should add base_addr.
     if (write_block(fat_info.fat_fs_info, 1 + fat_info.base_addr, 1) == 1)
@@ -368,10 +368,10 @@ fs_fflush_err:
 }
 
 // Close: write all buf in memory to sd.
-u32 fs_close(FILE* file)
+uint32_t fs_close(FILE* file)
 {
-    u32 i;
-    u32 index;
+    uint32_t i;
+    uint32_t index;
 
     // Write directory entry.
     index = fs_read_512(dir_data_buf, file->dir_entry_sector, &dir_data_clock_head, DIR_DATA_BUF_NUM);
@@ -396,16 +396,16 @@ fs_close_err:
 }
 
 // Read from file.
-u32 fs_read(FILE* file, u8* buf, u32 count)
+uint32_t fs_read(FILE* file, uint8_t* buf, uint32_t count)
 {
-    u32 start_clus, start_byte;
-    u32 end_clus, end_byte;
-    u32 filesize = file->entry.attr.size;
-    u32 clus = get_start_cluster(file);
-    u32 next_clus;
-    u32 i;
-    u32 cc;
-    u32 index;
+    uint32_t start_clus, start_byte;
+    uint32_t end_clus, end_byte;
+    uint32_t filesize = file->entry.attr.size;
+    uint32_t clus = get_start_cluster(file);
+    uint32_t next_clus;
+    uint32_t i;
+    uint32_t cc;
+    uint32_t index;
 
 #ifdef FS_DEBUG
     kernel_printf("fs_read: count %d\n", count);
@@ -482,10 +482,10 @@ fs_read_err:
 }
 
 // Find a free data cluster.
-u32 fs_next_free(u32 start, u32* next_free)
+uint32_t fs_next_free(uint32_t start, uint32_t* next_free)
 {
-    u32 clus;
-    u32 ClusEntryVal;
+    uint32_t clus;
+    uint32_t ClusEntryVal;
 
     *next_free = 0xFFFFFFFF;
 
@@ -505,15 +505,15 @@ fs_next_free_err:
 }
 
 // Alloc a new free data cluster.
-u32 fs_alloc(u32* new_alloc)
+uint32_t fs_alloc(uint32_t* new_alloc)
 {
-    u32 clus;
-    u32 next_free;
+    uint32_t clus;
+    uint32_t next_free;
 
-    clus = get_u32(fat_info.fat_fs_info + 492) + 1;
+    clus = get_uint32_t(fat_info.fat_fs_info + 492) + 1;
 
     // If FSI_Nxt_Free is illegal (> FSI_Free_Count), find a free data cluster from beginning.
-    if (clus > get_u32(fat_info.fat_fs_info + 488) + 1) {
+    if (clus > get_uint32_t(fat_info.fat_fs_info + 488) + 1) {
         if (fs_next_free(2, &clus) == 1)
             goto fs_alloc_err;
 
@@ -532,7 +532,7 @@ u32 fs_alloc(u32* new_alloc)
     if (next_free > fat_info.total_data_clusters + 1)
         goto fs_alloc_err;
 
-    set_u32(fat_info.fat_fs_info + 492, next_free - 1);
+    set_uint32_t(fat_info.fat_fs_info + 492, next_free - 1);
 
     *new_alloc = clus;
 
@@ -546,33 +546,33 @@ fs_alloc_err:
 }
 
 // Write to file.
-u32 fs_write(FILE* file, const u8* buf, u32 count)
+uint32_t fs_write(FILE* file, const uint8_t* buf, uint32_t count)
 {
     // If write 0 bytes.
     if (count == 0) {
         return 0;
     }
 
-    u32 start_clus = file->loc >> fs_wa(fat_info.BPB.attr.sectors_per_cluster << 9);
-    u32 start_byte = file->loc & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
-    u32 end_clus = (file->loc + count - 1) >> fs_wa(fat_info.BPB.attr.sectors_per_cluster << 9);
-    u32 end_byte = (file->loc + count - 1) & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
+    uint32_t start_clus = file->loc >> fs_wa(fat_info.BPB.attr.sectors_per_cluster << 9);
+    uint32_t start_byte = file->loc & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
+    uint32_t end_clus = (file->loc + count - 1) >> fs_wa(fat_info.BPB.attr.sectors_per_cluster << 9);
+    uint32_t end_byte = (file->loc + count - 1) & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
 
     // If file is empty, alloc a new data cluster.
-    u32 curr_cluster = get_start_cluster(file);
+    uint32_t curr_cluster = get_start_cluster(file);
     if (curr_cluster == 0) {
         if (fs_alloc(&curr_cluster) == 1) {
             goto fs_write_err;
         }
-        file->entry.attr.starthi = (u16)(((curr_cluster >> 16) & 0xFFFF));
-        file->entry.attr.startlow = (u16)((curr_cluster & 0xFFFF));
+        file->entry.attr.starthi = (uint16_t)(((curr_cluster >> 16) & 0xFFFF));
+        file->entry.attr.startlow = (uint16_t)((curr_cluster & 0xFFFF));
         if (fs_clr_4k(file->data_buf, &(file->clock_head), LOCAL_DATA_BUF_NUM, fs_dataclus2sec(curr_cluster)) == 1)
             goto fs_write_err;
     }
 
     // Open first cluster to read.
-    u32 next_cluster;
-    for (u32 i = 0; i < start_clus; i++) {
+    uint32_t next_cluster;
+    for (uint32_t i = 0; i < start_clus; i++) {
         if (get_fat_entry_value(curr_cluster, &next_cluster) == 1)
             goto fs_write_err;
 
@@ -591,8 +591,8 @@ u32 fs_write(FILE* file, const u8* buf, u32 count)
         curr_cluster = next_cluster;
     }
 
-    u32 cc = 0;
-    u32 index = 0;
+    uint32_t cc = 0;
+    uint32_t index = 0;
     while (start_clus <= end_clus) {
         index = fs_read_4k(file->data_buf, fs_dataclus2sec(curr_cluster), &(file->clock_head), LOCAL_DATA_BUF_NUM);
         if (index == 0xffffffff)
@@ -602,13 +602,13 @@ u32 fs_write(FILE* file, const u8* buf, u32 count)
 
         // If in same cluster, just write.
         if (start_clus == end_clus) {
-            for (u32 i = start_byte; i <= end_byte; i++)
+            for (uint32_t i = start_byte; i <= end_byte; i++)
                 file->data_buf[index].buf[i] = buf[cc++];
             goto fs_write_end;
         }
         // Otherwise, write clusters one by one.
         else {
-            for (u32 i = start_byte; i < (fat_info.BPB.attr.sectors_per_cluster << 9); i++)
+            for (uint32_t i = start_byte; i < (fat_info.BPB.attr.sectors_per_cluster << 9); i++)
                 file->data_buf[index].buf[i] = buf[cc++];
 
             start_clus++;
@@ -647,9 +647,9 @@ fs_write_err:
 }
 
 // lseek
-void fs_lseek(FILE* file, u32 new_loc)
+void fs_lseek(FILE* file, uint32_t new_loc)
 {
-    u32 filesize = file->entry.attr.size;
+    uint32_t filesize = file->entry.attr.size;
 
     if (new_loc < filesize)
         file->loc = new_loc;
@@ -658,11 +658,11 @@ void fs_lseek(FILE* file, u32 new_loc)
 }
 
 // Find an empty directory entry.
-u32 fs_find_empty_entry(u32* empty_entry, u32 index)
+uint32_t fs_find_empty_entry(uint32_t* empty_entry, uint32_t index)
 {
-    u32 i;
-    u32 next_clus;
-    u32 sec;
+    uint32_t i;
+    uint32_t next_clus;
+    uint32_t sec;
 
     while (1) {
         for (sec = 1; sec <= fat_info.BPB.attr.sectors_per_cluster; sec++) {
@@ -712,14 +712,14 @@ fs_find_empty_entry_err:
 }
 
 // Create an empty file with attr.
-u32 fs_create_with_attr(u8* filename, u8 attr)
+uint32_t fs_create_with_attr(uint8_t* filename, uint8_t attr)
 {
-    u32 i;
-    u32 l1 = 0;
-    u32 l2 = 0;
-    u32 empty_entry;
-    u32 clus;
-    u32 index;
+    uint32_t i;
+    uint32_t l1 = 0;
+    uint32_t l2 = 0;
+    uint32_t empty_entry;
+    uint32_t clus;
+    uint32_t index;
     FILE file_creat;
 
     // If file exists.
@@ -795,15 +795,15 @@ fs_creat_err:
     return 1;
 }
 
-u32 fs_create(u8* filename)
+uint32_t fs_create(uint8_t* filename)
 {
     return fs_create_with_attr(filename, 0x20);
 }
 
-void get_filename(u8* entry, u8* buf)
+void get_filename(uint8_t* entry, uint8_t* buf)
 {
-    u32 i;
-    u32 l1 = 0, l2 = 8;
+    uint32_t i;
+    uint32_t l1 = 0, l2 = 8;
 
     for (i = 0; i < 11; i++)
         buf[i] = entry[i];

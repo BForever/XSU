@@ -1,7 +1,7 @@
 #ifndef _XSU_FSCACHE_H
 #define _XSU_FSCACHE_H
 
-#include <xsu/type.h>
+#include <xsu/types.h>
 
 /* 4k byte buffer */
 typedef struct buf_4k {
@@ -17,14 +17,14 @@ typedef struct buf_512 {
     unsigned long state;
 } BUF_512;
 
-u32 fs_victim_4k(BUF_4K* buf, u32* clock_head, u32 size);
-u32 fs_write_4k(BUF_4K* f);
-u32 fs_read_4k(BUF_4K* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size);
-u32 fs_clr_4k(BUF_4K* buf, u32* clock_head, u32 size, u32 cur);
+uint32_t fs_victim_4k(BUF_4K* buf, uint32_t* clock_head, uint32_t size);
+uint32_t fs_write_4k(BUF_4K* f);
+uint32_t fs_read_4k(BUF_4K* f, uint32_t FirstSectorOfCluster, uint32_t* clock_head, uint32_t size);
+uint32_t fs_clr_4k(BUF_4K* buf, uint32_t* clock_head, uint32_t size, uint32_t cur);
 
-u32 fs_victim_512(BUF_512* buf, u32* clock_head, u32 size);
-u32 fs_write_512(BUF_512* f);
-u32 fs_read_512(BUF_512* f, u32 FirstSectorOfCluster, u32* clock_head, u32 size);
-u32 fs_clr_512(BUF_512* buf, u32* clock_head, u32 size, u32 cur);
+uint32_t fs_victim_512(BUF_512* buf, uint32_t* clock_head, uint32_t size);
+uint32_t fs_write_512(BUF_512* f);
+uint32_t fs_read_512(BUF_512* f, uint32_t FirstSectorOfCluster, uint32_t* clock_head, uint32_t size);
+uint32_t fs_clr_512(BUF_512* buf, uint32_t* clock_head, uint32_t size, uint32_t cur);
 
 #endif
