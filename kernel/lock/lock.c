@@ -1,12 +1,20 @@
 #include "lock.h"
+#include <assert.h>
 #include <intr.h>
 
-void init_lock(struct lock_t *lock) {
+void init_lock(struct lock_t* lock)
+{
     lock->spin = 0;
     INIT_LIST_HEAD(&(lock->wait));
 }
 
-unsigned int lockup(struct lock_t *lock) {
+void cleanup_lock(struct lock_t* lock)
+{
+    assert(lock->spin == 0, "lock cleanup failed");
+}
+
+unsigned int lockup(struct lock_t* lock)
+{
     unsigned int old_ie;
 
     old_ie = disable_interrupts();
@@ -20,7 +28,8 @@ unsigned int lockup(struct lock_t *lock) {
     return 1;
 }
 
-unsigned int unlock(struct lock_t *lock) {
+unsigned int unlock(struct lock_t* lock)
+{
     unsigned int old_ie;
 
     old_ie = disable_interrupts();
