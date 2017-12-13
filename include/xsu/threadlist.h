@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _THREADLIST_H
-#define _THREADLIST_H
+#ifndef _XSU_THREADLIST_H
+#define _XSU_THREADLIST_H
 
 struct thread; /* from <thread.h> */
 

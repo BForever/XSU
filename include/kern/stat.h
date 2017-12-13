@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
+ * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008
  *	The President and Fellows of Harvard College.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,64 +26,48 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#ifndef _XSU_WCHAN_H
-#define _XSU_WCHAN_H
 
-#include <xsu/lock.h>
-#include <xsu/threadlist.h>
+#ifndef _KERN_STAT_H_
+#define _KERN_STAT_H_
+
+#include <xsu/types.h>
 
 /*
- * Wait channel.
+ * The stat structure, for returning file information via stat(),
+ * fstat(), and lstat().
+ *
+ * Fields corresponding to things you aren't implementing should be
+ * set to zero.
+ *
+ * The file types are in kern/stattypes.h.
  */
+struct stat {
+    /* Essential fields */
+    off_t st_size; /* file size in bytes */
+    mode_t st_mode; /* file type and protection mode */
+    nlink_t st_nlink; /* number of hard links */
+    blkcnt_t st_blocks; /* number of blocks file is using */
 
-struct wchan {
-    const char* wc_name; // Name for this channel.
-    struct threadlist wc_threads; // List of waiting threads.
-    struct lock_t wc_lock; // Lock for mutual exclusion.
+    /* Identity */
+    dev_t st_dev; /* device object lives on */
+    ino_t st_ino; /* inode number (serial number) of object */
+    dev_t st_rdev; /* device object is (if a device) */
+
+    /* Timestamps */
+    time_t st_atime; /* last access time: seconds */
+    time_t st_ctime; /* inode change time: seconds */
+    time_t st_mtime; /* modification time: seconds */
+    __u32 st_atimensec; /* last access time: nanoseconds */
+    __u32 st_ctimensec; /* inode change time: nanoseconds */
+    __u32 st_mtimensec; /* modification time: nanoseconds */
+
+    /* Permissions (also st_mode) */
+    uid_t st_uid; /* owner */
+    gid_t st_gid; /* group */
+
+    /* Other */
+    __u32 st_gen; /* file generation number (root only) */
+    blksize_t st_blksize; /* recommended I/O block size */
 };
-
-/*
- * Create a wait channel. Use NAME as a symbolic name for the channel.
- * NAME should be a string constant; if not, the caller is responsible
- * for freeing it after the wchan is destroyed.
- */
-struct wchan* wchan_create(const char* name);
-
-/*
- * Destroy a wait channel. Must be empty and unlocked.
- */
-void wchan_destroy(struct wchan* wc);
-
-/*
- * Return nonzero if there are no threads sleeping on the channel.
- * This is meant to be used only for diagnostic purposes.
- */
-bool wchan_isempty(struct wchan* wc);
-
-/*
- * Lock and unlock the wait channel.
- */
-void wchan_lock(struct wchan* wc);
-void wchan_unlock(struct wchan* wc);
-
-/*
- * Go to sleep on a wait channel. The current thread is suspended
- * until awakened by someone else, at which point this function
- * returns.
- *
- * The channel must be locked, and will have been *unlocked* upon
- * return.
- */
-void wchan_sleep(struct wchan* wc);
-
-/*
- * Wake up one thread, or all threads, sleeping on a wait channel.
- * The queue should not already be locked.
- *
- * The current implementation is FIFO but this is not promised by the
- * interface.
- */
-void wchan_wakeone(struct wchan* wc);
-void wchan_wakeall(struct wchan* wc);
 
 #endif

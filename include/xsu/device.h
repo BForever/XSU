@@ -58,7 +58,7 @@ struct device {
  *      devop_ioctl - miscellaneous control operations
  */
 struct device_ops {
-    int (*devop_eachopen)(struct device*, int flags_from_open);
+    int (*devop_open)(struct device*, int flags_from_open);
     int (*devop_close)(struct device*);
     int (*devop_io)(struct device*, struct uio*);
     int (*devop_ioctl)(struct device*, int op, userptr_t data);
@@ -67,7 +67,7 @@ struct device_ops {
 /*
  * Macros to shorten the calling sequences.
  */
-#define DEVOP_EACHOPEN(d, f) ((d)->d_ops->devop_eachopen(d, f))
+#define DEVOP_OPEN(d, f) ((d)->d_ops->devop_open(d, f))
 #define DEVOP_CLOSE(d) ((d)->d_ops->devop_close(d))
 #define DEVOP_IO(d, u) ((d)->d_ops->devop_io(d, u))
 #define DEVOP_IOCTL(d, op, p) ((d)->d_ops->devop_ioctl(d, op, p))

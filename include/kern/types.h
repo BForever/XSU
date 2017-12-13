@@ -31,7 +31,7 @@
 #define _KERN_TYPES_H
 
 /* Get machine-dependent types. */
-#include <mips_types.h>
+#include <kern/mips_types.h>
 
 /*
  * Machine-independent types visible to user level.

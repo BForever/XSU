@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
+ * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008
  *	The President and Fellows of Harvard College.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,64 +26,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#ifndef _XSU_WCHAN_H
-#define _XSU_WCHAN_H
 
-#include <xsu/lock.h>
-#include <xsu/threadlist.h>
+#ifndef _KERN_STATTYPES_H
+#define _KERN_STATTYPES_H
 
 /*
- * Wait channel.
- */
-
-struct wchan {
-    const char* wc_name; // Name for this channel.
-    struct threadlist wc_threads; // List of waiting threads.
-    struct lock_t wc_lock; // Lock for mutual exclusion.
-};
-
-/*
- * Create a wait channel. Use NAME as a symbolic name for the channel.
- * NAME should be a string constant; if not, the caller is responsible
- * for freeing it after the wchan is destroyed.
- */
-struct wchan* wchan_create(const char* name);
-
-/*
- * Destroy a wait channel. Must be empty and unlocked.
- */
-void wchan_destroy(struct wchan* wc);
-
-/*
- * Return nonzero if there are no threads sleeping on the channel.
- * This is meant to be used only for diagnostic purposes.
- */
-bool wchan_isempty(struct wchan* wc);
-
-/*
- * Lock and unlock the wait channel.
- */
-void wchan_lock(struct wchan* wc);
-void wchan_unlock(struct wchan* wc);
-
-/*
- * Go to sleep on a wait channel. The current thread is suspended
- * until awakened by someone else, at which point this function
- * returns.
+ * Further supporting material for stat(), fstat(), and lstat().
  *
- * The channel must be locked, and will have been *unlocked* upon
- * return.
- */
-void wchan_sleep(struct wchan* wc);
-
-/*
- * Wake up one thread, or all threads, sleeping on a wait channel.
- * The queue should not already be locked.
+ * File types for st_mode. (The permissions are the low 12 bits.)
+ * 
+ * These are also used, shifted right by those 12 bits, in struct
+ * dirent in libc, which is why they get their own file.
  *
- * The current implementation is FIFO but this is not promised by the
- * interface.
+ * Non-underscore versions of the names can be gotten from <stat.h>
+ * (kernel) or <sys/stat.h> (userland).
  */
-void wchan_wakeone(struct wchan* wc);
-void wchan_wakeall(struct wchan* wc);
+
+#define _S_IFMT 070000 /* mask for type of file */
+#define _S_IFREG 010000 /* ordinary regular file */
+#define _S_IFDIR 020000 /* directory */
+#define _S_IFLNK 030000 /* symbolic link */
+#define _S_IFIFO 040000 /* pipe or named pipe */
+#define _S_IFSOCK 050000 /* socket */
+#define _S_IFCHR 060000 /* character device */
+#define _S_IFBLK 070000 /* block device */
 
 #endif

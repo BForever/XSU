@@ -43,7 +43,7 @@
  */
 
 #define ENOSYS 1 /* Function not implemented */
-/* unused               2                                  */
+#define EUNIMP 2 /* Unimplemented feature */
 #define ENOMEM 3 /* Out of memory */
 #define EAGAIN 4 /* Operation would block */
 #define EINTR 5 /* Interrupted system call */

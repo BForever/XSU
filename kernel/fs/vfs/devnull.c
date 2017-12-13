@@ -31,9 +31,9 @@
  * Implementation of the null device, "null:", which generates an
  * immediate EOF on read and throws away anything written to it.
  */
-#include <device.h>
-#include <errno_base.h>
-#include <vfs.h>
+#include <kern/errno.h>
+#include <xsu/device.h>
+#include <xsu/fs/vfs.h>
 #include <xsu/log.h>
 #include <xsu/slab.h>
 
@@ -89,7 +89,7 @@ static int nullioctl(struct device* dev, int op, userptr_t data)
 }
 
 static const struct device_ops null_devops = {
-    .devop_eachopen = nullopen,
+    .devop_open = nullopen,
     .devop_close = nullclose,
     .devop_io = nullio,
     .devop_ioctl = nullioctl,

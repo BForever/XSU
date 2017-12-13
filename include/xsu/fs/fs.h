@@ -26,64 +26,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#ifndef _XSU_WCHAN_H
-#define _XSU_WCHAN_H
 
-#include <xsu/lock.h>
-#include <xsu/threadlist.h>
+#ifndef _XSU_FS_FS_H
+#define _XSU_FS_FS_H
 
 /*
- * Wait channel.
+ * Abstract filesystem. (Or device accessible as a file.)
+ *
+ * Operations:
+ *
+ *      fs_sync       - Flush all dirty buffers to disk.
+ *      fs_getvolname - Return volume name of filesystem.
+ *      fs_getroot    - Return root vnode of filesystem.
+ *      fs_unmount    - Attempt unmount of filesystem.
+ *
+ * fs_getvolname may return NULL on filesystem types that don't
+ * support the concept of a volume name. The string returned is
+ * assumed to point into the filesystem's private storage and live
+ * until unmount time.
+ *
+ * If the volume name changes on the fly, there is no way at present
+ * to make sure such changes don't cause name conflicts. So it probably
+ * should be considered fixed.
+ *
+ * fs_getroot should increment the refcount of the vnode returned.
+ * It should not ever return NULL.
+ *
+ * If fs_unmount returns an error, the filesystem stays mounted, and
+ * consequently the struct fs instance should remain valid. On success,
+ * however, the filesystem object and all storage associated with the
+ * filesystem should have been discarded/released.
+ *
+ * fs_data is a pointer to filesystem-specific data.
  */
 
-struct wchan {
-    const char* wc_name; // Name for this channel.
-    struct threadlist wc_threads; // List of waiting threads.
-    struct lock_t wc_lock; // Lock for mutual exclusion.
+struct fs {
+    int (*fs_sync)(struct fs*);
+    const char* (*fs_getvolname)(struct fs*);
+    struct vnode* (*fs_getroot)(struct fs*);
+    int (*fs_unmount)(struct fs*);
+
+    void* fs_data;
 };
 
 /*
- * Create a wait channel. Use NAME as a symbolic name for the channel.
- * NAME should be a string constant; if not, the caller is responsible
- * for freeing it after the wchan is destroyed.
+ * Macros to shorten the calling sequences.
  */
-struct wchan* wchan_create(const char* name);
-
-/*
- * Destroy a wait channel. Must be empty and unlocked.
- */
-void wchan_destroy(struct wchan* wc);
-
-/*
- * Return nonzero if there are no threads sleeping on the channel.
- * This is meant to be used only for diagnostic purposes.
- */
-bool wchan_isempty(struct wchan* wc);
-
-/*
- * Lock and unlock the wait channel.
- */
-void wchan_lock(struct wchan* wc);
-void wchan_unlock(struct wchan* wc);
-
-/*
- * Go to sleep on a wait channel. The current thread is suspended
- * until awakened by someone else, at which point this function
- * returns.
- *
- * The channel must be locked, and will have been *unlocked* upon
- * return.
- */
-void wchan_sleep(struct wchan* wc);
-
-/*
- * Wake up one thread, or all threads, sleeping on a wait channel.
- * The queue should not already be locked.
- *
- * The current implementation is FIFO but this is not promised by the
- * interface.
- */
-void wchan_wakeone(struct wchan* wc);
-void wchan_wakeall(struct wchan* wc);
+#define FSOP_SYNC(fs) ((fs)->fs_sync(fs))
+#define FSOP_GETVOLNAME(fs) ((fs)->fs_getvolname(fs))
+#define FSOP_GETROOT(fs) ((fs)->fs_getroot(fs))
+#define FSOP_UNMOUNT(fs) ((fs)->fs_unmount(fs))
 
 #endif

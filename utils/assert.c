@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <driver/vga.h>
 
 // void assert(int statement, char* message) {
 //     if (statement != 1) {

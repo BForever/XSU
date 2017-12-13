@@ -33,7 +33,7 @@
 /*
  * Misc
  *
- *    init_vfs      - Call during system initialization to allocate 
+ *    vfs_bootstrap - Call during system initialization to allocate 
  *                    structures.
  *
  *    vfs_setbootfs - Set the filesystem that paths beginning with a
@@ -75,7 +75,7 @@
  *    vfs_unmountall - Unmount all mounted filesystems.
  */
 
-void init_vfs(void);
+void vfs_bootstrap(void);
 int vfs_adddev(const char* devname, struct device* dev, int mountable);
 
 #endif

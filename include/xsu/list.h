@@ -1,5 +1,5 @@
-#ifndef _LIST_H
-#define _LIST_H
+#ifndef _XSU_LIST_H
+#define _XSU_LIST_H
 
 #define LIST_POISON1 (void*)0x10101010
 #define LIST_POISON2 (void*)0x20202020

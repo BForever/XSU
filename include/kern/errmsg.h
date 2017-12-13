@@ -41,7 +41,7 @@
 const char* const sys_errlist[] = {
     "Operation succeeded", /* 0 */
     "Function not implemented", /* ENOSYS */
-    "(undefined error 2)", /* unused */
+    "Unimplemented feature", /* EUNIMP */
     "Out of memory", /* ENOMEM */
     "Operation would block", /* EAGAIN (also EWOULDBLOCK) */
     "Interrupted system call", /* EINTR */

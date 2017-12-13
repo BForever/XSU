@@ -51,7 +51,7 @@ void init_kernel()
     log(LOG_END, "Memory Modules.");
     // Virtual file system
     log(LOG_START, "Virtual File System.");
-    init_vfs();
+    vfs_bootstrap();
     log(LOG_END, "Virtual File System.");
     // File system
     log(LOG_START, "File System.");

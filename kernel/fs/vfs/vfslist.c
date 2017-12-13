@@ -34,7 +34,11 @@
 
 #define VFSINLINE
 
+#include <kern/errno.h>
+#include <xsu/device.h>
+#include <xsu/fs/fs.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
 #include <xsu/utils.h>
 
@@ -88,7 +92,7 @@ static unsigned vfs_biglock_depth;
 /*
  * Setup function. 
  */
-void init_vfs(void)
+void vfs_bootstrap(void)
 {
     knowndevs = knowndevarray_create();
     if (knowndevs == NULL) {
@@ -136,6 +140,77 @@ void vfs_biglock_acquire(void)
 }
 
 /*
+ * Assemble the name for a raw device from the name for the regular device.
+ */
+static char* mk_raw_name(const char* name)
+{
+    char* s = kmalloc(kernel_strlen(name) + 3 + 1);
+    if (!s) {
+        return NULL;
+    }
+    kernel_strcpy(s, name);
+    kernel_strcat(s, "raw");
+    return s;
+}
+
+/*
+ * Check if the two strings passed in are the same, if they're both
+ * not NULL (the latter part being significant).
+ */
+static inline int same_string(const char* a, const char* b)
+{
+    if (a == NULL || b == NULL) {
+        return 0;
+    }
+    return !kernel_strcmp(a, b);
+}
+
+/*
+ * Check if the first string passed is the same as any of the three others,
+ * if they're not NULL.
+ */
+static inline int same_string3(const char* a, const char* b, const char* c, const char* d)
+{
+    return same_string(a, b) || same_string(a, c) || same_string(a, d);
+}
+
+/*
+ * Check if any of the three names passed in already exists as a device
+ * name.
+ */
+
+/*
+ * Check if any of the three names passed in already exists as a device
+ * name.
+ */
+static int bad_names(const char* n1, const char* n2, const char* n3)
+{
+    const char* volname;
+    unsigned i, num;
+    struct knowndev* kd;
+
+    assert(lock_do_i_hold(knowndevs_lock), "The device lock was held by other threads");
+
+    num = knowndevarray_num(knowndevs);
+    for (i = 0; i < num; i++) {
+        kd = knowndevarray_get(knowndevs, i);
+
+        if (kd->kd_fs) {
+            volname = FSOP_GETVOLNAME(kd->kd_fs);
+            if (same_string3(volname, n1, n2, n3)) {
+                return 1;
+            }
+        }
+
+        if (same_string3(kd->kd_rawname, n1, n2, n3) || same_string3(kd->kd_name, n1, n2, n3)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/*
  * Add a new device to the VFS layer's device table.
  *
  * If "mountable" is set, the device will be treated as one that expects
@@ -161,7 +236,7 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
         goto fail;
     }
     if (mountable) {
-        rawname = mkrawname(name);
+        rawname = mk_raw_name(name);
         if (rawname == NULL) {
             result = ENOMEM;
             goto fail;
@@ -190,7 +265,7 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
         volname = FSOP_GETVOLNAME(fs);
     }
 
-    if (badnames(name, rawname, volname)) {
+    if (bad_names(name, rawname, volname)) {
         result = EEXIST;
         goto fail;
     }
@@ -216,7 +291,7 @@ fail:
         kfree(rawname);
     }
     if (vnode) {
-        dev_uncreate_vnode(vnode);
+        kfree(vnode);
     }
     if (kd) {
         kfree(kd);

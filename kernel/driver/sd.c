@@ -1,7 +1,7 @@
 #include "sd.h"
 #include <driver/vga.h>
 
-#pragma GCC push_opitons
+#pragma GCC push_options
 #pragma GCC optimize("O0")
 
 static volatile unsigned int* const SD_CTRL = (unsigned int*)0xbfc09100;
@@ -95,10 +95,10 @@ ret:
     return code;
 }
 
-u32 sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count)
+unsigned int sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count)
 {
-    u32 i;
-    u32 result;
+    unsigned int i;
+    unsigned int result;
     if (1 == count) {
         // read single block
         return sd_read_sector_blocking(addr, buf);
@@ -114,10 +114,10 @@ u32 sd_read_block(unsigned char* buf, unsigned long addr, unsigned long count)
     }
 }
 
-u32 sd_write_block(unsigned char* buf, unsigned long addr, unsigned long count)
+unsigned int sd_write_block(unsigned char* buf, unsigned long addr, unsigned long count)
 {
-    u32 i;
-    u32 result;
+    unsigned int i;
+    unsigned int result;
 #ifdef SD_DEBUG
     kernel_printf("Count: %x, Addr: %x", count, addr);
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
+ * Copyright (c) 2008
  *	The President and Fellows of Harvard College.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,64 +26,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#ifndef _XSU_WCHAN_H
-#define _XSU_WCHAN_H
 
-#include <xsu/lock.h>
-#include <xsu/threadlist.h>
+#ifndef _XSU_STAT_H
+#define _XSU_STAT_H
 
-/*
- * Wait channel.
- */
+/* Get the stat structure. */
+#include <kern/stat.h>
 
-struct wchan {
-    const char* wc_name; // Name for this channel.
-    struct threadlist wc_threads; // List of waiting threads.
-    struct lock_t wc_lock; // Lock for mutual exclusion.
-};
+/* Get the object type macros, which are shared in libc with <dirent.h>. */
+#include <kern/stattypes.h>
 
-/*
- * Create a wait channel. Use NAME as a symbolic name for the channel.
- * NAME should be a string constant; if not, the caller is responsible
- * for freeing it after the wchan is destroyed.
- */
-struct wchan* wchan_create(const char* name);
-
-/*
- * Destroy a wait channel. Must be empty and unlocked.
- */
-void wchan_destroy(struct wchan* wc);
-
-/*
- * Return nonzero if there are no threads sleeping on the channel.
- * This is meant to be used only for diagnostic purposes.
- */
-bool wchan_isempty(struct wchan* wc);
-
-/*
- * Lock and unlock the wait channel.
- */
-void wchan_lock(struct wchan* wc);
-void wchan_unlock(struct wchan* wc);
-
-/*
- * Go to sleep on a wait channel. The current thread is suspended
- * until awakened by someone else, at which point this function
- * returns.
- *
- * The channel must be locked, and will have been *unlocked* upon
- * return.
- */
-void wchan_sleep(struct wchan* wc);
-
-/*
- * Wake up one thread, or all threads, sleeping on a wait channel.
- * The queue should not already be locked.
- *
- * The current implementation is FIFO but this is not promised by the
- * interface.
- */
-void wchan_wakeone(struct wchan* wc);
-void wchan_wakeall(struct wchan* wc);
+/* Provide non-underscore names. */
+#define S_IFMT _S_IFMT
+#define S_IFREG _S_IFREG
+#define S_IFDIR _S_IFDIR
+#define S_IFLNK _S_IFLNK
+#define S_IFIFO _S_IFIFO
+#define S_IFSOCK _S_IFSOCK
+#define S_IFCHR _S_IFCHR
+#define S_IFBLK _S_IFBLK
 
 #endif
