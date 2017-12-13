@@ -10,7 +10,7 @@
  */
 void* kernel_memcpy(void* dest, void* src, int len);
 void* kernel_memset(void* dest, int b, int len);
-void* memmove(void* dst, const void* src, size_t len);
+void* kernel_memmove(void* dst, const void* src, size_t len);
 unsigned int* kernel_memset_word(unsigned int* dest, unsigned int w, int len);
 void bzero(void* vblock, size_t len);
 

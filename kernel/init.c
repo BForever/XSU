@@ -6,6 +6,7 @@
 #include <init_place_holder.h>
 #include <intr.h>
 #include <page.h>
+#include <version.h>
 #include <xsu/bootmm.h>
 #include <xsu/buddy.h>
 #include <xsu/fs/fat.h>
@@ -15,15 +16,20 @@
 #include <xsu/syscall.h>
 #include <xsu/time.h>
 
+static const char copyright[] = "Copyright (c) 2017, 2018\n   Spicy Chicken of Zhejiang University. All rights reserved.\n";
+static const int buildversion = 1;
+static const char buildconfig[] = "MIPS32";
+
 void machine_info()
 {
     int row;
     int col;
-    kernel_printf("\n%s\n", "XSU File System Test V1.0");
+    kernel_printf("\n%s base system version %s\n", OS_NAME, BASE_VERSION);
+    kernel_printf("%s\n", copyright);
     row = cursor_row;
     col = cursor_col;
     cursor_row = 29;
-    kernel_printf("%s", "Created by Deep Dark Fantasy, Zhejiang University.");
+    kernel_printf("system version %s (%s #%d)", GROUP_VERSION, buildconfig, buildversion);
     cursor_row = row;
     cursor_col = col;
     kernel_set_cursor();

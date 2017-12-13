@@ -49,7 +49,7 @@ unsigned int* kernel_memset_word(unsigned int* dest, unsigned int w, int len)
  * C standard function - copy a block of memory, handling overlapping
  * regions correctly.
  */
-void* memmove(void* dst, const void* src, size_t len)
+void* kernel_memmove(void* dst, const void* src, size_t len)
 {
     size_t i;
 
