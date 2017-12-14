@@ -2,13 +2,14 @@
 
 #include <driver/vga.h>
 #include <intr.h>
-#include <zjunix/syscall.h>
-#include <zjunix/utils.h>
+#include <xsu/syscall.h>
+#include <xsu/utils.h>
 
 task_struct pcb[8];
 int curr_proc;
 
-static void copy_context(context* src, context* dest) {
+static void copy_context(context* src, context* dest)
+{
     dest->epc = src->epc;
     dest->at = src->at;
     dest->v0 = src->v0;
@@ -43,7 +44,8 @@ static void copy_context(context* src, context* dest) {
     dest->ra = src->ra;
 }
 
-void init_pc() {
+void init_pc()
+{
     int i;
     for (i = 1; i < 8; i++)
         pcb[i].ASID = -1;
@@ -60,7 +62,8 @@ void init_pc() {
         "mtc0 $zero, $9");
 }
 
-void pc_schedule(unsigned int status, unsigned int cause, context* pt_context) {
+void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
+{
     // Save context
     copy_context(pt_context, &(pcb[curr_proc].context));
     int i;
@@ -79,7 +82,8 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context) {
     asm volatile("mtc0 $zero, $9\n\t");
 }
 
-int pc_peek() {
+int pc_peek()
+{
     int i = 0;
     for (i = 0; i < 8; i++)
         if (pcb[i].ASID < 0)
@@ -89,7 +93,8 @@ int pc_peek() {
     return i;
 }
 
-void pc_create(int asid, void (*func)(), unsigned int init_sp, unsigned int init_gp, char* name) {
+void pc_create(int asid, void (*func)(), unsigned int init_sp, unsigned int init_gp, char* name)
+{
     pcb[asid].context.epc = (unsigned int)func;
     pcb[asid].context.sp = init_sp;
     pcb[asid].context.gp = init_gp;
@@ -97,14 +102,16 @@ void pc_create(int asid, void (*func)(), unsigned int init_sp, unsigned int init
     pcb[asid].ASID = asid;
 }
 
-void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_context) {
+void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_context)
+{
     if (curr_proc != 0) {
         pcb[curr_proc].ASID = -1;
         pc_schedule(status, cause, pt_context);
     }
 }
 
-int pc_kill(int proc) {
+int pc_kill(int proc)
+{
     proc &= 7;
     if (proc != 0 && pcb[proc].ASID >= 0) {
         pcb[proc].ASID = -1;
@@ -115,11 +122,13 @@ int pc_kill(int proc) {
         return 2;
 }
 
-task_struct* get_curr_pcb() {
+task_struct* get_curr_pcb()
+{
     return &pcb[curr_proc];
 }
 
-int print_proc() {
+int print_proc()
+{
     int i;
     kernel_puts("PID name\n", 0xfff, 0);
     for (i = 0; i < 8; i++) {

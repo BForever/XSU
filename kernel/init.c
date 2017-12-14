@@ -68,9 +68,9 @@ void init_kernel()
     init_syscall();
     log(LOG_END, "System Calls.");
     // Process control
-    // log(LOG_START, "Process Control Module.");
+    log(LOG_START, "Process Control Module.");
     init_pc();
-    // log(LOG_END, "Process Control Module.");
+    log(LOG_END, "Process Control Module.");
     // Interrupts
     log(LOG_START, "Enable Interrupts.");
     init_interrupts();

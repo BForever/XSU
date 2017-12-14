@@ -290,8 +290,7 @@ void vnode_decopen(struct vnode*);
  * Vnode initialization (intended for use by filesystem code)
  * The reference count is initialized to 1.
  */
-int vnode_init(struct vnode*, const struct vnode_ops* ops,
-    struct fs* fs, void* fsdata);
+int vnode_init(struct vnode*, const struct vnode_ops* ops, struct fs* fs, void* fsdata);
 
 #define VOP_INIT(vn, ops, fs, data) vnode_init(vn, ops, fs, data)
 

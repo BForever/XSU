@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <xsu/current.h>
 #include <xsu/lock.h>
 #include <xsu/slab.h>
 #include <xsu/synch.h>
@@ -8,7 +9,6 @@
 ////////////////////////////////////////////////////////////
 // Lock.
 ////////////////////////////////////////////////////////////
-// TODO: How to record the current thread?
 
 struct lock* lock_create(const char* name)
 {

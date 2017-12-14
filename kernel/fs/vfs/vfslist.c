@@ -40,7 +40,11 @@
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
+#include <xsu/synch.h>
 #include <xsu/utils.h>
+#ifdef VFS_DEBUG
+#include <driver/vga.h>
+#endif
 
 /*
  * Structure for a single named device.
@@ -80,10 +84,11 @@ struct knowndev {
     struct fs* kd_fs;
 };
 
-DECLARRAY(knowndev, static __UNUSED inline);
-DEFARRAY(knowndev, static __UNUSED inline);
+DECLARRAY(knowndev);
+DEFARRAY(knowndev);
 
 static struct knowndevarray* knowndevs;
+static struct lock* knowndevs_lock;
 
 // The big lock for all FS ops. Remove for filesystem assignment.
 static struct lock* vfs_biglock;
@@ -226,33 +231,33 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
     unsigned index;
     int result;
 
-    index = 0;
+    //	vfs_biglock_acquire();
 
-    vfs_biglock_acquire();
+    knowndevs_lock = lock_create("knowndev");
+    if (knowndevs_lock == NULL) {
+        log(LOG_FAIL, "vfs: Could not create knowndev lock\n");
+    }
 
+    lock_acquire(knowndevs_lock);
     name = kernel_strdup(dname);
     if (name == NULL) {
-        result = ENOMEM;
-        goto fail;
+        goto nomem;
     }
     if (mountable) {
         rawname = mk_raw_name(name);
         if (rawname == NULL) {
-            result = ENOMEM;
-            goto fail;
+            goto nomem;
         }
     }
 
     vnode = dev_create_vnode(dev);
     if (vnode == NULL) {
-        result = ENOMEM;
-        goto fail;
+        goto nomem;
     }
 
     kd = kmalloc(sizeof(struct knowndev));
     if (kd == NULL) {
-        result = ENOMEM;
-        goto fail;
+        goto nomem;
     }
 
     kd->kd_name = name;
@@ -261,29 +266,31 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
     kd->kd_vnode = vnode;
     kd->kd_fs = fs;
 
+#ifdef VFS_DEBUG
+    kernel_printf("device's name: %s\n", kd->kd_name);
+    kernel_printf("device's raw name: %s\n", kd->kd_rawname);
+#endif
+
     if (fs != NULL) {
         volname = FSOP_GETVOLNAME(fs);
     }
 
     if (bad_names(name, rawname, volname)) {
-        result = EEXIST;
-        goto fail;
+        vfs_biglock_release();
+        return EEXIST;
     }
 
     result = knowndevarray_add(knowndevs, kd, &index);
-    if (result) {
-        goto fail;
-    }
 
-    if (dev != NULL) {
+    if (result == 0 && dev != NULL) {
         /* use index+1 as the device number, so 0 is reserved */
         dev->d_devnumber = index + 1;
     }
 
-    vfs_biglock_release();
-    return 0;
+    lock_release(knowndevs_lock);
+    return result;
 
-fail:
+nomem:
     if (name) {
         kfree(name);
     }
@@ -297,8 +304,8 @@ fail:
         kfree(kd);
     }
 
-    vfs_biglock_release();
-    return result;
+    lock_release(knowndevs_lock);
+    return ENOMEM;
 }
 
 /*
