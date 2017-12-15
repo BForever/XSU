@@ -6,6 +6,25 @@
 #include <xsu/utils.h>
 #include <xsu/wchan.h>
 
+/*
+ * Dummy current thread. 
+ */
+
+static const struct thread nullthread = {
+    .t_name = "nullthread",
+    .t_wchan_name = "nullwchan",
+    .t_state = S_RUN,
+    .t_listnode = (void)0,
+    .t_stack = null,
+    .t_in_interrupt = false,
+    .t_curspl = 0,
+    .t_iplhigh_count = 0,
+    .priority = 0,
+    .t_cwd = null,
+    .pid = 0,
+    .ppid = 0
+};
+
 ////////////////////////////////////////////////////////////
 // Lock.
 ////////////////////////////////////////////////////////////

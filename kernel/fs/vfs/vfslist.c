@@ -111,6 +111,9 @@ void vfs_bootstrap(void)
     vfs_biglock_depth = 0;
 
     devnull_create();
+#ifdef VFS_DEBUG
+    kernel_printf("A null device has been created.");
+#endif
 }
 
 /*
