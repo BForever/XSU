@@ -36,6 +36,9 @@
 #include <xsu/fs/vfs.h>
 #include <xsu/log.h>
 #include <xsu/slab.h>
+#include <xsu/uio.h>
+#include <xsu/utils.h>
+
 
 // For open().
 static int nullopen(struct device* dev, int openflags)

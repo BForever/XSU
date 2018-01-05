@@ -1,31 +1,32 @@
 #include <driver/vga.h>
+#include <xsu/slab.h>
 #include <xsu/utils.h>
 
 /*
  * C memory functions. 
  */
 
-void* kernel_memcpy(void* dest, void* src, int len)
+void* kernel_memcpy(void* dst, void* src, int len)
 {
-    char* deststr = dest;
+    char* deststr = dst;
     char* srcstr = src;
     while (len--) {
         *deststr = *srcstr;
         deststr++;
         srcstr++;
     }
-    return dest;
+    return dst;
 }
 
 #pragma GCC push_options
 #pragma GCC optimize("O2")
-void* kernel_memset(void* dest, int b, int len)
+void* kernel_memset(void* dst, int b, int len)
 {
 #ifdef MEMSET_DEBUG
     kernel_printf("memset:%x,%x,len%x,", (int)dest, b, len);
 #endif // ! MEMSET_DEBUG
     char content = b ? -1 : 0;
-    char* deststr = dest;
+    char* deststr = dst;
     while (len--) {
         *deststr = content;
         deststr++;
@@ -33,23 +34,23 @@ void* kernel_memset(void* dest, int b, int len)
 #ifdef MEMSET_DEBUG
     kernel_printf("%x\n", (int)deststr);
 #endif // ! MEMSET_DEBUG
-    return dest;
+    return dst;
 }
 #pragma GCC pop_options
 
-unsigned int* kernel_memset_word(unsigned int* dest, unsigned int w, int len)
+unsigned int* kernel_memset_word(unsigned int* dst, unsigned int w, int len)
 {
     while (len--)
-        *dest++ = w;
+        *dst++ = w;
 
-    return dest;
+    return dst;
 }
 
 /*
  * C standard function - copy a block of memory, handling overlapping
  * regions correctly.
  */
-void* kernel_memmove(void* dst, const void* src, size_t len)
+void* kernel_memmove(void* dst, void* src, size_t len)
 {
     size_t i;
 
@@ -178,7 +179,7 @@ char* kernel_strcpy(char* dest, const char* src)
     return dest;
 }
 
-char* kernel_strcat(chat* dest, const char* src)
+char* kernel_strcat(char* dest, const char* src)
 {
     unsigned int offset = kernel_strlen(src);
 
@@ -193,7 +194,7 @@ char* kernel_strdup(const char* s)
 {
     char* z;
 
-    z = kmalloc(strlen(s) + 1);
+    z = kmalloc(kernel_strlen(s) + 1);
     if (z == NULL) {
         return NULL;
     }

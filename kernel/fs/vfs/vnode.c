@@ -214,7 +214,7 @@ void vnode_check(struct vnode* v, const char* opstr)
 
     if (v->vn_refcount < 0) {
         log(LOG_FAIL, "vnode_check: vop_%s: negative refcount %d\n", opstr, v->vn_refcount);
-    } else if (v->vn_refcount == 0 && strcmp(opstr, "reclaim")) {
+    } else if (v->vn_refcount == 0 && kernel_strcmp(opstr, "reclaim")) {
         log(LOG_FAIL, "vnode_check: vop_%s: zero refcount\n", opstr);
     } else if (v->vn_refcount > 0x100000) {
         kernel_printf("vnode_check: vop_%s: warning: large refcount %d\n", opstr, v->vn_refcount);

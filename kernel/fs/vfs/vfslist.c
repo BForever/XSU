@@ -9,9 +9,11 @@
 #include <xsu/fs/fs.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
+#include <xsu/log.h>
 #include <xsu/slab.h>
 #include <xsu/synch.h>
 #include <xsu/utils.h>
+
 #ifdef VFS_DEBUG
 #include <driver/vga.h>
 #endif

@@ -32,8 +32,8 @@
  */
 
 #include <assert.h>
-#include <thread.h>
-#include <threadlist.h>
+#include <xsu/thread.h>
+#include <xsu/threadlist.h>
 #include <xsu/types.h>
 
 void threadlistnode_init(struct threadlistnode* tln, struct thread* t)

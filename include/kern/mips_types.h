@@ -46,7 +46,7 @@ typedef long long __i64; /* 64-bit signed integer */
 
 typedef unsigned char __u8; /* 8-bit unsigned integer */
 typedef unsigned short __u16; /* 16-bit unsigned integer */
-typedef unsigned int __u32; /* 32-bit unsigned integer */
+typedef unsigned long __u32; /* 32-bit unsigned integer */
 typedef unsigned long long __u64; /* 64-bit unsigned integer */
 
 /* Further standard C types */

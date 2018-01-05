@@ -35,14 +35,15 @@
  */
 #include <assert.h>
 #include <kern/errno.h>
-#include <stat.h>
-#include <uio.h>
-#include <vnode.h>
 #include <xsu/device.h>
 #include <xsu/fs/fcntl.h>
+#include <xsu/fs/vnode.h>
 #include <xsu/log.h>
+#include <xsu/slab.h>
+#include <xsu/stat.h>
 #include <xsu/synch.h>
 #include <xsu/types.h>
+#include <xsu/uio.h>
 #include <xsu/utils.h>
 
 /*
@@ -183,29 +184,29 @@ static int dev_gettype(struct vnode* v, mode_t* ret)
  */
 static int dev_tryseek(struct vnode* v, off_t pos)
 {
-    struct device* d = v->vn_data;
-    if (d->d_blocks > 0) {
-        if ((pos % d->d_blocksize) != 0) {
-            /* not block-aligned */
-            return EINVAL;
-        }
-        if (pos < 0) {
-            /* 
-			 * Nonsensical.
-			 * (note: off_t must be signed for SEEK_CUR or
-			 * SEEK_END seeks to work, so this case must
-			 * be checked.)
-			 */
-            return EINVAL;
-        }
-        if (pos / d->d_blocksize >= d->d_blocks) {
-            /* off the end */
-            return EINVAL;
-        }
-    } else {
-        return ESPIPE;
-    }
-    return 0;
+    //   struct device *d = v->vn_data;
+    //   if (d->d_blocks > 0) {
+    //     if ((pos % d->d_blocksize) != 0) {
+    //       /* not block-aligned */
+    //       return EINVAL;
+    //     }
+    //     if (pos < 0) {
+    //       /*
+    //        * Nonsensical.
+    //        * (note: off_t must be signed for SEEK_CUR or
+    //        * SEEK_END seeks to work, so this case must
+    //        * be checked.)
+    //        */
+    //       return EINVAL;
+    //     }
+    //     if (pos / d->d_blocksize >= d->d_blocks) {
+    //       /* off the end */
+    //       return EINVAL;
+    //     }
+    //   } else {
+    //     return ESPIPE;
+    //   }
+    //   return 0;
 }
 
 /*
@@ -228,15 +229,15 @@ static int dev_mmap(struct vnode* v)
 }
 
 /*
- * For ftruncate(). 
+ * For ftruncate().
  */
 static int dev_truncate(struct vnode* v, off_t len)
 {
     struct device* d = v->vn_data;
 
     /*
-	 * Allow truncating to the object's own size, if it has one.
-	 */
+   * Allow truncating to the object's own size, if it has one.
+   */
     if (d->d_blocks > 0 && (off_t)(d->d_blocks * d->d_blocksize) == len) {
         return 0;
     }
@@ -253,10 +254,10 @@ static int dev_truncate(struct vnode* v, off_t len)
 static int dev_namefile(struct vnode* v, struct uio* uio)
 {
     /*
-	 * The name of a device is always just "device:". The VFS
-	 * layer puts in the device name for us, so we don't need to
-	 * do anything further.
-	 */
+   * The name of a device is always just "device:". The VFS
+   * layer puts in the device name for us, so we don't need to
+   * do anything further.
+   */
 
     (void)v;
     (void)uio;
@@ -268,7 +269,8 @@ static int dev_namefile(struct vnode* v, struct uio* uio)
  * Operations that are completely meaningless on devices.
  */
 
-static int null_creat(struct vnode* v, const char* name, bool excl, mode_t mode, struct vnode** result)
+static int null_creat(struct vnode* v, const char* name, bool excl, mode_t mode,
+    struct vnode** result)
 {
     (void)v;
     (void)name;
@@ -286,7 +288,8 @@ static int null_mkdir(struct vnode* v, const char* name, mode_t mode)
     return ENOTDIR;
 }
 
-static int null_symlink(struct vnode* v, const char* contents, const char* name)
+static int null_symlink(struct vnode* v, const char* contents,
+    const char* name)
 {
     (void)v;
     (void)contents;
@@ -309,7 +312,8 @@ static int null_link(struct vnode* v, const char* name, struct vnode* file)
     return ENOTDIR;
 }
 
-static int null_rename(struct vnode* v, const char* n1, struct vnode* v2, const char* n2)
+static int null_rename(struct vnode* v, const char* n1, struct vnode* v2,
+    const char* n2)
 {
     (void)v;
     (void)n1;
@@ -330,13 +334,14 @@ static int null_rename(struct vnode* v, const char* n1, struct vnode* v2, const 
  *
  * However, we have no support for this in the base system.
  */
-static int dev_lookup(struct vnode* dir, char* pathname, struct vnode** result)
+static int dev_lookup(struct vnode* dir, char* pathname,
+    struct vnode** result)
 {
     /*
-	 * If the path was "device:", we get "". For that, return self.
-	 * Anything else is an error.
-	 * Increment the ref count of the vnode before returning it.
-	 */
+   * If the path was "device:", we get "". For that, return self.
+   * Anything else is an error.
+   * Increment the ref count of the vnode before returning it.
+   */
     if (kernel_strlen(pathname) > 0) {
         return ENOENT;
     }
@@ -345,11 +350,12 @@ static int dev_lookup(struct vnode* dir, char* pathname, struct vnode** result)
     return 0;
 }
 
-static int dev_lookparent(struct vnode* dir, char* pathname, struct vnode** result, char* namebuf, size_t buflen)
+static int dev_lookparent(struct vnode* dir, char* pathname,
+    struct vnode** result, char* namebuf, size_t buflen)
 {
     /*
-	 * This is always an error.
-	 */
+   * This is always an error.
+   */
     (void)dir;
     (void)pathname;
     (void)result;
@@ -406,7 +412,8 @@ struct vnode* dev_create_vnode(struct device* dev)
 
     result = VOP_INIT(v, &dev_vnode_ops, NULL, dev);
     if (result != 0) {
-        log(LOG_FAIL, "While creating vnode for device: VOP_INIT: %s\n", strerror(result));
+        log(LOG_FAIL, "While creating vnode for device: VOP_INIT: %s\n",
+            strerror(result));
     }
 
     return v;

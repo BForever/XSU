@@ -30,6 +30,8 @@
 #ifndef _XSU_THREADLIST_H
 #define _XSU_THREADLIST_H
 
+#include <xsu/types.h>
+
 struct thread; /* from <thread.h> */
 
 /*

@@ -10,20 +10,22 @@
  * Dummy current thread. 
  */
 
-static const struct thread nullthread = {
+static struct thread nullthread = {
     .t_name = "nullthread",
     .t_wchan_name = "nullwchan",
     .t_state = S_RUN,
-    .t_listnode = (void)0,
-    .t_stack = null,
-    .t_in_interrupt = false,
+    .t_listnode = 0,
+    .t_stack = 0,
+    .t_in_interrupt = 0,
     .t_curspl = 0,
     .t_iplhigh_count = 0,
     .priority = 0,
-    .t_cwd = null,
+    .t_cwd = 0,
     .pid = 0,
     .ppid = 0
 };
+
+static struct thread* curthread = &nullthread;
 
 ////////////////////////////////////////////////////////////
 // Lock.

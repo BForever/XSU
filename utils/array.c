@@ -1,6 +1,8 @@
+#include <kern/errno.h>
 #include <xsu/array.h>
 #include <xsu/slab.h>
 #include <xsu/utils.h>
+
 
 /*
  * Base array operations.

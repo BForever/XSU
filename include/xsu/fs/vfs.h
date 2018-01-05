@@ -30,6 +30,8 @@
 #ifndef _XSU_FS_VFS_H
 #define _XSU_FS_VFS_H
 
+#include <xsu/device.h>
+
 /*
  * Misc
  *

@@ -32,6 +32,6 @@
 
 #include <xsu/thread.h>
 
-#define curthread nullthread*
+// #define curthread nullthread*
 
 #endif

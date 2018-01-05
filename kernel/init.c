@@ -3,7 +3,6 @@
 #include <driver/ps2.h>
 #include <driver/vga.h>
 #include <exc.h>
-#include <init_place_holder.h>
 #include <intr.h>
 #include <page.h>
 #include <version.h>
@@ -12,6 +11,7 @@
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/log.h>
+#include <xsu/pc.h>
 #include <xsu/slab.h>
 #include <xsu/syscall.h>
 #include <xsu/time.h>

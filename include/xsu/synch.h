@@ -32,6 +32,8 @@
 #define READ 0
 #define WRITE 1
 
+#include <xsu/lock.h>
+
 /*
  * Simple lock for mutual exclusion.
  *
@@ -42,16 +44,16 @@
  * (should be) made internally.
  */
 struct lock {
-    char* lk_name;
-    struct wchan* lk_wchan;
-    struct lock_t lk_lock;
-    struct thread volatile* lk_owner;
-    // add what you need here
-    // (don't forget to mark things volatile as needed)
+  char *lk_name;
+  struct wchan *lk_wchan;
+  struct lock_t lk_lock;
+  struct thread volatile *lk_owner;
+  // add what you need here
+  // (don't forget to mark things volatile as needed)
 };
 
-struct lock* lock_create(const char* name);
-void lock_acquire(struct lock*);
+struct lock *lock_create(const char *name);
+void lock_acquire(struct lock *);
 
 /*
  * Operations:
@@ -59,13 +61,13 @@ void lock_acquire(struct lock*);
  *                   same time.
  *    lock_release - Free the lock. Only the thread holding the lock may do
  *                   this.
- *    lock_do_i_hold - Return true if the current thread holds the lock; 
+ *    lock_do_i_hold - Return true if the current thread holds the lock;
  *                   false otherwise.
  *
  * These operations must be atomic. You get to write them.
  */
-void lock_release(struct lock*);
-bool lock_do_i_hold(struct lock*);
-void lock_destroy(struct lock*);
+void lock_release(struct lock *);
+bool lock_do_i_hold(struct lock *);
+void lock_destroy(struct lock *);
 
 #endif

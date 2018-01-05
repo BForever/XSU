@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <driver/vga.h>
 #include <xsu/log.h>
 #include <xsu/time.h>
+
 
 #define MAX_LEVEL 4
 #define MIN_LEVEL 0
@@ -8,40 +10,43 @@ static int log_level = 0;
 
 int gstep = 0;
 
-void log_level_adv() {
+void log_level_adv()
+{
     if (log_level < MAX_LEVEL) {
         log_level++;
     }
 }
 
-void log_level_rec() {
+void log_level_rec()
+{
     if (log_level > MIN_LEVEL) {
         log_level--;
     }
 }
 
-void log(int status, const char *format, ...) {
+void log(int status, const char* format, ...)
+{
     char time_buf[9];
     // print status
     switch (status) {
-        case LOG_OK:
-            kernel_puts("[ O K ] ", VGA_GREEN, VGA_BLACK);
-            break;
-        case LOG_FAIL:
-            kernel_puts("[FAIL] ", VGA_RED, VGA_BLACK);
-            break;
-        case LOG_START:
-            kernel_puts("[START] ", VGA_BLUE, VGA_BLACK);
-            break;
-        case LOG_END:
-            kernel_puts("[ END ] ", VGA_BLUE, VGA_BLACK);
-            break;
-        case LOG_STEP:
-            kernel_puts("[STEP] ", VGA_WHITE, VGA_BLACK);
-            break;
-        default:
-            assert(0, "[LOG]: Undefined log status.");
-            break;
+    case LOG_OK:
+        kernel_puts("[ O K ] ", VGA_GREEN, VGA_BLACK);
+        break;
+    case LOG_FAIL:
+        kernel_puts("[FAIL] ", VGA_RED, VGA_BLACK);
+        break;
+    case LOG_START:
+        kernel_puts("[START] ", VGA_BLUE, VGA_BLACK);
+        break;
+    case LOG_END:
+        kernel_puts("[ END ] ", VGA_BLUE, VGA_BLACK);
+        break;
+    case LOG_STEP:
+        kernel_puts("[STEP] ", VGA_WHITE, VGA_BLACK);
+        break;
+    default:
+        assert(0, "[LOG]: Undefined log status.");
+        break;
     }
     // print time
     get_time(time_buf, sizeof(time_buf));
@@ -54,11 +59,13 @@ void log(int status, const char *format, ...) {
     kernel_printf("\n");
 }
 
-void step() {
+void step()
+{
     gstep++;
     log(LOG_STEP, "%x", gstep);
 }
 
-void step_reset() {
+void step_reset()
+{
     gstep = 0;
 }
