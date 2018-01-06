@@ -102,7 +102,14 @@ static int getdevice(char* path, char** subpath, struct vnode** startvn)
             colon++;
         }
         *subpath = &path[colon + 1];
-
+#ifdef VFS_DEBUG
+        kernel_printf("path: %s\n", path);
+        if (**subpath) {
+            kernel_printf("subpath: %s\n", *subpath);
+        } else {
+            kernel_printf("There is no subpath.\n");
+        }
+#endif
         result = vfs_getroot(path, startvn);
         if (result) {
             return result;
@@ -182,7 +189,6 @@ int vfs_setbootfs(const char* fsname)
 #ifdef VFS_DEBUG
     kernel_printf("fsname: %s\n", tmp);
 #endif
-    assert(false, "Stop here, please.");
 
     result = vfs_chdir(tmp);
     if (result) {

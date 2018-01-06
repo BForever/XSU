@@ -250,7 +250,7 @@ int vfs_getroot(const char* devname, struct vnode** result)
     for (i = 0; i < num; i++) {
         kd = array_get(knowndevs, i);
 
-        /*
+/*
 		 * If this device has a mounted filesystem, and
 		 * DEVNAME names either the filesystem or the device,
 		 * return the root of the filesystem.
@@ -258,6 +258,10 @@ int vfs_getroot(const char* devname, struct vnode** result)
 		 * If it has no mounted filesystem, it's mountable,
 		 * and DEVNAME names the device, return ENXIO.
 		 */
+#ifdef VFS_DEBUG
+        kernel_printf("device's name: %s\n", kd->kd_name);
+        assert(false, "Stop here, please.");
+#endif
 
         if (kd->kd_fs != NULL) {
             const char* volname;
