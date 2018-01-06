@@ -2,6 +2,7 @@
 #include <xsu/fs/fat.h>
 #include <xsu/fs/fcntl.h>
 #include <xsu/log.h>
+#include <xsu/slab.h>
 #include <xsu/stat.h>
 #include <xsu/utils.h>
 
@@ -427,10 +428,7 @@ struct vnode* fat_getroot(struct fs* fs)
     struct vnode* vn;
     int result;
 
-#ifdef VFS_DEBUG
-    kernel_printf("entering VOP_INIT.\n");
-#endif
-    assert(false, "stop at fat_getroot.");
+    vn = kmalloc(sizeof(struct vnode));
     result = VOP_INIT(vn, &fat_dirops, fs, NULL);
     assert(false, "stop at leaving VOP_INIT.");
     if (result) {
