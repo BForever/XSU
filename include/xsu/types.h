@@ -153,4 +153,11 @@ typedef _Bool bool;
 #define true 1
 #define false 0
 
+/*
+ * Inherited
+ */
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned long u32;
+
 #endif /* _TYPES_H_ */

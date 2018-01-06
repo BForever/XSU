@@ -204,10 +204,10 @@ struct vnode_ops {
     int (*vop_close)(struct vnode* object);
     int (*vop_reclaim)(struct vnode* vnode);
 
-    int (*vop_read)(struct vnode* file, struct uio* uio);
+    int (*vop_read)(struct vnode* file, unsigned char* buf, unsigned long count);
     int (*vop_readlink)(struct vnode* link, struct uio* uio);
     int (*vop_getdirentry)(struct vnode* dir, struct uio* uio);
-    int (*vop_write)(struct vnode* file, struct uio* uio);
+    int (*vop_write)(struct vnode* file, const unsigned char* buf, unsigned long count);
     int (*vop_ioctl)(struct vnode* object, int op, userptr_t data);
     int (*vop_stat)(struct vnode* object, struct stat* statbuf);
     int (*vop_gettype)(struct vnode* object, mode_t* result);

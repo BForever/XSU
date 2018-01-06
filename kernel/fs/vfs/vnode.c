@@ -183,7 +183,6 @@ void vnode_decopen(struct vnode* vn)
  */
 void vnode_check(struct vnode* v, const char* opstr)
 {
-
     if (v == NULL) {
         log(LOG_FAIL, "vnode_check: vop_%s: null vnode\n", opstr);
     }

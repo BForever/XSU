@@ -1,7 +1,11 @@
 #ifndef _XSU_FS_FAT_H
 #define _XSU_FS_FAT_H
 
+#include <xsu/array.h>
+#include <xsu/device.h>
+#include <xsu/fs/fs.h>
 #include <xsu/fs/fscache.h>
+#include <xsu/fs/vnode.h>
 #include <xsu/types.h>
 
 /* 4k data buffer number in each file struct */
@@ -107,25 +111,50 @@ struct fs_info {
     uint8_t fat_fs_info[SECTOR_SIZE];
 };
 
+struct fat_fs {
+    struct fs fat_absfs; /* abstract filesystem structure */
+    struct device* fat_device; /* device mounted on */
+    struct array* fat_vnodes; /* vnodes loaded into memory */
+};
+
 unsigned long fs_find(FILE* file);
 unsigned long init_fs();
+// open file.
 unsigned long fs_open(FILE* file, unsigned char* filename);
+// close file.
 unsigned long fs_close(FILE* file);
+// read file.
 unsigned long fs_read(FILE* file, unsigned char* buf, unsigned long count);
+// write file.
 unsigned long fs_write(FILE* file, const unsigned char* buf, unsigned long count);
 unsigned long fs_fflush();
 void fs_lseek(FILE* file, unsigned long new_loc);
+// create file.
 unsigned long fs_create(unsigned char* filename);
+// make dir.
 unsigned long fs_mkdir(unsigned char* filename);
+// remove file (not dir).
 unsigned long fs_rm(unsigned char* filename);
+// move file.
 unsigned long fs_mv(unsigned char* src, unsigned char* dest);
+// open dir.
 unsigned long fs_open_dir(FS_FAT_DIR* dir, unsigned char* filename);
+// read dir.
 unsigned long fs_read_dir(FS_FAT_DIR* dir, unsigned char* buf);
+// cat.
 unsigned long fs_cat(unsigned char* path);
 void get_filename(unsigned char* entry, unsigned char* buf);
 uint32_t read_block(uint8_t* buf, uint32_t addr, uint32_t count);
 uint32_t write_block(uint8_t* buf, uint32_t addr, uint32_t count);
 uint32_t get_entry_filesize(uint8_t* entry);
 uint32_t get_entry_attr(uint8_t* entry);
+
+/*
+ * Function for mounting FAT32 (calls vfs_mount)
+ */
+int fat_mount(const char* device);
+
+/* Get root vnode */
+struct vnode* fat_getroot(struct fs* fs);
 
 #endif

@@ -25,5 +25,7 @@
 // virtual file system
 #define VFS_DEBUG
 
+#define FAT32
+
 // exec
 // #define EXEC_DEBUG

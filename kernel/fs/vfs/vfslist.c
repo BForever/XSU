@@ -313,3 +313,170 @@ int vfs_getroot(const char* devname, struct vnode** result)
 	 */
     return ENODEV;
 }
+
+//////////////////////////////////////////////////
+/*
+ * Look for a mountable device named DEVNAME.
+ * Should already hold knowndevs_lock.
+ */
+static int findmount(const char* devname, struct knowndev** result)
+{
+    struct knowndev* dev;
+    unsigned i, num;
+    bool found = false;
+
+    num = array_num(knowndevs);
+    for (i = 0; !found && i < num; i++) {
+        dev = array_get(knowndevs, i);
+        if (dev->kd_rawname == NULL) {
+            // not mountable/unmountable.
+            continue;
+        }
+
+        if (!kernel_strcmp(devname, dev->kd_name)) {
+            *result = dev;
+            found = true;
+        }
+    }
+
+    return found ? 0 : ENODEV;
+}
+
+/*
+ * Mount a filesystem. Once we've found the device, call MOUNTFUNC to
+ * set up the filesystem and hand back a struct fs.
+ *
+ * The DATA argument is passed through unchanged to MOUNTFUNC.
+ */
+int vfs_mount(const char* devname, void* data, int (*mountfunc)(void* data, struct device*, struct fs** ret))
+{
+    const char* volname;
+    struct knowndev* kd;
+    struct fs* fs;
+    int result;
+
+    result = findmount(devname, &kd);
+    if (result) {
+        return result;
+    }
+
+    if (kd->kd_fs != NULL) {
+        return EBUSY;
+    }
+    assert(kd->kd_rawname != NULL, "this device is unmountable.");
+    assert(kd->kd_device != NULL, "this device does not exist.");
+
+    result = mountfunc(data, kd->kd_device, &fs);
+    if (result) {
+        return result;
+    }
+
+    assert(fs != NULL, "file system does not exist.");
+
+    kd->kd_fs = fs;
+
+    volname = FSOP_GETVOLNAME(fs);
+    kernel_printf("vfs: Mounted %s: on %s\n", volname ? volname : kd->kd_name, kd->kd_name);
+
+    return 0;
+}
+
+/*
+ * Unmount a filesystem/device by name.
+ * First calls FSOP_SYNC on the filesystem; then calls FSOP_UNMOUNT.
+ */
+int vfs_unmount(const char* devname)
+{
+    struct knowndev* kd;
+    int result;
+
+    result = findmount(devname, &kd);
+    if (result) {
+        goto fail;
+    }
+
+    if (kd->kd_fs == NULL) {
+        result = EINVAL;
+        goto fail;
+    }
+    assert(kd->kd_rawname != NULL, "this device is unmountable.");
+    assert(kd->kd_device != NULL, "this device does not exist");
+
+    result = FSOP_SYNC(kd->kd_fs);
+    if (result) {
+        goto fail;
+    }
+
+    result = FSOP_UNMOUNT(kd->kd_fs);
+    if (result) {
+        goto fail;
+    }
+
+    kernel_printf("vfs: Unmounted %s:\n", kd->kd_name);
+
+    // Now drop the filesystem.
+    kd->kd_fs = NULL;
+
+    assert(result == 0, "unmount failed");
+
+fail:
+    return result;
+}
+
+/*
+ * Global unmount function.
+ */
+int vfs_unmountall(void)
+{
+    struct knowndev* dev;
+    unsigned i, num;
+    int result;
+
+    num = array_num(knowndevs);
+    for (i = 0; i < num; i++) {
+        dev = array_get(knowndevs, i);
+        if (dev->kd_rawname == NULL) {
+            // not mountable/unmountable.
+            continue;
+        }
+        if (dev->kd_fs == NULL) {
+            // Not mounted.
+            continue;
+        }
+
+        kernel_printf("vfs: Unmounting %s:\n", dev->kd_name);
+
+        result = FSOP_SYNC(dev->kd_fs);
+        if (result) {
+            kernel_printf("vfs: Warning: sync failed for %s: %s, trying "
+                          "again\n",
+                dev->kd_name, strerror(result));
+
+            result = FSOP_SYNC(dev->kd_fs);
+            if (result) {
+                kernel_printf("vfs: Warning: sync failed second time"
+                              " for %s: %s, giving up...\n",
+                    dev->kd_name, strerror(result));
+                continue;
+            }
+        }
+
+        result = FSOP_UNMOUNT(dev->kd_fs);
+        if (result == EBUSY) {
+            kernel_printf("vfs: Cannot unmount %s: (busy)\n",
+                dev->kd_name);
+            continue;
+        }
+        if (result) {
+            kernel_printf("vfs: Warning: unmount failed for %s:"
+                          " %s, already synced, dropping...\n",
+                dev->kd_name, strerror(result));
+            continue;
+        }
+
+        // Now drop the filesystem.
+        dev->kd_fs = NULL;
+    }
+
+    return 0;
+}

@@ -3,7 +3,10 @@
 #include <driver/ps2.h>
 #include <driver/sd.h>
 #include <driver/vga.h>
+#include <kern/errno.h>
+#include <xsu/device.h>
 #include <xsu/fs/fat.h>
+#include <xsu/fs/vfs.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
@@ -17,6 +20,95 @@ void test_syscall4()
         "li $v0, 4\n\t"
         "syscall\n\t"
         "nop\n\t");
+}
+
+/*
+ * Command for mounting a filesystem.
+ */
+
+// Table of mountable filesystem types.
+static const struct {
+    const char* name;
+    int (*func)(const char* device);
+} mounttable[] = {
+#if FAT32
+    { "FAT32", fat_mount },
+#endif
+    { NULL, NULL }
+};
+
+static int cmd_mount(int nargs, char** args)
+{
+    char* fstype;
+    char* device;
+    int i;
+
+    if (nargs != 3) {
+        kernel_printf("Usage: mount fstype device:\n");
+        return EINVAL;
+    }
+
+    fstype = args[1];
+    device = args[2];
+
+    // Allow (but do not require) colon after device name.
+    if (device[kernel_strlen(device) - 1] == ':') {
+        device[kernel_strlen(device) - 1] = 0;
+    }
+
+    for (i = 0; mounttable[i].name; i++) {
+        if (!kernel_strcmp(mounttable[i].name, fstype)) {
+            return mounttable[i].func(device);
+        }
+    }
+    kernel_printf("Unknown filesystem type %s\n", fstype);
+    return EINVAL;
+}
+
+static int cmd_unmount(int nargs, char** args)
+{
+    char* device;
+
+    if (nargs != 2) {
+        kernel_printf("Usage: unmount device:\n");
+        return EINVAL;
+    }
+
+    device = args[1];
+
+    // Allow (but do not require) colon after device name.
+    if (device[strlen(device) - 1] == ':') {
+        device[strlen(device) - 1] = 0;
+    }
+
+    return vfs_unmount(device);
+}
+
+/*
+ * Command to set the "boot fs". 
+ *
+ * The boot filesystem is the one that pathnames like /bin/sh with
+ * leading slashes refer to.
+ *
+ * The default bootfs is "emu0".
+ */
+static int cmd_bootfs(int nargs, char** args)
+{
+    char* device;
+
+    if (nargs != 2) {
+        kernel_printf("Usage: bootfs device\n");
+        return EINVAL;
+    }
+
+    device = args[1];
+
+    // Allow (but do not require) colon after device name.
+    if (device[strlen(device) - 1] == ':') {
+        device[strlen(device) - 1] = 0;
+    }
+
+    return vfs_setbootfs(device);
 }
 
 // void test_proc()
@@ -53,6 +145,10 @@ void test_syscall4()
 
 void ps()
 {
+    // Test for mount.
+    char* args = { "mount", "FAT32", "sd" };
+    cmd_mount(3, args);
+
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
