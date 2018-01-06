@@ -46,32 +46,24 @@
  */
 int vnode_init(struct vnode* vn, const struct vnode_ops* ops, struct fs* fs, void* fsdata)
 {
-    assert(vn != NULL, "vnode is null");
-    assert(ops != NULL, "vnode operation is null");
+// assert(vn != NULL, "vnode is null");
+// assert(ops != NULL, "vnode operation is null");
 
-    vn->vn_ops = ops;
-    vn->vn_refcount = 1;
-    vn->vn_opencount = 0;
-    vn->vn_fs = fs;
-    vn->vn_data = fsdata;
+// vn->vn_ops = ops;
+// vn->vn_refcount = 1;
+// vn->vn_opencount = 0;
+// vn->vn_fs = fs;
+// vn->vn_data = fsdata;
 
-    vn->vn_rwlock = lock_create("vnode-rwlock");
-    if (vn->vn_rwlock == NULL) {
-        return ENOMEM;
-    }
-    vn->vn_createlock = lock_create("vnode-createlock");
-    if (vn->vn_createlock == NULL) {
-        return ENOMEM;
-    }
-    vn->vn_countlock = lock_create("vnode-countlock");
-    if (vn->vn_countlock == NULL) {
-        return ENOMEM;
-    }
+// vn->vn_rwlock = NULL;
+// vn->vn_createlock = NULL;
+// vn->vn_countlock = NULL;
 
-    return 0;
 #ifdef VFS_DEBUG
     kernel_printf("DEBUG VFS: ref-%d\topen-%d\n", vn->vn_refcount, vn->vn_opencount);
 #endif
+
+    return 0;
 }
 
 /*

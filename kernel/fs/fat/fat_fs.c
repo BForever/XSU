@@ -90,6 +90,11 @@ static int fat_domount(void* options, struct device* dev, struct fs** ret)
     // We don't pass any options through mount.
     (void)options;
 
+    // Init FAT.
+    if (init_fs()) {
+        return ENOMEM;
+    }
+
     /*
 	 * We can't mount on devices with the wrong sector size.
 	 *

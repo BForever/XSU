@@ -274,9 +274,12 @@ int vfs_getroot(const char* devname, struct vnode** result)
 #endif
 
         if (kd->kd_fs != NULL) {
+            kernel_printf("this device has a file system.\n");
             const char* volname;
             volname = FSOP_GETVOLNAME(kd->kd_fs);
-
+#ifdef VFS_DEBUG
+            kernel_printf("volume name: %s\n", volname);
+#endif
             if (!kernel_strcmp(kd->kd_name, devname) || (volname != NULL && !kernel_strcmp(volname, devname))) {
                 *result = FSOP_GETROOT(kd->kd_fs);
                 return 0;
@@ -286,6 +289,7 @@ int vfs_getroot(const char* devname, struct vnode** result)
                 return ENXIO;
             }
         }
+        kernel_printf("this device does not have a file system.\n");
 
         /*
 		 * If DEVNAME names the device, and we get here, it

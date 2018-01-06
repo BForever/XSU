@@ -7,6 +7,7 @@
 #include <xsu/device.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/log.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
@@ -146,11 +147,15 @@ static int cmd_bootfs(int nargs, char** args)
 void ps()
 {
     // Test for mount.
+    log(LOG_START, "Test mount command.");
     char* args[] = { "mount", "FAT32", "sd" };
     cmd_mount(3, args);
+    log(LOG_END, "Test mount command.");
 
     // Test for remove.
-    vfs_remove("/text.txt");
+    log(LOG_START, "Test `vfs_remove`.");
+    vfs_remove("sd:/text.txt");
+    log(LOG_END, "Testg `vfs_remove`.");
 
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();

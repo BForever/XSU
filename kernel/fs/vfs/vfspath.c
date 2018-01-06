@@ -2,6 +2,7 @@
  * High-level VFS operations on pathnames.
  */
 
+#include <assert.h>
 #include <driver/vga.h>
 #include <kern/errno.h>
 #include <xsu/fs/fat.h>
@@ -69,7 +70,12 @@ int vfs_remove(char* path)
     char name[NAME_MAX + 1];
     int result;
 
+#ifdef VFS_DEBUG
+    kernel_printf("path: %s\n", path);
+#endif
+
     result = vfs_lookparent(path, &dir, name, sizeof(name));
+    assert(false, "please stop here.");
     if (result) {
         return result;
     }

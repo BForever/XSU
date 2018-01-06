@@ -427,7 +427,12 @@ struct vnode* fat_getroot(struct fs* fs)
     struct vnode* vn;
     int result;
 
+#ifdef VFS_DEBUG
+    kernel_printf("entering VOP_INIT.\n");
+#endif
+    assert(false, "stop at fat_getroot.");
     result = VOP_INIT(vn, &fat_dirops, fs, NULL);
+    assert(false, "stop at leaving VOP_INIT.");
     if (result) {
         log(LOG_FAIL, "fat: getroot: Cannot load root vnode\n");
     }
