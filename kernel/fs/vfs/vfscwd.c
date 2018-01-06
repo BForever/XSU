@@ -30,9 +30,11 @@
 /*
  * VFS operations involving the current directory.
  */
+#include <kern/errno.h>
 #include <xsu/current.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
+#include <xsu/stat.h>
 #include <xsu/types.h>
 
 extern struct current curpath;

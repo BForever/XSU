@@ -30,12 +30,15 @@
 /*
  * VFS operations relating to pathname translation
  */
+#include <assert.h>
 #include <kern/errno.h>
+#include <xsu/fs/fs.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
 #include <xsu/utils.h>
-
-#define NAME_MAX 255
+#ifdef VFS_DEBUG
+#include <driver/vga.h>
+#endif
 
 static struct vnode* bootfs_vnode = NULL;
 
@@ -161,7 +164,7 @@ static int getdevice(char* path, char** subpath, struct vnode** startvn)
  */
 int vfs_setbootfs(const char* fsname)
 {
-    char tmp[NAME_MAX + 1];
+    char* tmp;
     char* s;
     int result;
     struct vnode* newguy;
@@ -170,12 +173,16 @@ int vfs_setbootfs(const char* fsname)
     s = kernel_strchr(tmp, ':');
     if (s) {
         // If there's a colon, it must be at the end.
-        if (strlen(s) > 0) {
+        if (kernel_strlen(s) > 0) {
             return EINVAL;
         }
     } else {
         kernel_strcat(tmp, ":");
     }
+#ifdef VFS_DEBUG
+    kernel_printf("fsname: %s\n", tmp);
+#endif
+    assert(false, "Stop here, please.");
 
     result = vfs_chdir(tmp);
     if (result) {

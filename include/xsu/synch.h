@@ -33,6 +33,7 @@
 #define WRITE 1
 
 #include <xsu/lock.h>
+#include <xsu/types.h>
 
 /*
  * Simple lock for mutual exclusion.
@@ -44,16 +45,16 @@
  * (should be) made internally.
  */
 struct lock {
-  char *lk_name;
-  struct wchan *lk_wchan;
-  struct lock_t lk_lock;
-  struct thread volatile *lk_owner;
-  // add what you need here
-  // (don't forget to mark things volatile as needed)
+    char* lk_name;
+    struct wchan* lk_wchan;
+    struct lock_t lk_lock;
+    struct thread volatile* lk_owner;
+    // add what you need here
+    // (don't forget to mark things volatile as needed)
 };
 
-struct lock *lock_create(const char *name);
-void lock_acquire(struct lock *);
+struct lock* lock_create(const char* name);
+void lock_acquire(struct lock*);
 
 /*
  * Operations:
@@ -66,8 +67,8 @@ void lock_acquire(struct lock *);
  *
  * These operations must be atomic. You get to write them.
  */
-void lock_release(struct lock *);
-bool lock_do_i_hold(struct lock *);
-void lock_destroy(struct lock *);
+void lock_release(struct lock*);
+bool lock_do_i_hold(struct lock*);
+void lock_destroy(struct lock*);
 
 #endif

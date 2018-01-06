@@ -3,8 +3,10 @@
 #include <xsu/lock.h>
 #include <xsu/slab.h>
 #include <xsu/synch.h>
+#include <xsu/thread.h>
 #include <xsu/utils.h>
 #include <xsu/wchan.h>
+
 
 /*
  * Dummy current thread. 

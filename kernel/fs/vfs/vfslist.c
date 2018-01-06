@@ -248,7 +248,7 @@ int vfs_getroot(const char* devname, struct vnode** result)
 
     num = array_num(knowndevs);
     for (i = 0; i < num; i++) {
-        kd = varray_get(knowndevs, i);
+        kd = array_get(knowndevs, i);
 
         /*
 		 * If this device has a mounted filesystem, and
@@ -278,7 +278,7 @@ int vfs_getroot(const char* devname, struct vnode** result)
 		 * must have no fs and not be mountable. In this case,
 		 * we return the device itself.
 		 */
-        if (!strcmp(kd->kd_name, devname)) {
+        if (!kernel_strcmp(kd->kd_name, devname)) {
             assert(kd->kd_fs == NULL, "this device has a file system.");
             assert(kd->kd_rawname == NULL, "this device has a raw name.");
             assert(kd->kd_device != NULL, "this device is null");
