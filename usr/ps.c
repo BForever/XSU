@@ -31,7 +31,7 @@ static const struct {
     const char* name;
     int (*func)(const char* device);
 } mounttable[] = {
-#if FAT32
+#ifdef FAT32
     { "FAT32", fat_mount },
 #endif
     { NULL, NULL }
@@ -77,8 +77,8 @@ static int cmd_unmount(int nargs, char** args)
     device = args[1];
 
     // Allow (but do not require) colon after device name.
-    if (device[strlen(device) - 1] == ':') {
-        device[strlen(device) - 1] = 0;
+    if (device[kernel_strlen(device) - 1] == ':') {
+        device[kernel_strlen(device) - 1] = 0;
     }
 
     return vfs_unmount(device);
@@ -104,8 +104,8 @@ static int cmd_bootfs(int nargs, char** args)
     device = args[1];
 
     // Allow (but do not require) colon after device name.
-    if (device[strlen(device) - 1] == ':') {
-        device[strlen(device) - 1] = 0;
+    if (device[kernel_strlen(device) - 1] == ':') {
+        device[kernel_strlen(device) - 1] = 0;
     }
 
     return vfs_setbootfs(device);
@@ -146,7 +146,7 @@ static int cmd_bootfs(int nargs, char** args)
 void ps()
 {
     // Test for mount.
-    char* args = { "mount", "FAT32", "sd" };
+    char* args[] = { "mount", "FAT32", "sd" };
     cmd_mount(3, args);
 
     kernel_printf("Press any key to enter shell.\n");

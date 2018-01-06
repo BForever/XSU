@@ -1,8 +1,11 @@
+#include <assert.h>
 #include <kern/errno.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/slab.h>
-
+#ifdef VFS_DEBUG
+#include <driver/vga.h>
+#endif
 
 /*
  * Sync routine. This is what gets invoked if you do FS_SYNC on the
@@ -134,5 +137,8 @@ static int fat_domount(void* options, struct device* dev, struct fs** ret)
 
 int fat_mount(const char* device)
 {
+#ifdef VFS_DEBUG
+    kernel_printf("device name: %s\n", device);
+#endif
     return vfs_mount(device, NULL, fat_domount);
 }

@@ -39,7 +39,6 @@
 #include <xsu/uio.h>
 #include <xsu/utils.h>
 
-
 // For open().
 static int nullopen(struct device* dev, int openflags)
 {
@@ -113,14 +112,14 @@ void devnull_create(void)
 
     dev->d_ops = &null_devops;
 
-    dev->d_blocks = 0;
-    dev->d_blocksize = 1;
+    dev->d_blocks = 8;
+    dev->d_blocksize = 512;
 
     dev->d_devnumber = 0; // assigned by vfs_adddev.
 
     dev->d_data = NULL;
 
-    result = vfs_adddev("null", dev, 0);
+    result = vfs_adddev("sd", dev, 1);
     if (result) {
         log(LOG_FAIL, "Could not add null device: %s\n", strerror(result));
     }

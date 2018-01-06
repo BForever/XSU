@@ -68,6 +68,7 @@ void vfs_bootstrap(void)
         log(LOG_FAIL, "VFS: Could not create knowndevs array.");
     }
 
+    // This device is used to establish FAT32, which actually is the SD card.
     devnull_create();
 #ifdef VFS_DEBUG
     kernel_printf("A null device has been created.\n");
@@ -238,6 +239,16 @@ int vfs_adddev(const char* devname, struct device* dev, int mountable)
 }
 
 /*
+ * Add a filesystem that does not have an underlying device.
+ * This is used for emufs, but might also be used for network
+ * filesystems and the like.
+ */
+int vfs_addfs(const char* devname, struct fs* fs)
+{
+    return vfs_doadd(devname, 0, NULL, fs);
+}
+
+/*
  * Given a device name (lhd0, emu0, somevolname, null, etc.), hand
  * back an appropriate vnode.
  */
@@ -376,7 +387,7 @@ int vfs_mount(const char* devname, void* data, int (*mountfunc)(void* data, stru
     kd->kd_fs = fs;
 
     volname = FSOP_GETVOLNAME(fs);
-    kernel_printf("vfs: Mounted %s: on %s\n", volname ? volname : kd->kd_name, kd->kd_name);
+    kernel_printf("vfs: mounted %s: on %s\n", volname ? volname : kd->kd_name, kd->kd_name);
 
     return 0;
 }

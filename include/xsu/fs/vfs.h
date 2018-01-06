@@ -144,6 +144,7 @@ void vfs_bootstrap(void);
 int vfs_setbootfs(const char* fsname);
 
 int vfs_adddev(const char* devname, struct device* dev, int mountable);
+int vfs_addfs(const char* devname, struct fs* fs);
 int vfs_mount(const char* devname, void* data, int (*mountfunc)(void* data, struct device* dev, struct fs** result));
 int vfs_unmount(const char* devname);
 int vfs_unmountall(void);
