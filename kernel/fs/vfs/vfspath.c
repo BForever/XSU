@@ -2,7 +2,12 @@
  * High-level VFS operations on pathnames.
  */
 
+#include <driver/vga.h>
+#include <kern/errno.h>
+#include <xsu/fs/fat.h>
+#include <xsu/fs/fcntl.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/fs/vnode.h>
 
 #define NAME_MAX 255
 
@@ -29,7 +34,7 @@ int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret)
     }
 
     FILE file;
-    int result = fs_open(&file, path);
+    result = fs_open(&file, path);
 
     return result;
 }
@@ -205,7 +210,7 @@ int vfs_mkdir(char* path, mode_t mode)
     result = VOP_MKDIR(parent, name, mode);
 
     VOP_DECREF(parent);
-    kprintf("VFS_MKDIR: completed execting vfs_mkdir \n");
+    kernel_printf("VFS_MKDIR: completed execting vfs_mkdir \n");
     return result;
 }
 
