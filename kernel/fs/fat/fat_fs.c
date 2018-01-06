@@ -1,6 +1,8 @@
+#include <kern/errno.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/slab.h>
+
 
 /*
  * Sync routine. This is what gets invoked if you do FS_SYNC on the

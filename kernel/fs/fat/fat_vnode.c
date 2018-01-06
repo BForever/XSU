@@ -1,7 +1,10 @@
 #include <kern/errno.h>
-#include <kern/fcntl.h>
 #include <xsu/fs/fat.h>
+#include <xsu/fs/fcntl.h>
+#include <xsu/log.h>
+#include <xsu/stat.h>
 #include <xsu/utils.h>
+
 #ifdef VFS_DEBUG
 #include <driver/vga.h>
 #endif
@@ -82,7 +85,7 @@ static int fat_reclaim(struct vnode* v)
  */
 static int fat_read(struct vnode* v, unsigned char* buf, unsigned long count)
 {
-    struct FILE* fp = v->vn_data;
+    FILE* fp = v->vn_data;
     int result;
 
     result = fs_read(fp, buf, count);
@@ -95,7 +98,7 @@ static int fat_read(struct vnode* v, unsigned char* buf, unsigned long count)
  */
 static int fat_write(struct vnode* v, const unsigned char* buf, unsigned long count)
 {
-    struct FILE* fp = v->vn_data;
+    FILE* fp = v->vn_data;
     int result;
 
     result = fs_write(fp, buf, count);
@@ -136,6 +139,13 @@ static int fat_gettype_file(struct vnode* v, uint32_t* ret)
     return 0;
 }
 
+static int fat_gettype_dir(struct vnode* v, uint32_t* ret)
+{
+    (void)v;
+    *ret = S_IFDIR;
+    return 0;
+}
+
 /*
  * Check for legal seeks on files. Allow anything non-negative.
  * We could conceivably, here, prohibit seeking past the maximum
@@ -172,7 +182,7 @@ static int fat_fsync(struct vnode* v)
 /*
  * Called for mmap().
  */
-static int sfs_mmap(struct vnode* v /* add stuff as needed */)
+static int fat_mmap(struct vnode* v /* add stuff as needed */)
 {
     (void)v;
     return EUNIMP;
@@ -202,7 +212,8 @@ static int fat_mkdir(struct vnode* vn, const char* name, mode_t mode)
     (void)vn;
     int result;
 
-    result = fs_mkdir(name);
+    unsigned char* filename = kernel_strdup(name);
+    result = fs_mkdir(filename);
 #ifdef VFS_DEBUG
     kernel_printf("FAT_MKDIR: created directory.\n");
 #endif
@@ -225,7 +236,8 @@ static int fat_creat(struct vnode* v, const char* name, bool excl, mode_t mode, 
     (void)v;
     int result;
 
-    result = fs_create(name);
+    unsigned char* filename = kernel_strdup(name);
+    result = fs_create(filename);
 
     return result;
 }
@@ -250,7 +262,8 @@ static int fat_remove(struct vnode* dir, const char* name)
     (void)dir;
     int result;
 
-    result = fs_rm(name);
+    unsigned char* filename = kernel_strdup(name);
+    result = fs_rm(filename);
 
     return result;
 }
@@ -267,7 +280,9 @@ static int fat_rename(struct vnode* d1, const char* n1, struct vnode* d2, const 
     (void)d2;
     int result;
 
-    result = fs_mv(n1, n2);
+    unsigned char* src = kernel_strdup(n1);
+    unsigned char* dst = kernel_strdup(n2);
+    result = fs_mv(src, dst);
 
     return result;
 }
@@ -325,7 +340,7 @@ static int fat_unimp(void)
     return EUNIMP;
 }
 
-/*
+    /*
  * Casting through void * prevents warnings.
  * All of the vnode ops return int, and it's ok to cast functions that
  * take args to functions that take no args.
@@ -351,7 +366,7 @@ static const struct vnode_ops fat_fileops = {
     fat_write,
     fat_ioctl,
     fat_stat,
-    fat_gettype,
+    fat_gettype_file,
     fat_tryseek,
     fat_fsync,
     fat_mmap,
@@ -386,7 +401,7 @@ static const struct vnode_ops fat_dirops = {
     ISDIR, /* write */
     fat_ioctl,
     fat_stat,
-    fat_gettype,
+    fat_gettype_dir,
     UNIMP, /* tryseek */
     fat_fsync,
     ISDIR, /* mmap */
