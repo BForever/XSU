@@ -15,6 +15,16 @@
  */
 
 /*
+ * Look for a name in a directory and hand back a vnode for the
+ * file, if there is one.
+ */
+static int fat_lookonce(struct vnode* v, const char* name, struct vnode** ret, int* slot)
+{
+    (void)v;
+    return 0;
+}
+
+/*
  * This is called on *each* open().
  */
 static int fat_open(struct vnode* v, int openflags)
@@ -315,15 +325,71 @@ int fat_parsepath(char* path, char* subpath)
  */
 static int fat_lookup(struct vnode* v, char* path, struct vnode** ret)
 {
-    (void)v;
+    struct vnode* final;
+    int result, root_fl = 0;
+    char subpath[20];
+    char buf_path[256];
+    char* temp_path = buf_path;
+
+    // To suport subdirectories we need to look up every subdirectory in a path.
+    kernel_strcpy(temp_path, path);
+    char* check = kernel_strchr(path, '/');
+    if (check == NULL) {
+        result = fat_lookonce(v, path, &final, NULL);
+        if (result) {
+            return result;
+        }
+        VOP_INCREF(v);
+        *ret = final;
+        return 0;
+    }
+    do {
+        int pos = fat_parsepath(temp_path, subpath);
+        temp_path = temp_path + pos;
+#ifdef VFS_DEBUG
+        kernel_printf("\npath: %s\n", path);
+        kernel_printf("\nsubpath: %s\n", subpath);
+#endif
+        root_fl = 0;
+        result = fat_lookonce(v, subpath, &final, NULL);
+        if (result) {
+            return result;
+        }
+        VOP_DECREF(v);
+        v = final;
+        assert(final != NULL, "encounter a null vnode.");
+        char* test = kernel_strchr(temp_path, '/');
+        if (test == NULL) {
+            break;
+        }
+    } while (temp_path != '\0');
+
+    *ret = final;
     return 0;
 }
 
 static int fat_lookparent(struct vnode* v, char* path, struct vnode** ret, char* buf, size_t buflen)
 {
-    (void)v;
-    (void)buf;
-    return 0;
+#ifdef VFS_DEBUG
+    kernel_printf("path: %s\n", path);
+#endif
+
+    if (kernel_strlen(path) + 1 > buflen) {
+        return ENAMETOOLONG;
+    }
+
+    char* check = kernel_strchr(path, '/');
+    if (check == NULL) {
+        VOP_INCREF(v);
+        *ret = v;
+        kernel_strcpy(buf, path);
+        return 0;
+    }
+
+    *check = '\0';
+    check++;
+    kernel_strcpy(buf, check);
+    return fat_lookup(v, path, ret);
 }
 
 static int fat_notdir(void)
@@ -430,7 +496,6 @@ struct vnode* fat_getroot(struct fs* fs)
 
     vn = kmalloc(sizeof(struct vnode));
     result = VOP_INIT(vn, &fat_dirops, fs, NULL);
-    assert(false, "stop at leaving VOP_INIT.");
     if (result) {
         log(LOG_FAIL, "fat: getroot: Cannot load root vnode\n");
     }
