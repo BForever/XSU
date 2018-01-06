@@ -75,12 +75,15 @@ void init_kernel()
     // Virtual file system
     log(LOG_START, "Virtual File System.");
     vfs_bootstrap();
-    vfs_setbootfs("SD");
+    log(LOG_OK, "VFS startup.");
+    // Default bootfs -- but ignore failure, in case emu0 doesn't exist.
+    vfs_setbootfs("emu0");
+    log(LOG_OK, "Boot file system created.");
     log(LOG_END, "Virtual File System.");
-    // File system
-    log(LOG_START, "File System.");
-    init_fs();
-    log(LOG_END, "File System.");
+    // // File system
+    // log(LOG_START, "File System.");
+    // init_fs();
+    // log(LOG_END, "File System.");
     // System call
     log(LOG_START, "System Calls.");
     init_syscall();

@@ -260,7 +260,6 @@ int vfs_getroot(const char* devname, struct vnode** result)
 		 */
 #ifdef VFS_DEBUG
         kernel_printf("device's name: %s\n", kd->kd_name);
-        assert(false, "Stop here, please.");
 #endif
 
         if (kd->kd_fs != NULL) {

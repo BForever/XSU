@@ -192,6 +192,9 @@ int vfs_setbootfs(const char* fsname)
 
     result = vfs_chdir(tmp);
     if (result) {
+#ifdef VFS_DEBUG
+        kernel_printf("result: %d\n", result);
+#endif
         return result;
     }
 
