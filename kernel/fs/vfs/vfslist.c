@@ -70,7 +70,7 @@ void vfs_bootstrap(void)
 
     devnull_create();
 #ifdef VFS_DEBUG
-    kernel_printf("A null device has been created.");
+    kernel_printf("A null device has been created.\n");
 #endif
 }
 
@@ -188,11 +188,11 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
 
 #ifdef VFS_DEBUG
     kernel_printf("device's name: %s\n", kd->kd_name);
-    if (kd->kd_rawname != NULL) {
-        kernel_printf("device's raw name: %s\n", kd->kd_rawname);
-    } else {
-        kernel_printf("this device is not mountable.\n");
-    }
+    // if (kd->kd_rawname != NULL) {
+    kernel_printf("device's raw name: %s\n", kd->kd_rawname);
+    // } else {
+    //     kernel_printf("this device is not mountable.\n");
+    // }
 #endif
 
     if (fs != NULL) {

@@ -1,5 +1,6 @@
 #include "vga.h"
 #include <arch.h>
+#include <assert.h>
 #include <xsu/utils.h>
 
 const int VGA_CHAR_MAX_ROW = 32;
@@ -216,7 +217,7 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case 'd': {
-            // signed int
+                // signed int
                 int valint = va_arg(ap, int);
                 kernel_putint(valint, 0xfff, 0);
                 format++;
@@ -224,7 +225,7 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case 'o': {
-            // unsigned octal
+                // unsigned octal
                 unsigned int valoctal = va_arg(ap, unsigned int);
                 kernel_putint_octal(valoctal, 0xfff, 0);
                 format++;
@@ -232,15 +233,16 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case 's': {
-            // string
+                // string
                 char* valstr = va_arg(ap, char*);
+                assert(valstr != NULL, "Asstertion failed on kernel_printf: input a null string.");
                 kernel_puts(valstr, 0xfff, 0);
                 format++;
                 cnt++;
                 break;
             }
             case 'u': {
-            // unsigned int
+                // unsigned int
                 unsigned int valuint = va_arg(ap, unsigned int);
                 kernel_putuint(valuint, 0xfff, 0);
                 format++;
@@ -248,7 +250,7 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case 'x': {
-            // unsigned hexdecimal (lower case)
+                // unsigned hexdecimal (lower case)
                 unsigned int valhex = va_arg(ap, unsigned int);
                 kernel_putint_hex(valhex, 0xfff, 0, false);
                 format++;
@@ -256,7 +258,7 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case 'X': {
-            // unsigned hexdecimal (upper case)
+                // unsigned hexdecimal (upper case)
                 unsigned int valHEX = va_arg(ap, unsigned int);
                 kernel_putint_hex(valHEX, 0xfff, 0, true);
                 format++;
@@ -264,16 +266,16 @@ int kernel_vprintf(const char* format, va_list ap)
                 break;
             }
             case '%': {
-            // %
+                // %
                 kernel_putchar(*format++, 0xfff, 0);
                 cnt++;
                 break;
             }
-            default:{
+            default: {
                 cnt = -1;
                 goto exit;
             }
-        }
+            }
         }
     }
 exit:
