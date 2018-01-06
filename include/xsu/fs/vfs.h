@@ -30,6 +30,8 @@
 #ifndef _XSU_FS_VFS_H
 #define _XSU_FS_VFS_H
 
+#include <xsu/types.h>
+
 /*
  * Virtual File System layer functions.
  *
@@ -72,7 +74,7 @@ const char* vfs_getdevname(struct fs* fs);
  * Both of these may destroy the path passed in.
  */
 int vfs_lookup(char* path, struct vnode** result);
-// int vfs_lookparent(char *path, struct vnode **result,char *buf, size_t buflen);
+int vfs_lookparent(char* path, struct vnode** result, char* buf, size_t buflen);
 
 /*
  * VFS layer high-level operations on pathnames
@@ -93,7 +95,18 @@ int vfs_lookup(char* path, struct vnode** result);
  *    vfs_close  - Close a vnode opened with vfs_open. Does not fail.
  *                 (See vfspath.c for a discussion of why.)
  */
+int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret);
+void vfs_close(struct vnode* vn);
+int vfs_readlink(char* path, struct uio* data);
+int vfs_symlink(const char* contents, char* path);
+int vfs_mkdir(char* path, mode_t mode);
+int vfs_link(char* oldpath, char* newpath);
+int vfs_remove(char* path);
+int vfs_rmdir(char* path);
+int vfs_rename(char* oldpath, char* newpath);
+
 int vfs_chdir(char* path);
+int vfs_getcwd(struct uio* buf);
 
 /*
  * Misc

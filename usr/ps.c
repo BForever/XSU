@@ -149,6 +149,9 @@ void ps()
     char* args[] = { "mount", "FAT32", "sd" };
     cmd_mount(3, args);
 
+    // Test for remove.
+    vfs_remove("/text.txt");
+
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;

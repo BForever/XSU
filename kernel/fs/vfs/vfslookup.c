@@ -208,6 +208,36 @@ int vfs_setbootfs(const char* fsname)
     return 0;
 }
 
+/*
+ * Name-to-vnode translation.
+ * (In BSD, both of these are subsumed by namei().)
+ */
+int vfs_lookparent(char* path, struct vnode** retval, char* buf, size_t buflen)
+{
+    struct vnode* startvn;
+    int result;
+
+    result = getdevice(path, &path, &startvn);
+    if (result) {
+        return result;
+    }
+
+    if (kernel_strlen(path) == 0) {
+        /*
+		 * It does not make sense to use just a device name in
+		 * a context where "lookparent" is the desired
+		 * operation.
+		 */
+        result = EINVAL;
+    } else {
+        result = VOP_LOOKPARENT(startvn, path, retval, buf, buflen);
+    }
+
+    VOP_DECREF(startvn);
+
+    return result;
+}
+
 int vfs_lookup(char* path, struct vnode** retval)
 {
     struct vnode* startvn;
