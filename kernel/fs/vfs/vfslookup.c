@@ -35,7 +35,9 @@
 #include <xsu/fs/fs.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
+#include <xsu/slab.h>
 #include <xsu/utils.h>
+
 #ifdef VFS_DEBUG
 #include <driver/vga.h>
 #endif
@@ -218,7 +220,16 @@ int vfs_lookparent(char* path, struct vnode** retval, char* buf, size_t buflen)
     int result;
 
     result = getdevice(path, &path, &startvn);
-    if (result) {
+#ifdef VFS_DEBUG
+    kernel_printf("result: %d\n", result);
+    kernel_printf("path: %s\n", path);
+#endif
+    if (!result) {
+        // Copy the file name to buf.
+        kernel_strcpy(buf, path);
+#ifdef VFS_DEBUG
+        kernel_printf("buf: %s\n", buf);
+#endif
         return result;
     }
 

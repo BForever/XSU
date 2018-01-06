@@ -154,8 +154,8 @@ void ps()
 
     // Test for remove.
     log(LOG_START, "Test `vfs_remove`.");
-    vfs_remove("sd:/text.txt");
-    log(LOG_END, "Testg `vfs_remove`.");
+    vfs_remove("sd:/kuroko/readme.txt");
+    log(LOG_END, "Test `vfs_remove`.");
 
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();

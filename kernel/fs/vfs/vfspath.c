@@ -9,6 +9,7 @@
 #include <xsu/fs/fcntl.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
+#include <xsu/slab.h>
 
 #define NAME_MAX 255
 
@@ -67,15 +68,21 @@ void vfs_close(struct vnode* vn)
 int vfs_remove(char* path)
 {
     struct vnode* dir;
-    char name[NAME_MAX + 1];
+    char* name;
     int result;
 
-#ifdef VFS_DEBUG
-    kernel_printf("path: %s\n", path);
-#endif
-
+    name = kmalloc(kernel_strlen(path) + 1);
     result = vfs_lookparent(path, &dir, name, sizeof(name));
-    assert(false, "please stop here.");
+#ifdef VFS_DEBUG
+    kernel_printf("result: %d\n", result);
+    kernel_printf("path: %s\n", path);
+    kernel_printf("name: %s\n", name);
+#endif
+    if (result) {
+        return result;
+    }
+
+    result = vfs_getroot("sd", &dir);
     if (result) {
         return result;
     }

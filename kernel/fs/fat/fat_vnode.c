@@ -272,9 +272,18 @@ static int fat_remove(struct vnode* dir, const char* name)
 {
     (void)dir;
     int result;
-
-    unsigned char* filename = kernel_strdup(name);
+    char* root = "/";
+    kernel_strcat(root, name);
+    unsigned char* filename = kernel_strdup(root);
+#ifdef VFS_DEBUG
+    kernel_printf("name: %s\n", name);
+    kernel_printf("root appended: %s\n", root);
+    kernel_printf("duplicated file name: %s\n", filename);
+#endif
     result = fs_rm(filename);
+#ifdef VFS_DEBUG
+    kernel_printf("\nremove complete.\n");
+#endif
 
     return result;
 }
