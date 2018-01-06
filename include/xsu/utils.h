@@ -22,6 +22,7 @@ void bzero(void* vblock, size_t len);
  */
 int kernel_strcmp(const char* dest, const char* src);
 unsigned int kernel_strlen(const char* str);
+char* kernel_strchr(const char* s, int ch_arg);
 char* kernel_strcpy(char* dest, const char* src);
 char* kernel_strcat(char* dest, const char* src);
 char* kernel_strdup(const char* str);

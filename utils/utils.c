@@ -172,6 +172,29 @@ unsigned int kernel_strlen(const char* str)
     return len;
 }
 
+char* kernel_strchr(const char* s, int ch_arg)
+{
+    // Avoid sign-extension problems.
+    const char ch = ch_arg;
+
+    // Scan from left to right.
+    while (*s) {
+        // If we hit it, return it.
+        if (*s == ch) {
+            return (char*)s;
+        }
+        s++;
+    }
+
+    // If we were looking for the 0, return that.
+    if (*s == ch) {
+        return (char*)s;
+    }
+
+    // Didn't find it.
+    return NULL;
+}
+
 char* kernel_strcpy(char* dest, const char* src)
 {
     while ((*dest++ = *src++))

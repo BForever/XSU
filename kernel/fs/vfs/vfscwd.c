@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009
+ * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
  *	The President and Fellows of Harvard College.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,75 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _XSU_CURRENT_H
-#define _XSU_CURRENT_H
+/*
+ * VFS operations involving the current directory.
+ */
+#include <xsu/current.h>
+#include <xsu/fs/vfs.h>
+#include <xsu/fs/vnode.h>
+#include <xsu/types.h>
 
-// #define curthread nullthread*
-struct vnode;
+extern struct current curpath;
 
-struct current {
-    /* VFS */
-    struct vnode* t_cwd; /* current working directory */
-};
+/*
+ * Get current directory as a vnode.
+ * 
+ * We do not synchronize curthread->t_cwd, because it belongs exclusively
+ * to its own thread; no other threads should access it.
+ */
+int vfs_getcurdir(struct vnode** ret)
+{
+    int rv = 0;
+    VOP_INCREF(curpath.t_cwd);
+    *ret = curpath.t_cwd;
 
-#endif
+    return rv;
+}
+
+/*
+ * Set current directory as a vnode.
+ * The passed vnode must in fact be a directory.
+ */
+int vfs_setcurdir(struct vnode* dir)
+{
+    struct vnode* old;
+    mode_t vtype;
+    int result;
+
+    result = VOP_GETTYPE(dir, &vtype);
+    if (result) {
+        return result;
+    }
+    if (vtype != S_IFDIR) {
+        return ENOTDIR;
+    }
+
+    VOP_INCREF(dir);
+
+    old = curpath.t_cwd;
+    curpath.t_cwd = dir;
+
+    if (old != NULL) {
+        VOP_DECREF(old);
+    }
+
+    return 0;
+}
+
+/*
+ * Set current directory, as a pathname. Use vfs_lookup to translate
+ * it to a vnode.
+ */
+int vfs_chdir(char* path)
+{
+    struct vnode* vn;
+    int result;
+
+    result = vfs_lookup(path, &vn);
+    if (result) {
+        return result;
+    }
+    result = vfs_setcurdir(vn);
+    VOP_DECREF(vn);
+    return result;
+}

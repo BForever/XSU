@@ -30,7 +30,70 @@
 #ifndef _XSU_FS_VFS_H
 #define _XSU_FS_VFS_H
 
-#include <xsu/device.h>
+/*
+ * Virtual File System layer functions.
+ *
+ * The VFS layer translates operations on abstract on-disk files or
+ * pathnames to operations on specific files on specific filesystems.
+ */
+
+struct uio; /* kernel or userspace I/O buffer (uio.h) */
+struct device; /* abstract structure for a device (dev.h) */
+struct fs; /* abstract structure for a filesystem (fs.h) */
+struct vnode; /* abstract structure for an on-disk file (vnode.h) */
+
+/*
+ * VFS layer low-level operations. 
+ * See vnode.h for direct operations on vnodes.
+ * See fs.h for direct operations on filesystems/devices.
+ *
+ *    vfs_setcurdir - change current directory of current thread by vnode
+ *    vfs_clearcurdir - change current directory of current thread to "none"
+ *    vfs_getcurdir - retrieve vnode of current directory of current thread
+ *    vfs_sync      - force all dirty buffers to disk
+ *    vfs_getroot   - get root vnode for the filesystem named DEVNAME
+ *    vfs_getdevname - get mounted device name for the filesystem passed in
+ */
+int vfs_setcurdir(struct vnode* dir);
+int vfs_clearcurdir(void);
+int vfs_getcurdir(struct vnode** retdir);
+int vfs_sync(void);
+int vfs_getroot(const char* devname, struct vnode** result);
+const char* vfs_getdevname(struct fs* fs);
+
+/*
+ * VFS layer mid-level operations.
+ *
+ *    vfs_lookup     - Like VOP_LOOKUP, but takes a full device:path name,
+ *                     or a name relative to the current directory, and
+ *                     goes to the correct filesystem.
+ *    vfs_lookparent - Likewise, for VOP_LOOKPARENT.
+ *
+ * Both of these may destroy the path passed in.
+ */
+int vfs_lookup(char* path, struct vnode** result);
+// int vfs_lookparent(char *path, struct vnode **result,char *buf, size_t buflen);
+
+/*
+ * VFS layer high-level operations on pathnames
+ * Because namei may destroy pathnames, these all may too.
+ *
+ *    vfs_open         - Open or create a file. FLAGS/MODE per the syscall. 
+ *    vfs_readlink     - Read contents of a symlink into a uio.
+ *    vfs_symlink      - Create a symlink PATH containing contents CONTENTS.
+ *    vfs_mkdir        - Create a directory. MODE per the syscall.
+ *    vfs_link         - Create a hard link to a file.
+ *    vfs_remove       - Delete a file.
+ *    vfs_rmdir        - Delete a directory.
+ *    vfs_rename       - rename a file.
+ *
+ *    vfs_chdir  - Change current directory of current thread by name.
+ *    vfs_getcwd - Retrieve name of current directory of current thread.
+ *
+ *    vfs_close  - Close a vnode opened with vfs_open. Does not fail.
+ *                 (See vfspath.c for a discussion of why.)
+ */
+int vfs_chdir(char* path);
 
 /*
  * Misc
@@ -78,6 +141,8 @@
  */
 
 void vfs_bootstrap(void);
+int vfs_setbootfs(const char* fsname);
+
 int vfs_adddev(const char* devname, struct device* dev, int mountable);
 
 #endif

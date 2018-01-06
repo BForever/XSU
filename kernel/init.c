@@ -8,8 +8,10 @@
 #include <version.h>
 #include <xsu/bootmm.h>
 #include <xsu/buddy.h>
+#include <xsu/current.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/fs/vnode.h>
 #include <xsu/log.h>
 #include <xsu/pc.h>
 #include <xsu/slab.h>
@@ -19,6 +21,21 @@
 static const char copyright[] = "Copyright (c) 2017, 2018\n   Spicy Chicken of Zhejiang University. All rights reserved.\n";
 static const int buildversion = 1;
 static const char buildconfig[] = "MIPS32";
+
+struct vnode startup = {
+    .vn_refcount = 0, /* Reference count */
+    .vn_opencount = 0,
+    .vn_fs = 0, /* Filesystem vnode belongs to */
+    .vn_data = 0, /* Filesystem-specific data */
+    .vn_ops = 0, /* Functions on this vnode */
+    .vn_rwlock = 0,
+    .vn_createlock = 0,
+    .vn_countlock = 0
+};
+
+struct current curpath = {
+    .t_cwd = &startup
+};
 
 void machine_info()
 {
@@ -58,6 +75,7 @@ void init_kernel()
     // Virtual file system
     log(LOG_START, "Virtual File System.");
     vfs_bootstrap();
+    vfs_setbootfs("SD");
     log(LOG_END, "Virtual File System.");
     // File system
     log(LOG_START, "File System.");

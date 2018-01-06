@@ -11,7 +11,7 @@
 
 void badassert(const char* expr, const char* msg)
 {
-    kernel_printf("Assertion failed: %s, %s\n", expr, msg);
+    kernel_printf("\nAssertion failed: %s, %s\n", expr, msg);
     while (1)
         ;
 }

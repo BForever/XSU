@@ -188,11 +188,11 @@ static int vfs_doadd(const char* dname, int mountable, struct device* dev, struc
 
 #ifdef VFS_DEBUG
     kernel_printf("device's name: %s\n", kd->kd_name);
-    // if (kd->kd_rawname != NULL) {
-    kernel_printf("device's raw name: %s\n", kd->kd_rawname);
-    // } else {
-    //     kernel_printf("this device is not mountable.\n");
-    // }
+    if (kd->kd_rawname != NULL) {
+        kernel_printf("device's raw name: %s\n", kd->kd_rawname);
+    } else {
+        kernel_printf("this device is not mountable.\n");
+    }
 #endif
 
     if (fs != NULL) {
@@ -235,4 +235,78 @@ nomem:
 int vfs_adddev(const char* devname, struct device* dev, int mountable)
 {
     return vfs_doadd(devname, mountable, dev, NULL);
+}
+
+/*
+ * Given a device name (lhd0, emu0, somevolname, null, etc.), hand
+ * back an appropriate vnode.
+ */
+int vfs_getroot(const char* devname, struct vnode** result)
+{
+    struct knowndev* kd;
+    unsigned i, num;
+
+    num = array_num(knowndevs);
+    for (i = 0; i < num; i++) {
+        kd = varray_get(knowndevs, i);
+
+        /*
+		 * If this device has a mounted filesystem, and
+		 * DEVNAME names either the filesystem or the device,
+		 * return the root of the filesystem.
+		 *
+		 * If it has no mounted filesystem, it's mountable,
+		 * and DEVNAME names the device, return ENXIO.
+		 */
+
+        if (kd->kd_fs != NULL) {
+            const char* volname;
+            volname = FSOP_GETVOLNAME(kd->kd_fs);
+
+            if (!kernel_strcmp(kd->kd_name, devname) || (volname != NULL && !kernel_strcmp(volname, devname))) {
+                *result = FSOP_GETROOT(kd->kd_fs);
+                return 0;
+            }
+        } else {
+            if (kd->kd_rawname != NULL && !kernel_strcmp(kd->kd_name, devname)) {
+                return ENXIO;
+            }
+        }
+
+        /*
+		 * If DEVNAME names the device, and we get here, it
+		 * must have no fs and not be mountable. In this case,
+		 * we return the device itself.
+		 */
+        if (!strcmp(kd->kd_name, devname)) {
+            assert(kd->kd_fs == NULL, "this device has a file system.");
+            assert(kd->kd_rawname == NULL, "this device has a raw name.");
+            assert(kd->kd_device != NULL, "this device is null");
+            VOP_INCREF(kd->kd_vnode);
+            *result = kd->kd_vnode;
+            return 0;
+        }
+
+        /*
+		 * If the device has a rawname and DEVNAME names that,
+		 * return the device itself.
+		 */
+        if (kd->kd_rawname != NULL && !kernel_strcmp(kd->kd_rawname, devname)) {
+            assert(kd->kd_device != NULL, "this device is null");
+            VOP_INCREF(kd->kd_vnode);
+            *result = kd->kd_vnode;
+            return 0;
+        }
+
+        /*
+		 * If none of the above tests matched, we didn't name
+		 * any of the names of this device, so go on to the
+		 * next one. 
+		 */
+    }
+
+    /*
+	 * If we got here, the device specified by devname doesn't exist.
+	 */
+    return ENODEV;
 }
