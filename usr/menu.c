@@ -450,6 +450,26 @@ static int cmd_ps(int argc, char** argv)
 {
     call_syscall_a0(SYSCALL_PRINTTASKS,0);
 }
+static int cmd_exit(int argc, char** argv)
+{
+    call_syscall_a0(SYSCALL_EXIT,0);
+}
+static int cmd_syscall(int argc, char** argv)
+{
+    if(argc == 2)
+    {
+        call_syscall_a0(argv[1][0]-'0',0);
+    }
+    else if(argc == 3)
+    {
+        call_syscall_a0(argv[1][0]-'0',argv[2][0]-'0');
+    }
+    else
+    {
+        kernel_printf("Usage: syscall v0 a0\n");
+    }
+}
+
 
 /*
  * Command table. 
@@ -499,6 +519,8 @@ static struct {
     /* process control */
     { "ps", cmd_ps },
     { "kill", cmd_kill },
+    { "exit", cmd_exit },
+    { "syscall", cmd_syscall },
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
