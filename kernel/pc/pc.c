@@ -399,7 +399,7 @@ void fk1()
     }
     kernel_printf("test done, exit...\n");
     kfree(TLB0);
-    kfree(phy);
+    kfree((void*)phy);
     TLB_init();
 }
 void test_sleep1sandprint()
