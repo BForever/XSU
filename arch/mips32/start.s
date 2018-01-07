@@ -27,6 +27,7 @@ exception:
     
 .org 0x180
     lui     $k0, 0x8000
+	addi 	$k0, $k0, 1 #for user's stack is exactly 0x80000000
     sltu    $k0, $sp, $k0
     beq		$k0, $zero, exception_save_context
     move 	$k1, $sp
@@ -36,6 +37,7 @@ exception:
 
 .org 0x0200
     lui     $k0, 0x8000
+	addi 	$k0, $k0, 1 #for user's stack is exactly 0x80000000
     sltu    $k0, $sp, $k0
     beq     $k0, $zero, interrupt_save_context
     move    $k1, $sp
