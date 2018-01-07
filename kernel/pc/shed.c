@@ -3,9 +3,9 @@
 #include <driver/vga.h>
 #include <intr.h>
 #include <exc.h>
-#include <zjunix/syscall.h>
-#include <zjunix/utils.h>
-#include <zjunix/slab.h>
+#include <xsu/syscall.h>
+#include <xsu/utils.h>
+#include <xsu/slab.h>
 
 void copy_context(context* src, context* dest) 
 {

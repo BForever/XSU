@@ -1,9 +1,9 @@
-#ifndef _ZJUNIX_PC_H
-#define _ZJUNIX_PC_H
+#ifndef _XSU_PC_H
+#define _XSU_PC_H
 
 #include <arch.h>
-#include <zjunix/list.h>
-#include <zjunix/lock.h>
+#include <xsu/list.h>
+#include <xsu/lock.h>
 
 //register storage in task struct
 typedef struct {

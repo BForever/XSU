@@ -3,9 +3,9 @@
 #include <driver/vga.h>
 #include <intr.h>
 #include <exc.h>
-#include <zjunix/syscall.h>
-#include <zjunix/utils.h>
-#include <zjunix/slab.h>
+#include <xsu/syscall.h>
+#include <xsu/utils.h>
+#include <xsu/slab.h>
 
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level)
 {
