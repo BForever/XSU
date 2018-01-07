@@ -112,7 +112,7 @@ static int getdevice(char* path, char** subpath, struct vnode** startvn)
             kernel_printf("There is no subpath.\n");
         }
 #endif
-        result = vfs_getroot(path, startvn);
+        result = vfs_getroot(path, startvn, false);
         if (result) {
             return result;
         }

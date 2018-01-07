@@ -152,11 +152,6 @@ void ps()
     cmd_mount(3, args);
     log(LOG_END, "Test mount command.");
 
-    // Test for remove.
-    log(LOG_START, "Test `vfs_remove`.");
-    vfs_remove("sd:/kuroko/readme.txt");
-    log(LOG_END, "Test `vfs_remove`.");
-
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
@@ -245,13 +240,13 @@ void parse_cmd()
         result = ls(param);
         kernel_printf("ls return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "mkdir") == 0) {
-        result = fs_mkdir(param);
+        result = vfs_mkdir(param, 0);
         kernel_printf("mkdir return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "create") == 0) {
         result = fs_create(param);
         kernel_printf("create return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "rm") == 0) {
-        result = fs_rm(param);
+        result = vfs_remove(param);
         kernel_printf("rm return with %d\n", result);
     } else if (kernel_strcmp(ps_buffer, "cat") == 0) {
         result = fs_cat(param);

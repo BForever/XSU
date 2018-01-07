@@ -64,6 +64,7 @@ struct fs {
     int (*fs_sync)(struct fs*);
     const char* (*fs_getvolname)(struct fs*);
     struct vnode* (*fs_getroot)(struct fs*);
+    struct vnode* (*fs_getroot_file)(struct fs*);
     int (*fs_unmount)(struct fs*);
 
     void* fs_data;
@@ -75,6 +76,7 @@ struct fs {
 #define FSOP_SYNC(fs) ((fs)->fs_sync(fs))
 #define FSOP_GETVOLNAME(fs) ((fs)->fs_getvolname(fs))
 #define FSOP_GETROOT(fs) ((fs)->fs_getroot(fs))
+#define FSOP_GETROOT_FILE(fs) ((fs)->fs_getroot_file(fs))
 #define FSOP_UNMOUNT(fs) ((fs)->fs_unmount(fs))
 
 #endif

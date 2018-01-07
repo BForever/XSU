@@ -60,7 +60,7 @@ int vfs_setcurdir(struct vnode* dir);
 int vfs_clearcurdir(void);
 int vfs_getcurdir(struct vnode** retdir);
 int vfs_sync(void);
-int vfs_getroot(const char* devname, struct vnode** result);
+int vfs_getroot(const char* devname, struct vnode** result, bool file);
 const char* vfs_getdevname(struct fs* fs);
 
 /*

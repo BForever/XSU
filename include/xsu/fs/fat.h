@@ -156,5 +156,6 @@ int fat_mount(const char* device);
 
 /* Get root vnode */
 struct vnode* fat_getroot(struct fs* fs);
+struct vnode* fat_getroot_file(struct fs* fs);
 
 #endif

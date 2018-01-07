@@ -127,6 +127,7 @@ static int fat_domount(void* options, struct device* dev, struct fs** ret)
     fat->fat_absfs.fs_sync = fat_sync;
     fat->fat_absfs.fs_getvolname = fat_getvolname;
     fat->fat_absfs.fs_getroot = fat_getroot;
+    fat->fat_absfs.fs_getroot_file = fat_getroot_file;
     fat->fat_absfs.fs_unmount = fat_unmount;
     fat->fat_absfs.fs_data = fat;
 

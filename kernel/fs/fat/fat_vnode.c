@@ -223,7 +223,14 @@ static int fat_mkdir(struct vnode* vn, const char* name, mode_t mode)
     (void)vn;
     int result;
 
-    unsigned char* filename = kernel_strdup(name);
+    char* root = "/";
+    kernel_strcat(root, name);
+    unsigned char* filename = kernel_strdup(root);
+#ifdef VFS_DEBUG
+    kernel_printf("name: %s\n", name);
+    kernel_printf("root appended: %s\n", root);
+    kernel_printf("duplicated file name: %s\n", filename);
+#endif
     result = fs_mkdir(filename);
 #ifdef VFS_DEBUG
     kernel_printf("FAT_MKDIR: created directory.\n");
@@ -247,7 +254,14 @@ static int fat_creat(struct vnode* v, const char* name, bool excl, mode_t mode, 
     (void)v;
     int result;
 
-    unsigned char* filename = kernel_strdup(name);
+    char* root = "/";
+    kernel_strcat(root, name);
+    unsigned char* filename = kernel_strdup(root);
+#ifdef VFS_DEBUG
+    kernel_printf("name: %s\n", name);
+    kernel_printf("root appended: %s\n", root);
+    kernel_printf("duplicated file name: %s\n", filename);
+#endif
     result = fs_create(filename);
 
     return result;
@@ -300,8 +314,20 @@ static int fat_rename(struct vnode* d1, const char* n1, struct vnode* d2, const 
     (void)d2;
     int result;
 
-    unsigned char* src = kernel_strdup(n1);
-    unsigned char* dst = kernel_strdup(n2);
+    char* root1 = "/";
+    char* root2 = "/";
+    kernel_strcat(root1, n1);
+    kernel_strcat(root2, n2);
+    unsigned char* src = kernel_strdup(root1);
+    unsigned char* dst = kernel_strdup(root2);
+#ifdef VFS_DEBUG
+    kernel_printf("name 1: %s\n", n1);
+    kernel_printf("name 2: %s\n", n2);
+    kernel_printf("root1 appended: %s\n", root1);
+    kernel_printf("root2 appended: %s\n", root2);
+    kernel_printf("src file name: %s\n", src);
+    kernel_printf("dst file name: %s\n", dst);
+#endif
     result = fs_mv(src, dst);
 
     return result;
@@ -416,7 +442,7 @@ static int fat_unimp(void)
     return EUNIMP;
 }
 
-    /*
+/*
  * Casting through void * prevents warnings.
  * All of the vnode ops return int, and it's ok to cast functions that
  * take args to functions that take no args.
@@ -507,6 +533,21 @@ struct vnode* fat_getroot(struct fs* fs)
     result = VOP_INIT(vn, &fat_dirops, fs, NULL);
     if (result) {
         log(LOG_FAIL, "fat: getroot: Cannot load root vnode\n");
+    }
+
+    return vn;
+}
+
+struct vnode* fat_getroot_file(struct fs* fs)
+{
+    struct fat_fs* fat = fs->fs_data;
+    struct vnode* vn;
+    int result;
+
+    vn = kmalloc(sizeof(struct vnode));
+    result = VOP_INIT(vn, &fat_fileops, fs, NULL);
+    if (result) {
+        log(LOG_FAIL, "fat: getroot_file: Cannot load root vnode\n");
     }
 
     return vn;

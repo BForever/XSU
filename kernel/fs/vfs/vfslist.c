@@ -252,7 +252,7 @@ int vfs_addfs(const char* devname, struct fs* fs)
  * Given a device name (lhd0, emu0, somevolname, null, etc.), hand
  * back an appropriate vnode.
  */
-int vfs_getroot(const char* devname, struct vnode** result)
+int vfs_getroot(const char* devname, struct vnode** result, bool file)
 {
     struct knowndev* kd;
     unsigned i, num;
@@ -281,7 +281,11 @@ int vfs_getroot(const char* devname, struct vnode** result)
             kernel_printf("volume name: %s\n", volname);
 #endif
             if (!kernel_strcmp(kd->kd_name, devname) || (volname != NULL && !kernel_strcmp(volname, devname))) {
-                *result = FSOP_GETROOT(kd->kd_fs);
+                if(file) {
+                    *result = FSOP_GETROOT_FILE(kd->kd_fs);
+                } else {
+                    *result = FSOP_GETROOT(kd->kd_fs);
+                }
                 return 0;
             }
         } else {

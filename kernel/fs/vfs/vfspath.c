@@ -35,8 +35,28 @@ int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret)
         return EINVAL;
     }
 
-    FILE file;
-    result = fs_open(&file, path);
+    char* name;
+    FILE* file;
+
+    name = kmalloc(kernel_strlen(path) + 1);
+    result = vfs_lookparent(path, &vn, name, sizeof(name));
+    if (result) {
+        return result;
+    }
+
+    result = fs_open(file, name);
+    if (result) {
+        return result;
+    }
+
+    result = vfs_getroot("sd", &vn, true);
+    if (result) {
+        return result;
+    }
+
+    vn->vn_data = file;
+    VOP_INCREF(vn);
+    *ret = vn;
 
     return result;
 }
@@ -82,7 +102,7 @@ int vfs_remove(char* path)
         return result;
     }
 
-    result = vfs_getroot("sd", &dir);
+    result = vfs_getroot("sd", &dir, false);
     if (result) {
         return result;
     }
@@ -97,11 +117,13 @@ int vfs_remove(char* path)
 int vfs_rename(char* oldpath, char* newpath)
 {
     struct vnode* olddir;
-    char oldname[NAME_MAX + 1];
+    char* oldname;
     struct vnode* newdir;
-    char newname[NAME_MAX + 1];
+    char* newname;
     int result;
 
+    oldname = kmalloc(kernel_strlen(oldpath) + 1);
+    newname = kmalloc(kernel_strlen(newpath) + 1);
     result = vfs_lookparent(oldpath, &olddir, oldname, sizeof(oldname));
     if (result) {
         return result;
@@ -109,6 +131,15 @@ int vfs_rename(char* oldpath, char* newpath)
     result = vfs_lookparent(newpath, &newdir, newname, sizeof(newname));
     if (result) {
         VOP_DECREF(olddir);
+        return result;
+    }
+
+    result = vfs_getroot("sd", &olddir, false);
+    if (result) {
+        return result;
+    }
+    result = vfs_getroot("sd", &newdir, false);
+    if (result) {
         return result;
     }
 
@@ -129,33 +160,7 @@ int vfs_rename(char* oldpath, char* newpath)
 /* Does most of the work for link(). */
 int vfs_link(char* oldpath, char* newpath)
 {
-    struct vnode* oldfile;
-    struct vnode* newdir;
-    char newname[NAME_MAX + 1];
-    int result;
-
-    result = vfs_lookup(oldpath, &oldfile);
-    if (result) {
-        return result;
-    }
-    result = vfs_lookparent(newpath, &newdir, newname, sizeof(newname));
-    if (result) {
-        VOP_DECREF(oldfile);
-        return result;
-    }
-
-    if (oldfile->vn_fs == NULL || newdir->vn_fs == NULL || oldfile->vn_fs != newdir->vn_fs) {
-        VOP_DECREF(newdir);
-        VOP_DECREF(oldfile);
-        return EXDEV;
-    }
-
-    result = VOP_LINK(newdir, newname, oldfile);
-
-    VOP_DECREF(newdir);
-    VOP_DECREF(oldfile);
-
-    return result;
+    return 0;
 }
 
 /*
@@ -167,19 +172,7 @@ int vfs_link(char* oldpath, char* newpath)
  */
 int vfs_symlink(const char* contents, char* path)
 {
-    struct vnode* newdir;
-    char newname[NAME_MAX + 1];
-    int result;
-
-    result = vfs_lookparent(path, &newdir, newname, sizeof(newname));
-    if (result) {
-        return result;
-    }
-
-    result = VOP_SYMLINK(newdir, newname, contents);
-    VOP_DECREF(newdir);
-
-    return result;
+    return 0;
 }
 
 /*
@@ -191,19 +184,7 @@ int vfs_symlink(const char* contents, char* path)
  */
 int vfs_readlink(char* path, struct uio* uio)
 {
-    struct vnode* vn;
-    int result;
-
-    result = vfs_lookup(path, &vn);
-    if (result) {
-        return result;
-    }
-
-    result = VOP_READLINK(vn, uio);
-
-    VOP_DECREF(vn);
-
-    return result;
+    return 0;
 }
 
 /*
@@ -212,10 +193,16 @@ int vfs_readlink(char* path, struct uio* uio)
 int vfs_mkdir(char* path, mode_t mode)
 {
     struct vnode* parent;
-    char name[NAME_MAX + 1];
+    char* name;
     int result;
 
+    name = kmalloc(kernel_strlen(path) + 1);
     result = vfs_lookparent(path, &parent, name, sizeof(name));
+    if (result) {
+        return result;
+    }
+
+    result = vfs_getroot("sd", &parent, false);
     if (result) {
         return result;
     }
@@ -232,18 +219,5 @@ int vfs_mkdir(char* path, mode_t mode)
  */
 int vfs_rmdir(char* path)
 {
-    struct vnode* parent;
-    char name[NAME_MAX + 1];
-    int result;
-
-    result = vfs_lookparent(path, &parent, name, sizeof(name));
-    if (result) {
-        return result;
-    }
-
-    result = VOP_RMDIR(parent, name);
-
-    VOP_DECREF(parent);
-
-    return result;
+    return 0;
 }
