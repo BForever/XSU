@@ -115,11 +115,9 @@ struct semaphore {
 //init,create,kill
 void init_pc();
 void pc_create(void (*func)(), char* name);
-task_struct* create_kthread(char* name,int level);
+task_struct* create_kthread(char* name, int level ,int asfather);
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
 int pc_kill(int asid);
-void pc_deletelist(task_struct *task);
-void pc_deletetask(task_struct *task);
 task_struct* pc_find(int asid);
 void printtask(task_struct* task);
 void printalltask();
@@ -181,15 +179,7 @@ void test_forkandkill();
 void fu1();
 int pc_test();
 
-//syscall code allocation
-#define SYSCALL_MALLOC 1
-#define SYSCALL_FREE   2
-#define SYSCALL_EXIT   3
-#define SYSCALL_KILL   5
-#define SYSCALL_PRINTTASKS 6
-#define SYSCALL_SCHEDULE 7
-#define SYSCALL_FORK 8
-#define SYSCALL_SLEEP 9
+
 
 //pc's syscall define
 void pc_init_syscall();
@@ -209,6 +199,8 @@ void __syscall_schedule(unsigned int status, unsigned int cause, context* pt_con
 void syscall_fork(unsigned int status, unsigned int cause, context* pt_context);
 //sleep:process will sleep a0 ms
 void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context);
+//wait:blocked entil task a0 ends 
+void syscall_wait(unsigned int status, unsigned int cause, context* pt_context);
 
 int call_syscall_a0(int code,int a0);
 

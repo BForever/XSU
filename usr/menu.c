@@ -10,6 +10,7 @@
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/pc.h>
+#include <xsu/syscall.h>
 #include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
@@ -392,6 +393,29 @@ static int cmd_pctest_sleep(int argc, char** argv)
     return 0;
 }
 
+static int cmd_pctest_fork(int argc, char** argv)
+{
+    pc_create(test_forkandkill, "test_forkandkill");
+    return 0;
+}
+
+static int cmd_pctest_kill(int argc, char** argv)
+{
+    pc_create(test_sleep5sandkillasid2, "test_sleep5sandkillasid2");
+    return 0;
+}
+static int cmd_kill(int argc, char** argv)
+{
+    int i;
+    if (argc >= 2)
+    {
+        for(i = 1;i < argc ;i++)
+        {
+            call_syscall_a0(SYSCALL_KILL,argv[i][0]-'0');
+        }
+    }
+}
+
 /*
  * Command table. 
  */
@@ -439,7 +463,10 @@ static struct {
     { "cp", cmd_copy },
     { "cat", cmd_cat },
     /* process control */
+    { "kill", cmd_kill },
     { "pctest_sleep", cmd_pctest_sleep },
+    { "pctest_fork", cmd_pctest_fork },
+    { "pctest_kill", cmd_pctest_kill },
     { NULL, NULL }
 };
 
