@@ -249,7 +249,7 @@ static int cmd_cd(int argc, char** argv)
         }
     }
 
-    // directory starts from root.
+    // absolute directory.
     char* device;
     device = kmalloc(260);
     kernel_memcpy(device, argv[1], 4);
@@ -269,6 +269,7 @@ static int cmd_cd(int argc, char** argv)
     check_dir:
         if (fs_open_dir(&f_dir, tmp)) {
             kernel_printf("No such file or directory: %s\n", tmp);
+            kfree(device);
             return 1;
         }
         kernel_strcat(device, tmp + 1);
@@ -277,7 +278,18 @@ static int cmd_cd(int argc, char** argv)
         return 0;
     }
 
-    // TODO: sth to be done.
+    // relative directory.
+    if (pwd[kernel_strlen(pwd) - 1] != '/') {
+        kernel_strcat(pwd, "/");
+    }
+    kernel_memset(tmp, 0, kernel_strlen(tmp) + 1);
+    kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
+    kernel_strcat(tmp, argv[1]);
+#ifdef FS_DEBUG
+    kernel_printf("cd directory: %s\n", tmp);
+#endif
+
+    goto check_dir;
 }
 
 // Table of mountable filesystem types.
@@ -367,7 +379,27 @@ static int cmd_bootfs(int argc, char** argv)
 
 static int cmd_ls(int argc, char** argv)
 {
-    return ls(argv[1]);
+    if (argc == 1) {
+        return ls(pwd);
+    }
+
+    // absolute directory.
+    char device[5];
+    kernel_memcpy(device, argv[1], 4);
+    device[4] = 0;
+    if (!kernel_strcmp(device, "sd:/")) {
+        return ls(argv[1]);
+    }
+
+    // relative directory.
+    char tmp[256];
+    if (pwd[kernel_strlen(pwd) - 1] != '/') {
+        kernel_strcat(pwd, "/");
+    }
+    kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
+    kernel_strcat(tmp, argv[1]);
+
+    return ls(tmp);
 }
 
 static int cmd_mkdir(int argc, char** argv)
@@ -448,35 +480,29 @@ static int cmd_kill(int argc, char** argv)
 }
 static int cmd_ps(int argc, char** argv)
 {
-    call_syscall_a0(SYSCALL_PRINTTASKS,0);
+    call_syscall_a0(SYSCALL_PRINTTASKS, 0);
 }
 static int cmd_exit(int argc, char** argv)
 {
-    call_syscall_a0(SYSCALL_EXIT,0);
+    call_syscall_a0(SYSCALL_EXIT, 0);
 }
 static int cmd_syscall(int argc, char** argv)
 {
-    if(argc == 2)
-    {
-        call_syscall_a0(argv[1][0]-'0',0);
-    }
-    else if(argc == 3)
-    {
-        call_syscall_a0(argv[1][0]-'0',argv[2][0]-'0');
-    }
-    else
-    {
+    if (argc == 2) {
+        call_syscall_a0(argv[1][0] - '0', 0);
+    } else if (argc == 3) {
+        call_syscall_a0(argv[1][0] - '0', argv[2][0] - '0');
+    } else {
         kernel_printf("Usage: syscall v0 a0\n");
     }
 }
-
 
 /*
  * Command table. 
  */
 static struct {
     const char* name;
-    int (*func)(int nargs, char** args);
+    int (*func)(int argc, char** argv);
 } cmdtable[] = {
 /* menus */
 #if 0
