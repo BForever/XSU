@@ -5,8 +5,11 @@
 #include <driver/sd.h>
 #include <driver/vga.h>
 #include <kern/errno.h>
+#include <xsu/bootmm.h>
+#include <xsu/buddy.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
@@ -81,6 +84,90 @@ static int cmd_sdwz(int argc, char** argv)
     }
     sd_write_block(sd_buffer, 7, 1);
     kernel_puts("sdwz\n", 0xfff, 0);
+}
+
+/*
+ * Command for memory moudle. 
+ */
+static int cmd_mminfo(int argc, char** argv)
+{
+    bootmap_info();
+    buddy_info();
+}
+
+static int cmd_mmtest(int argc, char** argv)
+{
+    void* address = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    kfree(address);
+    kernel_printf("kfree succeed\n");
+}
+
+static int cmd_slubtest(int argc, char** argv)
+{
+    unsigned int size_kmem_cache[PAGE_SHIFT] = { 96, 192, 8, 16, 32, 64, 128, 256, 512, 1024 };
+    unsigned int i;
+    for (i = 0; i < 10; i++) {
+        void* address = kmalloc(size_kmem_cache[i]);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    }
+}
+
+static int cmd_buddytest(int argc, char** argv)
+{
+    void* address = kmalloc(4096 * 2 * 2 * 2 * 2);
+    kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    address = kmalloc(4096 * 2 * 2 * 2);
+    kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    address = kmalloc(4096 * 2 * 2);
+    kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    address = kmalloc(4096 * 2);
+    kernel_printf("kmalloc : %x, size = 1KB\n", address);
+}
+
+static int cmd_buddy(int argc, char** argv)
+{
+    void* address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(2 * 4096);
+    kernel_printf("kmalloc : %x, size = 8KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    kfree(address);
+    kfree(address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    address = kmalloc(4096);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address);
+}
+
+static int cmd_slub(int argc, char** argv)
+{
+    void* address1 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address1);
+    void* address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    void* address3 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address3);
+    kfree(address2);
+    kfree(address1);
+    kfree(address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
 }
 
 /*
@@ -255,6 +342,13 @@ static struct {
     { "sdwi", cmd_sdwi },
     { "sdr", cmd_sdr },
     { "sdwz", cmd_sdwz },
+    /* memory module */
+    { "mminfo", cmd_mminfo },
+    { "mmtest", cmd_mmtest },
+    { "slubtest", cmd_slubtest },
+    { "buddytest", cmd_buddytest },
+    { "buddy", cmd_buddy },
+    { "slub", cmd_slub },
     /* file system */
     { "mount", cmd_mount },
     { "unmount", cmd_unmount },

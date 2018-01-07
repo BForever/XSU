@@ -1,8 +1,8 @@
-#ifndef _ZJUNIX_SLAB_H
-#define _ZJUNIX_SLAB_H
+#ifndef _XSU_SLAB_H
+#define _XSU_SLAB_H
 
-#include <xsu/list.h>
 #include <xsu/buddy.h>
+#include <xsu/list.h>
 
 #define SIZE_INT 4
 #define SLAB_AVAILABLE 0x0
@@ -14,7 +14,7 @@
  * @nr_objs : keeps the numbers of memory segments that has been allocated
  */
 struct slab_head {
-    void *end_ptr;
+    void* end_ptr;
     unsigned int nr_objs;
 };
 
@@ -32,8 +32,8 @@ struct kmem_cache_node {
  * current being allocated page unit
  */
 struct kmem_cache_cpu {
-    void **freeobj;  // points to the free-space head addr inside current page
-    struct page *page;
+    void** freeobj; // points to the free-space head addr inside current page
+    struct page* page;
 };
 
 struct kmem_cache {
@@ -47,7 +47,7 @@ struct kmem_cache {
 
 // extern struct kmem_cache kmalloc_caches[PAGE_SHIFT];
 extern void init_slab();
-extern void *kmalloc(unsigned int size);
-extern void kfree(void *obj);
+extern void* kmalloc(unsigned int size);
+extern void kfree(void* obj);
 
 #endif
