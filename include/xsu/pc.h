@@ -135,8 +135,11 @@ int pc_kill(int asid);
 void pc_deletelist(task_struct *task);
 void pc_deletetask(task_struct *task);
 task_struct* pc_find(int asid);
+void printtask(task_struct* task);
 void printalltask();
 int print_proc();
+//print all tasks that are in the ready list
+void printreadylist();
 
 int __fork_kthread(task_struct* src);
 
@@ -180,6 +183,18 @@ int do_unmapping(vma_node* vma,TLBEntry **pagecontent);
 void map_all(task_struct* task);
 void unmap_all(task_struct* task);//except code and stack
 void free_heap(task_struct *task);
+//print vma list of task
+void printvmalist(task_struct* task);
+//given asid and physical address, get corresponding virtual address
+unsigned int getuseraddr(int asid, unsigned int pa);
+
+//test functions
+void fk1();
+void test_sleep1sandprint();
+void test_sleep5sandkillasid2();
+void test_forkandkill();
+void fu1();
+int pc_test();
 
 //syscall code allocation
 #define SYSCALL_MALLOC 1

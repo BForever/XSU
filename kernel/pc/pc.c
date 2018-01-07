@@ -19,6 +19,8 @@ task_struct* current;
 // Function prototypes.
 static void __kill(task_struct* task);
 static void pc_killallsons(task_struct* father);
+static int __fork_kthread(task_struct* src);
+static int sw(int bit);
 
 static void pc_killallsons(task_struct* father)
 {
@@ -38,7 +40,7 @@ static void __kill(task_struct* task)
     pc_deletetask(task);
 }
 
-int sw(int bit)
+static int sw(int bit)
 {
     if (((*GPIO_SWITCH) >> bit) & 1) {
         return 1;
@@ -544,7 +546,7 @@ unsigned int getuseraddr(int asid, unsigned int pa)
     }
     return 0;
 }
-int __fork_kthread(task_struct* src)
+static int __fork_kthread(task_struct* src)
 {
     task_struct* new;
     new = kmalloc(sizeof(task_union));
