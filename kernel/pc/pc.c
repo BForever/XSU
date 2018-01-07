@@ -20,7 +20,7 @@ task_struct* current;
 static void __kill(task_struct* task);
 static void pc_killallsons(task_struct* father);
 static int __fork_kthread(task_struct* src);
-static int sw(int bit);
+
 
 static void pc_killallsons(task_struct* father)
 {
@@ -40,7 +40,7 @@ static void __kill(task_struct* task)
     pc_deletetask(task);
 }
 
-static int sw(int bit)
+int sw(int bit)
 {
     if (((*GPIO_SWITCH) >> bit) & 1) {
         return 1;

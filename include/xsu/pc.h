@@ -141,8 +141,6 @@ int print_proc();
 //print all tasks that are in the ready list
 void printreadylist();
 
-int __fork_kthread(task_struct* src);
-
 //asid management
 void clearasid(unsigned int asid);
 int getemptyasid();
