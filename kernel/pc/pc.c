@@ -198,6 +198,7 @@ void init_pc()
     //register_syscall(10, pc_kill_syscall);
     register_interrupt_handler(7, pc_schedule);
     //register three TLB exception code
+    pc_init_syscall();
     register_exception_handler(1, TLBMod_exc);
     register_exception_handler(2, TLBL_exc);
     register_exception_handler(3, TLBS_exc);
