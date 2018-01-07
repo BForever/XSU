@@ -10,8 +10,8 @@
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/pc.h>
-#include <xsu/syscall.h>
 #include <xsu/slab.h>
+#include <xsu/syscall.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
@@ -170,6 +170,30 @@ static int cmd_slub(int argc, char** argv)
     kfree(address2);
     kfree(address1);
     kfree(address2);
+    kfree(address1);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    return 0;
+}
+
+static int cmd_slub2(int argc, char** argv)
+{
+    void* address1 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address1);
+    void* address2 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    void* address3 = kmalloc(1024);
+    kernel_printf("kmalloc : %x, size = 4KB\n", address3);
+    kfree(address1);
+    kfree(address2);
+    kfree(address3);
+    kernel_printf("free a page\n");
     address2 = kmalloc(1024);
     kernel_printf("kmalloc : %x, size = 4KB\n", address2);
     address2 = kmalloc(1024);
@@ -416,11 +440,9 @@ static int cmd_pctest_kill(int argc, char** argv)
 static int cmd_kill(int argc, char** argv)
 {
     int i;
-    if (argc >= 2)
-    {
-        for(i = 1;i < argc ;i++)
-        {
-            call_syscall_a0(SYSCALL_KILL,argv[i][0]-'0');
+    if (argc >= 2) {
+        for (i = 1; i < argc; i++) {
+            call_syscall_a0(SYSCALL_KILL, argv[i][0] - '0');
         }
     }
 }
@@ -460,6 +482,7 @@ static struct {
     { "buddytest", cmd_buddytest },
     { "buddy", cmd_buddy },
     { "slub", cmd_slub },
+    { "slub2", cmd_slub2 },
     /* file system */
     { "pwd", cmd_pwd },
     { "mount", cmd_mount },

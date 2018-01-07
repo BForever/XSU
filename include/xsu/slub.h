@@ -1,5 +1,5 @@
-#ifndef _ZJUNIX_SLUB_H
-#define _ZJUNIX_SLUB_H
+#ifndef _XSU_SLUB_H
+#define _XSU_SLUB_H
 
 #include <xsu/list.h>
 #include <xsu/buddy.h>

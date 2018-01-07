@@ -20,10 +20,9 @@ task_struct* current;
 static void __kill(task_struct* task);
 static void pc_killallsons(task_struct* father);
 static int __fork_kthread(task_struct* src);
-static void pc_releasewaiting(task_struct *task);
+static void pc_releasewaiting(task_struct* task);
 static void pc_deletelist(task_struct* task);
 static void pc_deletetask(task_struct* task);
-
 
 static void pc_killallsons(task_struct* father)
 {
@@ -35,11 +34,11 @@ static void pc_killallsons(task_struct* father)
         __kill(son);
     }
 }
-static void pc_releasewaiting(task_struct *task)
+static void pc_releasewaiting(task_struct* task)
 {
     struct list_head *pos, *n;
     task_struct* waiter;
-    list_for_each_safe(pos, n, &task->be_waited_list ) 
+    list_for_each_safe(pos, n, &task->be_waited_list)
     {
         waiter = list_entry(pos, task_struct, wait);
         __kill(waiter);
@@ -63,14 +62,14 @@ int sw(int bit)
 
 void pc_create(void (*func)(), char* name)
 {
-    task_struct* task = create_kthread(name, PROC_LEVELS / 2,1);
+    task_struct* task = create_kthread(name, PROC_LEVELS / 2, 1);
     task->context.epc = (unsigned int)func;
     list_add_tail(&task->ready, &ready_list[task->level]);
     task->state = PROC_STATE_READY;
 }
 void pc_create_son(void (*func)(), char* name)
 {
-    task_struct* task = create_kthread(name, PROC_LEVELS / 2,1);
+    task_struct* task = create_kthread(name, PROC_LEVELS / 2, 1);
     task->context.epc = (unsigned int)func;
     list_add_tail(&task->ready, &ready_list[task->level]);
     task->state = PROC_STATE_READY;
@@ -212,7 +211,7 @@ void init_pc()
     TLB_init();
 
     current = 0;
-    current = create_kthread("init", 0,0);
+    current = create_kthread("init", 0, 0);
     current->state = PROC_STATE_RUNNING;
 
     //register_syscall(10, pc_kill_syscall);
@@ -233,7 +232,7 @@ void init_pc()
         : "r"(shedins));
 }
 
-task_struct* create_kthread(char* name, int level ,int asfather)
+task_struct* create_kthread(char* name, int level, int asfather)
 {
     //get space
     task_union* utask = kmalloc(sizeof(task_union));
@@ -287,11 +286,10 @@ void syscall_wait(unsigned int status, unsigned int cause, context* pt_context)
 {
     int asid = pt_context->a0;
     task_struct* task = pc_find(asid);
-    if(task)
-    {
-        list_add_tail(&current->wait,&task->be_waited_list);
+    if (task) {
+        list_add_tail(&current->wait, &task->be_waited_list);
         current->state = PROC_STATE_WAITING;
-        __pc_schedule(status,cause,pt_context);
+        __pc_schedule(status, cause, pt_context);
     }
 }
 
