@@ -1,5 +1,5 @@
-#ifndef _ZJUNIX_BUDDY_H
-#define _ZJUNIX_BUDDY_H
+#ifndef _XSU_BUDDY_H
+#define _XSU_BUDDY_H
 
 #include <xsu/list.h>
 #include <xsu/lock.h>

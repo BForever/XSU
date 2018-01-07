@@ -4,12 +4,12 @@
 #include <exc.h>
 #include <init_place_holder.h>
 #include <intr.h>
-#include <zjunix/bootmm.h>
-#include <zjunix/buddy.h>
-#include <zjunix/log.h>
-#include <zjunix/slab.h>
-#include <zjunix/syscall.h>
-#include <zjunix/time.h>
+#include <xsu/bootmm.h>
+#include <xsu/buddy.h>
+#include <xsu/log.h>
+#include <xsu/slab.h>
+#include <xsu/syscall.h>
+#include <xsu/time.h>
 #include "../usr/ps.h"
 
 void machine_info() {
