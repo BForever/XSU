@@ -13,6 +13,7 @@
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
+char pwd[256];
 char buf[64];
 int buf_index;
 char sd_buffer[8192];
@@ -181,6 +182,66 @@ static int cmd_slub(int argc, char** argv)
 /*
  * Command for mounting a filesystem.
  */
+static int cmd_pwd(int argc, char** argv)
+{
+    kernel_printf("%s\n", pwd);
+    return 0;
+}
+
+static int cmd_cd(int argc, char** argv)
+{
+    char dir[64];
+    char tmp[256];
+    unsigned int index;
+    FS_FAT_DIR* f_dir;
+
+    // default (return to root directory).
+    if (argc == 1) {
+        kernel_memset(pwd, 0, kernel_strlen(pwd) + 1);
+        kernel_memcpy(pwd, "sd:/", 5);
+        return 0;
+    }
+
+    // . (stay in current directory).
+    if (!kernel_strcmp(argv[1], ".")) {
+        return 0;
+    }
+
+    // .. (return to parent directory).
+    if (!kernel_strcmp(argv[1], "..")) {
+        if (!kernel_strcmp(pwd, "sd:/")) {
+            return 0;
+        } else {
+            index = kernel_strlen(pwd) - 1;
+            while (pwd[index] != '/') {
+                pwd[index--] = 0;
+            }
+            if (index) {
+                pwd[index] = 0;
+            }
+            return 0;
+        }
+    }
+
+    // directory starts from root.
+    char* device;
+    device = kmalloc(5);
+    kernel_memcpy(device, argv[1], 5);
+    if (!kernel_strcmp(device, "sd:/")) {
+        if (argv[1][kernel_strlen(argv[1]) - 1] == '/') {
+            argv[1][kernel_strlen(argv[1]) - 1] = 0;
+        }
+        kernel_memcpy(tmp, argv[1], kernel_strlen(argv[1]) + 1);
+
+    check_dir:
+        if (fs_open_dir(&f_dir, tmp)) {
+            kernel_printf("No such file or directory: %s\n", tmp);
+            return 1;
+        }
+        kernel_memcpy(pwd, tmp, kernel_strlen(tmp) + 1);
+        return 0;
+    }
+}
 
 // Table of mountable filesystem types.
 static const struct {
@@ -343,7 +404,6 @@ static struct {
     { "time", cmd_time },
 #if 0
     { "cd", cmd_chdir },
-    { "pwd", cmd_pwd },
 #endif
     /* hardware */
     { "syscall4", cmd_syscall4 },
@@ -358,6 +418,7 @@ static struct {
     { "buddy", cmd_buddy },
     { "slub", cmd_slub },
     /* file system */
+    { "pwd", cmd_pwd },
     { "mount", cmd_mount },
     { "unmount", cmd_unmount },
     { "bootfs", cmd_bootfs },
@@ -441,6 +502,8 @@ void menu()
     buf[0] = 0;
     kernel_clear_screen(31);
     kernel_puts("PowerShell\n", 0xfff, 0);
+    kernel_memcpy(pwd, "sd:/", 5);
+    kernel_puts(pwd, 0xfff, 0);
     kernel_puts("PS>", 0xfff, 0);
     while (1) {
         c = kernel_getchar();
