@@ -194,7 +194,7 @@ static int cmd_cd(int argc, char** argv)
     char dir[64];
     char tmp[256];
     unsigned int index;
-    FS_FAT_DIR* f_dir;
+    FS_FAT_DIR f_dir;
 
     // default (return to root directory).
     if (argc == 1) {
@@ -218,7 +218,7 @@ static int cmd_cd(int argc, char** argv)
                 pwd[index--] = 0;
             }
             if (index) {
-                pwd[index] = 0;
+                pwd[index + 1] = 0;
             }
             return 0;
         }
@@ -226,20 +226,29 @@ static int cmd_cd(int argc, char** argv)
 
     // directory starts from root.
     char* device;
-    device = kmalloc(5);
-    kernel_memcpy(device, argv[1], 5);
+    device = kmalloc(260);
+    kernel_memcpy(device, argv[1], 4);
+    device[4] = 0;
+#ifdef FS_DEBUG
+    kernel_printf("device: %s\n", device);
+#endif
     if (!kernel_strcmp(device, "sd:/")) {
         if (argv[1][kernel_strlen(argv[1]) - 1] == '/') {
             argv[1][kernel_strlen(argv[1]) - 1] = 0;
         }
-        kernel_memcpy(tmp, argv[1], kernel_strlen(argv[1]) + 1);
+        kernel_memcpy(tmp, argv[1] + 3, kernel_strlen(argv[1]) + 1);
+#ifdef FS_DEBUG
+        kernel_printf("tmp path: %s\n", tmp);
+#endif
 
     check_dir:
         if (fs_open_dir(&f_dir, tmp)) {
             kernel_printf("No such file or directory: %s\n", tmp);
             return 1;
         }
-        kernel_memcpy(pwd, tmp, kernel_strlen(tmp) + 1);
+        kernel_strcat(device, tmp + 1);
+        kernel_memcpy(pwd, device, kernel_strlen(device) + 1);
+        kfree(device);
         return 0;
     }
 
@@ -411,9 +420,6 @@ static struct {
     { "clear", cmd_clear },
     { "echo", cmd_echo },
     { "time", cmd_time },
-#if 0
-    { "cd", cmd_chdir },
-#endif
     /* hardware */
     { "syscall4", cmd_syscall4 },
     { "sdwi", cmd_sdwi },
@@ -437,6 +443,7 @@ static struct {
     { "rm", cmd_remove },
     { "mv", cmd_move },
     { "cp", cmd_copy },
+    { "cd", cmd_cd },
     { "cat", cmd_cat },
     /* process control */
     { "pctest_sleep", cmd_pctest_sleep },
@@ -515,7 +522,7 @@ void menu()
     kernel_puts("PowerShell\n", 0xfff, 0);
     kernel_memcpy(pwd, "sd:/", 5);
     kernel_puts(pwd, 0xfff, 0);
-    kernel_puts("PS>", 0xfff, 0);
+    kernel_puts(" PS>", 0xfff, 0);
     while (1) {
         c = kernel_getchar();
         if (c == '\n') {
@@ -527,7 +534,8 @@ void menu()
             } else
                 menu_execute();
             buf_index = 0;
-            kernel_puts("PS>", 0xfff, 0);
+            kernel_puts(pwd, 0xfff, 0);
+            kernel_puts(" PS>", 0xfff, 0);
         } else if (c == 0x08) {
             if (buf_index) {
                 buf_index--;
