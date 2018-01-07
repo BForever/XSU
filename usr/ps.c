@@ -1,17 +1,17 @@
 #include "ps.h"
-#include "../usr/ls.h"
-#include <driver/ps2.h>
-#include <driver/sd.h>
-#include <driver/vga.h>
-#include <xsu/fs/fat.h>
+#include <xsu/ps2.h>
+#include <xsu/sd.h>
+#include <xsu/vga.h>
+#include <xsu/bootmm.h>
+#include <xsu/buddy.h>
+#include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
 
 char ps_buffer[64];
 int ps_buffer_index;
 
-void test_syscall4()
-{
+void test_syscall4() {
     asm volatile(
         "li $a0, 0x00ff\n\t"
         "li $v0, 4\n\t"
@@ -19,40 +19,7 @@ void test_syscall4()
         "nop\n\t");
 }
 
-// void test_proc()
-// {
-//     unsigned int timestamp;
-//     unsigned int currTime;
-//     unsigned int data;
-//     asm volatile("mfc0 %0, $9, 6\n\t"
-//                  : "=r"(timestamp));
-//     data = timestamp & 0xff;
-//     while (1) {
-//         asm volatile("mfc0 %0, $9, 6\n\t"
-//                      : "=r"(currTime));
-//         if (currTime - timestamp > 100000000) {
-//             timestamp += 100000000;
-//             *((unsigned int*)0xbfc09018) = data;
-//         }
-//     }
-// }
-
-// int proc_demo_create()
-// {
-//     int asid = pc_peek();
-//     if (asid < 0) {
-//         kernel_puts("Failed to allocate pid.\n", 0xfff, 0);
-//         return 1;
-//     }
-//     unsigned int init_gp;
-//     asm volatile("la %0, _gp\n\t"
-//                  : "=r"(init_gp));
-//     pc_create(asid, test_proc, (unsigned int)kmalloc(4096), init_gp, "test");
-//     return 0;
-// }
-
-void ps()
-{
+void ps() {
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
@@ -89,15 +56,14 @@ void ps()
     }
 }
 
-void parse_cmd()
-{
+void parse_cmd() {
     unsigned int result = 0;
     char dir[32];
     char c;
     kernel_putchar('\n', 0, 0);
     char sd_buffer[8192];
     int i = 0;
-    char* param;
+    char *param;
     for (i = 0; i < 63; i++) {
         if (ps_buffer[i] == ' ') {
             ps_buffer[i] = 0;
@@ -137,10 +103,75 @@ void parse_cmd()
         }
         sd_write_block(sd_buffer, 7, 1);
         kernel_puts("sdwz\n", 0xfff, 0);
-    } else if (kernel_strcmp(ps_buffer, "ls") == 0) {
-        result = ls(param);
-        kernel_printf("ls return with %d\n", result);
-    } else {
+    } else if (kernel_strcmp(ps_buffer, "mminfo") == 0) {
+        bootmap_info();
+        buddy_info();
+    } else if (kernel_strcmp(ps_buffer, "mmtest") == 0) {
+        void* address = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+        kfree(address);
+        kernel_printf("kfree succeed");
+    } else if(kernel_strcmp(ps_buffer, "slubtest") == 0){
+        unsigned int  size_kmem_cache[PAGE_SHIFT] = {96, 192, 8, 16, 32, 64, 128, 256, 512, 1024};
+        unsigned int i;
+        for(i = 0; i < 10; i++)
+        {
+            void* address = kmalloc(size_kmem_cache[i]);
+            kernel_printf("kmalloc : %x, size = 1KB\n", address);
+        }
+    } else if(kernel_strcmp(ps_buffer, "buddytest") == 0){
+        void* address = kmalloc(4096*2*2*2*2);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+        address = kmalloc(4096*2*2*2);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+        address = kmalloc(4096*2*2);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+        address = kmalloc(4096*2);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    }else if(kernel_strcmp(ps_buffer, "buddy") == 0)
+    {
+        void *address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(2*4096);
+        kernel_printf("kmalloc : %x, size = 8KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        kfree(address);
+        kfree(address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        address = kmalloc(4096);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address);
+        
+    }else if(kernel_strcmp(ps_buffer, "slub") == 0)
+    {
+        void *address1 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address1);
+        void *address2 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+        void *address3 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address3);
+        kfree(address2);
+        kfree(address1);
+        kfree(address2);
+        address2 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+        address2 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+        address2 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+        address2 = kmalloc(1024);
+        kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    }
+    else {
         kernel_puts(ps_buffer, 0xfff, 0);
         kernel_puts(": command not found\n", 0xfff, 0);
     }
