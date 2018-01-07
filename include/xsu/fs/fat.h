@@ -137,6 +137,8 @@ unsigned long fs_mkdir(unsigned char* filename);
 unsigned long fs_rm(unsigned char* filename);
 // move file.
 unsigned long fs_mv(unsigned char* src, unsigned char* dest);
+// copy file.
+unsigned long fs_cp(unsigned char* src, unsigned char* dest);
 // open dir.
 unsigned long fs_open_dir(FS_FAT_DIR* dir, unsigned char* filename);
 // read dir.

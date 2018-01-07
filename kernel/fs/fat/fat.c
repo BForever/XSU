@@ -429,6 +429,7 @@ uint32_t fs_read(FILE* file, uint8_t* buf, uint32_t count)
     end_byte = (file->loc + count - 1) & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
 
 #ifdef FS_DEBUG
+    kernel_printf("fs_read:\n");
     kernel_printf("start cluster: %d\n", start_clus);
     kernel_printf("start byte: %d\n", start_byte);
     kernel_printf("end cluster: %d\n", end_clus);
@@ -557,6 +558,14 @@ uint32_t fs_write(FILE* file, const uint8_t* buf, uint32_t count)
     uint32_t start_byte = file->loc & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
     uint32_t end_clus = (file->loc + count - 1) >> fs_wa(fat_info.BPB.attr.sectors_per_cluster << 9);
     uint32_t end_byte = (file->loc + count - 1) & ((fat_info.BPB.attr.sectors_per_cluster << 9) - 1);
+
+#ifdef FS_DEBUG
+    kernel_printf("fs_write:\n");
+    kernel_printf("start cluster: %d\n", start_clus);
+    kernel_printf("start byte: %d\n", start_byte);
+    kernel_printf("end cluster: %d\n", end_clus);
+    kernel_printf("end byte: %d\n", end_byte);
+#endif
 
     // If file is empty, alloc a new data cluster.
     uint32_t curr_cluster = get_start_cluster(file);

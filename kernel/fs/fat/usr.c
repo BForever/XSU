@@ -41,47 +41,112 @@ fs_rm_err:
     return 1;
 }
 
-// Move directory entry.
 uint32_t fs_mv(uint8_t* src, uint8_t* dest)
 {
-    uint32_t i;
-    FILE mk_dir;
-    uint8_t filename11[13];
+    FILE oldfile, newfile;
 
-    // If src not exists.
-    if (fs_open(&mk_dir, src) == 1)
+    // Open src.
+    if (fs_open(&oldfile, src) == 1) {
         goto fs_mv_err;
+    }
 
-    // Create dest.
-    if (fs_create_with_attr(dest, mk_dir.entry.data[11]) == 1)
+    // Read src.
+    uint32_t file_size = get_entry_filesize(oldfile.entry.data);
+    uint8_t* buf = (uint8_t*)kmalloc(file_size + 1);
+    fs_read(&oldfile, buf, file_size);
+    buf[file_size] = 0;
+
+#ifdef FS_DEBUG
+    kernel_printf("fs_mv:\n");
+    kernel_printf("file size: %d\n", file_size);
+    kernel_printf("%s\n", buf);
+#endif
+
+    // Close src.
+    if (fs_close(&oldfile) == 1) {
         goto fs_mv_err;
+    }
 
-    // Copy directory entry.
-    for (i = 0; i < 32; i++)
-        mk_dir_buf[i] = mk_dir.entry.data[i];
-
-    // New path.
-    for (i = 0; i < 11; i++)
-        mk_dir_buf[i] = filename11[i];
-
-    if (fs_open(&file_create, dest) == 1)
+    // Create dst.
+    if (fs_create(dest) == 1) {
         goto fs_mv_err;
+    }
 
-    // Copy directory entry to dest.
-    for (i = 0; i < 32; i++)
-        file_create.entry.data[i] = mk_dir_buf[i];
-
-    if (fs_close(&file_create) == 1)
+    // Open dst.
+    if (fs_open(&newfile, dest) == 1) {
         goto fs_mv_err;
+    }
 
-    // Mark src directory entry 0xE5.
-    mk_dir.entry.data[0] = 0xE5;
-
-    if (fs_close(&mk_dir) == 1)
+    // Write dst.
+    if (fs_write(&newfile, buf, file_size) == 1) {
         goto fs_mv_err;
+    }
 
+    // Close dst.
+    if (fs_close(&newfile) == 1) {
+        goto fs_mv_err;
+    }
+
+    // Delete src.
+    if (fs_rm(src) == 1) {
+        goto fs_mv_err;
+    }
+
+    kfree(buf);
     return 0;
 fs_mv_err:
+    return 1;
+}
+
+uint32_t fs_cp(unsigned char* src, unsigned char* dest)
+{
+    FILE oldfile, newfile;
+
+    // Open src.
+    if (fs_open(&oldfile, src) == 1) {
+        goto fs_cp_err;
+    }
+
+    // Read src.
+    uint32_t file_size = get_entry_filesize(oldfile.entry.data);
+    uint8_t* buf = (uint8_t*)kmalloc(file_size + 1);
+    fs_read(&oldfile, buf, file_size);
+    buf[file_size] = 0;
+
+#ifdef FS_DEBUG
+    kernel_printf("fs_cp:\n");
+    kernel_printf("file size: %d\n", file_size);
+    kernel_printf("%s\n", buf);
+#endif
+
+    // Close src.
+    if (fs_close(&oldfile) == 1) {
+        goto fs_cp_err;
+    }
+
+    // Create dst.
+    if (fs_create(dest) == 1) {
+        goto fs_cp_err;
+    }
+
+    // Open dst.
+    if (fs_open(&newfile, dest) == 1) {
+        goto fs_cp_err;
+    }
+
+    // Write dst.
+    if (fs_write(&newfile, buf, file_size) == 1) {
+        goto fs_cp_err;
+    }
+
+    // Close dst.
+    if (fs_close(&newfile) == 1) {
+        goto fs_cp_err;
+    }
+
+    kfree(buf);
+    return 0;
+fs_cp_err:
     return 1;
 }
 

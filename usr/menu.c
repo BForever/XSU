@@ -179,7 +179,7 @@ static int cmd_ls(int argc, char** argv)
 
 static int cmd_mkdir(int argc, char** argv)
 {
-    if(argc != 2) {
+    if (argc != 2) {
         kernel_printf("Usage: make a directory\n");
         return EINVAL;
     }
@@ -193,7 +193,7 @@ static int cmd_create(int argc, char** argv)
 
 static int cmd_remove(int argc, char** argv)
 {
-    if(argc != 2) {
+    if (argc != 2) {
         kernel_printf("Usage: remove a file\n");
         return EINVAL;
     }
@@ -209,9 +209,18 @@ static int cmd_move(int argc, char** argv)
     return fs_mv(argv[1], argv[2]);
 }
 
+static int cmd_copy(int argc, char** argv)
+{
+    if (argc != 3) {
+        kernel_printf("Usage: copy files\n");
+        return EINVAL;
+    }
+    return fs_cp(argv[1], argv[2]);
+}
+
 static int cmd_cat(int argc, char** argv)
 {
-    if(argc != 2) {
+    if (argc != 2) {
         kernel_printf("Usage: concatenate and print files\n");
         return EINVAL;
     }
@@ -255,6 +264,7 @@ static struct {
     { "create", cmd_create },
     { "rm", cmd_remove },
     { "mv", cmd_move },
+    { "cp", cmd_copy },
     { "cat", cmd_cat },
     { NULL, NULL }
 };
