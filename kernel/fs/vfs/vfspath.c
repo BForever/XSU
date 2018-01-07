@@ -57,6 +57,7 @@ int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret)
     vn->vn_data = file;
     VOP_INCREF(vn);
     *ret = vn;
+    kfree(name);
 
     return result;
 }
@@ -109,6 +110,7 @@ int vfs_remove(char* path)
 
     result = VOP_REMOVE(dir, name);
     VOP_DECREF(dir);
+    kfree(name);
 
     return result;
 }
@@ -153,6 +155,8 @@ int vfs_rename(char* oldpath, char* newpath)
 
     VOP_DECREF(newdir);
     VOP_DECREF(olddir);
+    kfree(oldname);
+    kfree(newname);
 
     return result;
 }
@@ -210,6 +214,7 @@ int vfs_mkdir(char* path, mode_t mode)
     result = VOP_MKDIR(parent, name, mode);
 
     VOP_DECREF(parent);
+    kfree(name);
     kernel_printf("VFS_MKDIR: completed execting vfs_mkdir \n");
     return result;
 }

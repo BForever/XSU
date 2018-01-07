@@ -103,7 +103,7 @@ static int getdevice(char* path, char** subpath, struct vnode** startvn)
             // device:/path - skip slash, treat as device:path.
             colon++;
         }
-        *subpath = &path[colon + 1];
+        *subpath = &path[colon];
 #ifdef VFS_DEBUG
         kernel_printf("path: %s\n", path);
         if (**subpath) {
