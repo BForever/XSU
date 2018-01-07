@@ -5,10 +5,10 @@
 #include <driver/sd.h>
 #include <driver/vga.h>
 #include <kern/errno.h>
+#include <xsu/fs/fat.h>
+#include <xsu/fs/vfs.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
-#include <xsu/fs/vfs.h>
-#include <xsu/fs/fat.h>
 
 char buf[64];
 int buf_index;
@@ -192,6 +192,16 @@ static int cmd_remove(int argc, char** argv)
     return vfs_remove(argv[1]);
 }
 
+static int cmd_move(int argc, char** argv)
+{
+    if (argc != 3) {
+        kernel_printf("Usage: move or rename files\n");
+        return EINVAL;
+    }
+
+    return vfs_rename(argv[1], argv[2]);
+}
+
 static int cmd_cat(int argc, char** argv)
 {
     return fs_cat(argv[1]);
@@ -233,6 +243,7 @@ static struct {
     { "mkdir", cmd_mkdir },
     { "create", cmd_create },
     { "rm", cmd_remove },
+    { "mv", cmd_move },
     { "cat", cmd_cat },
     { NULL, NULL }
 };

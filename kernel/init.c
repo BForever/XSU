@@ -1,5 +1,4 @@
 #include "../usr/menu.h"
-#include "../usr/ps.h"
 #include <arch.h>
 #include <driver/ps2.h>
 #include <driver/vga.h>
