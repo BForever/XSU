@@ -5,21 +5,7 @@
 #include <xsu/list.h>
 #include <xsu/lock.h>
 
-//register storage in task struct
-typedef struct {
-    unsigned int epc;
-    unsigned int at;
-    unsigned int v0, v1;
-    unsigned int a0, a1, a2, a3;
-    unsigned int t0, t1, t2, t3, t4, t5, t6, t7;
-    unsigned int s0, s1, s2, s3, s4, s5, s6, s7;
-    unsigned int t8, t9;
-    unsigned int hi, lo;
-    unsigned int gp;
-    unsigned int sp;
-    unsigned int fp;
-    unsigned int ra;
-} context;
+
 
 //exception level:set when exc in kernel mode--for status register
 #define EXL = 1 
@@ -135,10 +121,11 @@ int pc_kill(int asid);
 void pc_deletelist(task_struct *task);
 void pc_deletetask(task_struct *task);
 task_struct* pc_find(int asid);
+void printtask(task_struct* task);
 void printalltask();
 int print_proc();
-
-int __fork_kthread(task_struct* src);
+//print all tasks that are in the ready list
+void printreadylist();
 
 //asid management
 void clearasid(unsigned int asid);
@@ -180,6 +167,19 @@ int do_unmapping(vma_node* vma,TLBEntry **pagecontent);
 void map_all(task_struct* task);
 void unmap_all(task_struct* task);//except code and stack
 void free_heap(task_struct *task);
+void clearpage(void *pagestart);
+//print vma list of task
+void printvmalist(task_struct* task);
+//given asid and physical address, get corresponding virtual address
+unsigned int getuseraddr(int asid, unsigned int pa);
+
+//test functions
+void fk1();
+void test_sleep1sandprint();
+void test_sleep5sandkillasid2();
+void test_forkandkill();
+void fu1();
+int pc_test();
 
 //syscall code allocation
 #define SYSCALL_MALLOC 1

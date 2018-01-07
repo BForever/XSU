@@ -4,7 +4,7 @@
 #include <intr.h>
 
 void init_ps2();
-void ps2_handler(unsigned int, unsigned int, unsigned int*);
+void ps2_handler(unsigned int, unsigned int, context*);
 int kernel_getkey();
 int kernel_getchar();
 

@@ -127,7 +127,7 @@ void TLBL_exc(unsigned int status, unsigned int cause, context* context)
         "mfc0   %0, $8\n\t"
         :"=r"(badaddr)
     );
-    unsigned int seg = GPIO_SEG;
+    unsigned int seg = (unsigned int)GPIO_SEG;
     asm volatile(
         "sw   $sp, 0(%0)\n\t"
         ::"r"(seg)
@@ -280,7 +280,7 @@ void TLBrefill()
     );
     kernel_printf("context:%x\n",t1);
     kernel_printf("refill tlb:");
-    printTLBEntry(t1);
+    printTLBEntry((TLBEntry*)t1);
     printTLB();
 }
 

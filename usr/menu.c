@@ -12,6 +12,7 @@
 #include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
+#include <xsu/pc.h>
 
 char pwd[256];
 char buf[64];
@@ -383,6 +384,12 @@ static int cmd_cat(int argc, char** argv)
     return vfs_cat(argv[1]);
 }
 
+static int cmd_pctest_sleep(int argc, char** argv)
+{
+    pc_create(test_sleep1sandprint,"test_sleep1sandprint");
+    return 0;
+}
+
 /*
  * Command table. 
  */
@@ -429,6 +436,8 @@ static struct {
     { "mv", cmd_move },
     { "cp", cmd_copy },
     { "cat", cmd_cat },
+    /* process control */
+    { "pctest_sleep", cmd_pctest_sleep },
     { NULL, NULL }
 };
 
