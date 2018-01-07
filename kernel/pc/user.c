@@ -9,7 +9,7 @@
 
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level)
 {
-    task_struct *task = create_kthread(name,level);
+    task_struct *task = create_kthread(name,level,0);
 
     //set context
     task->context.sp = USER_STACK;//sp
