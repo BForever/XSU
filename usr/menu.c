@@ -396,7 +396,7 @@ static int cmd_ls(int argc, char** argv)
     if (pwd[kernel_strlen(pwd) - 1] != '/') {
         kernel_strcat(pwd, "/");
     }
-    kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
+    kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
     kernel_strcat(tmp, argv[1]);
 
     return ls(tmp);
