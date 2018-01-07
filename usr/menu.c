@@ -424,6 +424,10 @@ static int cmd_kill(int argc, char** argv)
         }
     }
 }
+static int cmd_ps(int argc, char** argv)
+{
+    call_syscall_a0(SYSCALL_PRINTTASKS,0);
+}
 
 /*
  * Command table. 
@@ -470,6 +474,7 @@ static struct {
     { "cd", cmd_cd },
     { "cat", cmd_cat },
     /* process control */
+    { "ps", cmd_ps },
     { "kill", cmd_kill },
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
