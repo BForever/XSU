@@ -74,6 +74,7 @@ static int cmd_sdr(int argc, char** argv)
         kernel_printf("%d ", sd_buffer[i]);
     }
     kernel_putchar('\n', 0xfff, 0);
+    return 0;
 }
 
 static int cmd_sdwz(int argc, char** argv)
@@ -84,6 +85,7 @@ static int cmd_sdwz(int argc, char** argv)
     }
     sd_write_block(sd_buffer, 7, 1);
     kernel_puts("sdwz\n", 0xfff, 0);
+    return 0;
 }
 
 /*
@@ -93,6 +95,7 @@ static int cmd_mminfo(int argc, char** argv)
 {
     bootmap_info();
     buddy_info();
+    return 0;
 }
 
 static int cmd_mmtest(int argc, char** argv)
@@ -101,6 +104,7 @@ static int cmd_mmtest(int argc, char** argv)
     kernel_printf("kmalloc : %x, size = 1KB\n", address);
     kfree(address);
     kernel_printf("kfree succeed\n");
+    return 0;
 }
 
 static int cmd_slubtest(int argc, char** argv)
@@ -111,6 +115,7 @@ static int cmd_slubtest(int argc, char** argv)
         void* address = kmalloc(size_kmem_cache[i]);
         kernel_printf("kmalloc : %x, size = 1KB\n", address);
     }
+    return 0;
 }
 
 static int cmd_buddytest(int argc, char** argv)
@@ -123,6 +128,7 @@ static int cmd_buddytest(int argc, char** argv)
     kernel_printf("kmalloc : %x, size = 1KB\n", address);
     address = kmalloc(4096 * 2);
     kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    return 0;
 }
 
 static int cmd_buddy(int argc, char** argv)
@@ -147,6 +153,7 @@ static int cmd_buddy(int argc, char** argv)
     kernel_printf("kmalloc : %x, size = 4KB\n", address);
     address = kmalloc(4096);
     kernel_printf("kmalloc : %x, size = 4KB\n", address);
+    return 0;
 }
 
 static int cmd_slub(int argc, char** argv)
@@ -168,6 +175,7 @@ static int cmd_slub(int argc, char** argv)
     kernel_printf("kmalloc : %x, size = 4KB\n", address2);
     address2 = kmalloc(1024);
     kernel_printf("kmalloc : %x, size = 4KB\n", address2);
+    return 0;
 }
 
 /*
