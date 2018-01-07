@@ -1,6 +1,7 @@
 #ifndef _INTR_H
 #define _INTR_H
 
+#include <arch.h>
 typedef void (*intr_fn)(unsigned int, unsigned int, context*);
 
 extern intr_fn interrupts[8];
