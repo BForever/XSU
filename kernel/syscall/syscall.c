@@ -15,6 +15,7 @@ void init_syscall()
 void syscall(unsigned int status, unsigned int cause, context* pt_context)
 {
     int code = pt_context->v0;
+    pt_context->epc += 4;
     code &= 255;
     if (syscalls[code]) {
         syscalls[code](status,cause,pt_context);
