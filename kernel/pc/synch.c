@@ -7,7 +7,6 @@
 #include <xsu/utils.h>
 #include <xsu/wchan.h>
 
-
 /*
  * Dummy current thread. 
  */

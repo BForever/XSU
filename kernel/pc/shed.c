@@ -1,13 +1,13 @@
 #include "pc.h"
 
 #include <driver/vga.h>
-#include <intr.h>
 #include <exc.h>
+#include <intr.h>
+#include <xsu/slab.h>
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
-#include <xsu/slab.h>
 
-void copy_context(context* src, context* dest) 
+void copy_context(context* src, context* dest)
 {
     dest->epc = src->epc;
     dest->at = src->at;
@@ -44,43 +44,38 @@ void copy_context(context* src, context* dest)
 }
 task_struct* __getnexttask()
 {
-    flushsleeplist();//update sleep list
-    task_struct *next = (task_struct*)0;
+    flushsleeplist(); //update sleep list
+    task_struct* next = (task_struct*)0;
     int i;
-    for(i=PROC_LEVELS-1;i>=0;i--)
-    {
-        if(!list_empty(&ready_list[i]))
-        {
-            next = list_entry(ready_list[i].next,task_struct,ready);
+    for (i = PROC_LEVELS - 1; i >= 0; i--) {
+        if (!list_empty(&ready_list[i])) {
+            next = list_entry(ready_list[i].next, task_struct, ready);
             break;
         }
-        
     }
-    if(!next)
-    {
+    if (!next) {
         kernel_printf("No process running!!!\n");
-        while(1); //panic
+        while (1)
+            ; //panic
     }
 }
-void pc_schedule(unsigned int status, unsigned int cause, context* pt_context) {
+void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
+{
     //printalltask();
     //printreadylist();
     current->counter--;
     // Check whether the process' timeslots are used out
-    if (current->counter)
-    {
+    if (current->counter) {
         current->counter--;
         __reset_counter();
-    } 
-    else // Restore counter and choose the next process
+    } else // Restore counter and choose the next process
     {
         current->counter = PROC_DEFAULT_TIMESLOTS;
         current->state = PROC_STATE_READY;
-        list_add_tail(&current->ready,&ready_list[current->level]);
-        
-        __pc_schedule(status,cause,pt_context);
+        list_add_tail(&current->ready, &ready_list[current->level]);
+
+        __pc_schedule(status, cause, pt_context);
     }
-    
 }
 void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context) //find next task and load context
 {
@@ -88,8 +83,7 @@ void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     // Get next ready task
     current = __getnexttask();
     list_del_init(&current->ready);
-    if(current)
-    {
+    if (current) {
         current->state = PROC_STATE_RUNNING;
     }
 
@@ -97,13 +91,12 @@ void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     copy_context(&current->context, pt_context);
 
     __reset_counter();
-    
 }
 void __reset_counter()
 {
     setasid(current->ASID);
     kernel_sp = current->kernel_stack;
-    
+
     // Reset counter
     asm volatile("mtc0 $zero, $9\n\t");
 }
