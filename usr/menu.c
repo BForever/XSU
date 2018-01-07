@@ -179,6 +179,10 @@ static int cmd_ls(int argc, char** argv)
 
 static int cmd_mkdir(int argc, char** argv)
 {
+    if(argc != 2) {
+        kernel_printf("Usage: make a directory\n");
+        return EINVAL;
+    }
     return vfs_mkdir(argv[1], 0);
 }
 
@@ -189,6 +193,10 @@ static int cmd_create(int argc, char** argv)
 
 static int cmd_remove(int argc, char** argv)
 {
+    if(argc != 2) {
+        kernel_printf("Usage: remove a file\n");
+        return EINVAL;
+    }
     return vfs_remove(argv[1]);
 }
 
@@ -198,12 +206,15 @@ static int cmd_move(int argc, char** argv)
         kernel_printf("Usage: move or rename files\n");
         return EINVAL;
     }
-
-    return vfs_rename(argv[1], argv[2]);
+    return fs_mv(argv[1], argv[2]);
 }
 
 static int cmd_cat(int argc, char** argv)
 {
+    if(argc != 2) {
+        kernel_printf("Usage: concatenate and print files\n");
+        return EINVAL;
+    }
     return fs_cat(argv[1]);
 }
 
@@ -297,6 +308,7 @@ static void menu_execute()
     char* context;
     int result;
 
+    kernel_putchar('\n', 0, 0);
     for (command = kernel_strtok_r(buf, ";", &context);
          command != NULL;
          command = kernel_strtok_r(NULL, ";", &context)) {
