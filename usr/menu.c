@@ -12,6 +12,7 @@
 #include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
+#include <xsu/pc.h>
 
 char buf[64];
 int buf_index;
