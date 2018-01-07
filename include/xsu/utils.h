@@ -26,6 +26,7 @@ char* kernel_strchr(const char* s, int ch_arg);
 char* kernel_strcpy(char* dest, const char* src);
 char* kernel_strcat(char* dest, const char* src);
 char* kernel_strdup(const char* str);
+char* kernel_strtok_r(char* string, const char* seps, char** context);
 
 /*
  * Miscellaneous functions.

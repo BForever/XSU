@@ -1,3 +1,4 @@
+#include "../usr/menu.h"
 #include "../usr/ps.h"
 #include <arch.h>
 #include <driver/ps2.h>
@@ -100,5 +101,5 @@ void init_kernel()
     machine_info();
     *GPIO_SEG = 0x11223344;
     // Enter shell
-    ps();
+    menu();
 }
