@@ -1,5 +1,8 @@
 #include <driver/vga.h>
 #include <xsu/fs/fat.h>
+#include <xsu/fs/vfs.h>
+#include <xsu/fs/vnode.h>
+#include <xsu/slab.h>
 
 char* cut_front_blank(char* str)
 {
@@ -48,12 +51,33 @@ unsigned int each_param(char* para, char* word, unsigned int off, char ch)
     return off;
 }
 
+void handle_path(char* path, char* newpath)
+{
+    struct vnode* vn;
+    char* name;
+    int result;
+
+    name = kmalloc(kernel_strlen(path) + 1);
+    result = vfs_lookparent(path, &vn, name, sizeof(name));
+    if (result) {
+        return;
+    }
+    kernel_memcpy(newpath, name, kernel_strlen(name) + 1);
+}
+
 int ls(char* para)
 {
+    char* newpath;
+    newpath = kmalloc(kernel_strlen(para) + 1);
+    handle_path(para, newpath);
+    assert(kernel_strlen(newpath) != 0, "path handle error.");
+#ifdef VFS_DEBUG
+    kernel_printf("ls path: %s\n", newpath);
+#endif
     char pwd[128];
     struct dir_entry_attr entry;
     char name[32];
-    char* p = para;
+    char* p = newpath;
     unsigned int next;
     unsigned int r;
     unsigned int p_len;
@@ -82,8 +106,10 @@ readdir:
             kernel_printf("\n");
             goto readdir;
         }
-    } else
+    } else {
+        kfree(newpath);
         return 1;
-
+    }
+    kfree(newpath);
     return 0;
 }

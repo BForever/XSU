@@ -161,6 +161,75 @@ int vfs_rename(char* oldpath, char* newpath)
     return result;
 }
 
+int vfs_cp(char* oldpath, char* newpath)
+{
+    struct vnode* olddir;
+    struct vnode* newdir;
+    char* oldname;
+    char* newname;
+    int result;
+
+    oldname = kmalloc(kernel_strlen(oldpath) + 1);
+    newname = kmalloc(kernel_strlen(newpath) + 1);
+    result = vfs_lookparent(oldpath, &olddir, oldname, sizeof(oldname));
+    if (result) {
+        return result;
+    }
+    result = vfs_lookparent(newpath, &newdir, newname, sizeof(newname));
+    if (result) {
+        return result;
+    }
+
+    result = fs_cp(oldname, newname);
+    if (result) {
+        return result;
+    }
+
+    kfree(oldname);
+    kfree(newname);
+    return result;
+}
+
+int vfs_create(char* path)
+{
+    struct vnode* vn;
+    char* name;
+    int result;
+
+    name = kmalloc(kernel_strlen(path) + 1);
+    result = vfs_lookparent(path, &vn, name, sizeof(name));
+    if (result) {
+        return result;
+    }
+
+    result = fs_create(name);
+    if (result) {
+        return result;
+    }
+    kfree(name);
+    return result;
+}
+
+int vfs_cat(char* path)
+{
+    struct vnode* vn;
+    char* name;
+    int result;
+
+    name = kmalloc(kernel_strlen(path) + 1);
+    result = vfs_lookparent(path, &vn, name, sizeof(name));
+    if (result) {
+        return result;
+    }
+
+    result = fs_cat(name);
+    if (result) {
+        return result;
+    }
+    kfree(name);
+    return result;
+}
+
 /* Does most of the work for link(). */
 int vfs_link(char* oldpath, char* newpath)
 {

@@ -104,6 +104,9 @@ int vfs_link(char* oldpath, char* newpath);
 int vfs_remove(char* path);
 int vfs_rmdir(char* path);
 int vfs_rename(char* oldpath, char* newpath);
+int vfs_create(char* path);
+int vfs_cp(char* oldpath, char* newpath);
+int vfs_cat(char* path);
 
 int vfs_chdir(char* path);
 int vfs_getcwd(struct uio* buf);

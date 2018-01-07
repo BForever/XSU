@@ -188,7 +188,7 @@ static int cmd_mkdir(int argc, char** argv)
 
 static int cmd_create(int argc, char** argv)
 {
-    return fs_create(argv[1]);
+    return vfs_create(argv[1]);
 }
 
 static int cmd_remove(int argc, char** argv)
@@ -206,7 +206,7 @@ static int cmd_move(int argc, char** argv)
         kernel_printf("Usage: move or rename files\n");
         return EINVAL;
     }
-    return fs_mv(argv[1], argv[2]);
+    return vfs_rename(argv[1], argv[2]);
 }
 
 static int cmd_copy(int argc, char** argv)
@@ -215,7 +215,7 @@ static int cmd_copy(int argc, char** argv)
         kernel_printf("Usage: copy files\n");
         return EINVAL;
     }
-    return fs_cp(argv[1], argv[2]);
+    return vfs_cp(argv[1], argv[2]);
 }
 
 static int cmd_cat(int argc, char** argv)
@@ -224,7 +224,7 @@ static int cmd_cat(int argc, char** argv)
         kernel_printf("Usage: concatenate and print files\n");
         return EINVAL;
     }
-    return fs_cat(argv[1]);
+    return vfs_cat(argv[1]);
 }
 
 /*
