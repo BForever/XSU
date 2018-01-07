@@ -9,10 +9,10 @@
 #include <xsu/buddy.h>
 #include <xsu/fs/fat.h>
 #include <xsu/fs/vfs.h>
+#include <xsu/pc.h>
 #include <xsu/slab.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
-#include <xsu/pc.h>
 
 char pwd[256];
 char buf[64];
@@ -242,6 +242,8 @@ static int cmd_cd(int argc, char** argv)
         kernel_memcpy(pwd, tmp, kernel_strlen(tmp) + 1);
         return 0;
     }
+
+    // TODO: sth to be done.
 }
 
 // Table of mountable filesystem types.
@@ -386,7 +388,7 @@ static int cmd_cat(int argc, char** argv)
 
 static int cmd_pctest_sleep(int argc, char** argv)
 {
-    pc_create(test_sleep1sandprint,"test_sleep1sandprint");
+    pc_create(test_sleep1sandprint, "test_sleep1sandprint");
     return 0;
 }
 
