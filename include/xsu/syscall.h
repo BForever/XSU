@@ -2,7 +2,7 @@
 #define _XSU_SYSCALL_H
 
 #include <arch.h>
-typedef void(*sys_fn)(unsigned int, unsigned int, unsigned int, context*);
+typedef void(*sys_fn)(unsigned int, unsigned int, context*);
 
 extern sys_fn syscalls[256];
 
