@@ -7,7 +7,8 @@
 #include <kern/errno.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
-#include <xsu/vfs.h>
+#include <xsu/fs/vfs.h>
+#include <xsu/fs/fat.h>
 
 char buf[64];
 int buf_index;
@@ -30,7 +31,7 @@ static int cmd_echo(int argc, char** argv)
     return 0;
 }
 
-static int cmd_ime(int argc, char** argv)
+static int cmd_time(int argc, char** argv)
 {
     char buf[10];
     get_time(buf, sizeof(buf));
@@ -54,6 +55,7 @@ static int cmd_syscall4(int argc, char** argv)
 
 static int cmd_sdwi(int argc, char** argv)
 {
+    int i;
     for (i = 0; i < 512; i++)
         sd_buffer[i] = i;
     sd_write_block(sd_buffer, 7, 1);
@@ -63,6 +65,7 @@ static int cmd_sdwi(int argc, char** argv)
 
 static int cmd_sdr(int argc, char** argv)
 {
+    int i;
     sd_read_block(sd_buffer, 7, 1);
     for (i = 0; i < 512; i++) {
         kernel_printf("%d ", sd_buffer[i]);
@@ -72,6 +75,7 @@ static int cmd_sdr(int argc, char** argv)
 
 static int cmd_sdwz(int argc, char** argv)
 {
+    int i;
     for (i = 0; i < 512; i++) {
         sd_buffer[i] = 0;
     }
@@ -173,22 +177,22 @@ static int cmd_ls(int argc, char** argv)
     return ls(argv[1]);
 }
 
-static cmd_mkdir(int argc, char** argv)
+static int cmd_mkdir(int argc, char** argv)
 {
     return vfs_mkdir(argv[1], 0);
 }
 
-static cmd_create(int argc, char** argv)
+static int cmd_create(int argc, char** argv)
 {
     return fs_create(argv[1]);
 }
 
-static cmd_remove(int argc, char** argv)
+static int cmd_remove(int argc, char** argv)
 {
     return vfs_remove(argv[1]);
 }
 
-static cmd_cat(int argc, char** argv)
+static int cmd_cat(int argc, char** argv)
 {
     return fs_cat(argv[1]);
 }
@@ -244,9 +248,9 @@ static int cmd_dispatch(char* cmd)
     char* context;
     int i, result;
 
-    for (word = strtok_r(cmd, " \t", &context);
+    for (word = kernel_strtok_r(cmd, " \t", &context);
          word != NULL;
-         word = strtok_r(NULL, " \t", &context)) {
+         word = kernel_strtok_r(NULL, " \t", &context)) {
 
         if (nargs >= MAXMENUARGS) {
             kernel_printf("Command line has too many words\n");
@@ -262,7 +266,7 @@ static int cmd_dispatch(char* cmd)
     for (i = 0; cmdtable[i].name; i++) {
         if (*cmdtable[i].name && !kernel_strcmp(args[0], cmdtable[i].name)) {
             assert(cmdtable[i].func != NULL, "this command has not been implemented.");
-
+            kernel_printf("\n");
             result = cmdtable[i].func(nargs, args);
             return result;
         }
@@ -282,9 +286,9 @@ static void menu_execute()
     char* context;
     int result;
 
-    for (command = strtok_r(buf, ";", &context);
+    for (command = kernel_strtok_r(buf, ";", &context);
          command != NULL;
-         command = strtok_r(NULL, ";", &context)) {
+         command = kernel_strtok_r(NULL, ";", &context)) {
 
         result = cmd_dispatch(command);
         if (result) {
@@ -298,33 +302,33 @@ void menu()
     kernel_printf("Press any key to enter shell.\n");
     kernel_getchar();
     char c;
-    ps_buffer_index = 0;
-    ps_buffer[0] = 0;
+    buf_index = 0;
+    buf[0] = 0;
     kernel_clear_screen(31);
     kernel_puts("PowerShell\n", 0xfff, 0);
     kernel_puts("PS>", 0xfff, 0);
     while (1) {
         c = kernel_getchar();
         if (c == '\n') {
-            ps_buffer[ps_buffer_index] = 0;
-            if (kernel_strcmp(ps_buffer, "exit") == 0) {
-                ps_buffer_index = 0;
-                ps_buffer[0] = 0;
+            buf[buf_index] = 0;
+            if (kernel_strcmp(buf, "exit") == 0) {
+                buf_index = 0;
+                buf[0] = 0;
                 kernel_printf("\nPowerShell exit.\n");
             } else
                 menu_execute();
-            ps_buffer_index = 0;
+            buf_index = 0;
             kernel_puts("PS>", 0xfff, 0);
         } else if (c == 0x08) {
-            if (ps_buffer_index) {
-                ps_buffer_index--;
+            if (buf_index) {
+                buf_index--;
                 kernel_putchar_at(' ', 0xfff, 0, cursor_row, cursor_col - 1);
                 cursor_col--;
                 kernel_set_cursor();
             }
         } else {
-            if (ps_buffer_index < 63) {
-                ps_buffer[ps_buffer_index++] = c;
+            if (buf_index < 63) {
+                buf[buf_index++] = c;
                 kernel_putchar(c, 0xfff, 0);
             }
         }
