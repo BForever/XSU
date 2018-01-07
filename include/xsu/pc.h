@@ -5,21 +5,7 @@
 #include <xsu/list.h>
 #include <xsu/lock.h>
 
-//register storage in task struct
-typedef struct {
-    unsigned int epc;
-    unsigned int at;
-    unsigned int v0, v1;
-    unsigned int a0, a1, a2, a3;
-    unsigned int t0, t1, t2, t3, t4, t5, t6, t7;
-    unsigned int s0, s1, s2, s3, s4, s5, s6, s7;
-    unsigned int t8, t9;
-    unsigned int hi, lo;
-    unsigned int gp;
-    unsigned int sp;
-    unsigned int fp;
-    unsigned int ra;
-} context;
+
 
 //exception level:set when exc in kernel mode--for status register
 #define EXL = 1 
