@@ -167,6 +167,7 @@ int do_unmapping(vma_node* vma,TLBEntry **pagecontent);
 void map_all(task_struct* task);
 void unmap_all(task_struct* task);//except code and stack
 void free_heap(task_struct *task);
+void clearpage(void *pagestart);
 //print vma list of task
 void printvmalist(task_struct* task);
 //given asid and physical address, get corresponding virtual address
