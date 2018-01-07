@@ -28,14 +28,6 @@ char* cut_front_blank(char* str)
     return str;
 }
 
-unsigned int strlen(unsigned char* str)
-{
-    unsigned int len = 0;
-    while (str[len])
-        ++len;
-    return len;
-}
-
 unsigned int each_param(char* para, char* word, unsigned int off, char ch)
 {
     int index = 0;
@@ -84,7 +76,7 @@ int ls(char* para)
     FS_FAT_DIR dir;
 
     p = cut_front_blank(p);
-    p_len = strlen(p);
+    p_len = kernel_strlen(p);
     next = each_param(p, pwd, 0, ' ');
 
     if (fs_open_dir(&dir, pwd)) {
