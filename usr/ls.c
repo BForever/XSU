@@ -4,45 +4,6 @@
 #include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
 
-char* cut_front_blank(char* str)
-{
-    char* s = str;
-    unsigned int index = 0;
-
-    while (*s == ' ') {
-        ++s;
-        ++index;
-    }
-
-    if (!index)
-        return str;
-
-    while (*s) {
-        *(s - index) = *s;
-        ++s;
-    }
-
-    --s;
-    *s = 0;
-
-    return str;
-}
-
-unsigned int each_param(char* para, char* word, unsigned int off, char ch)
-{
-    int index = 0;
-
-    while (para[off] && para[off] != ch) {
-        word[index] = para[off];
-        ++index;
-        ++off;
-    }
-
-    word[index] = 0;
-
-    return off;
-}
-
 void handle_path(char* path, char* newpath)
 {
     struct vnode* vn;
@@ -58,29 +19,21 @@ void handle_path(char* path, char* newpath)
     kfree(name);
 }
 
-int ls(char* para)
+int ls(char* path, char* options)
 {
     char* newpath;
-    newpath = kmalloc(kernel_strlen(para) + 1);
-    handle_path(para, newpath);
+    newpath = kmalloc(kernel_strlen(path) + 1);
+    handle_path(path, newpath);
     assert(kernel_strlen(newpath) != 0, "path handle error.");
 #ifdef VFS_DEBUG
     kernel_printf("ls path: %s\n", newpath);
 #endif
-    char pwd[128];
+    FS_FAT_DIR dir;
     struct dir_entry_attr entry;
     char name[32];
-    char* p = newpath;
-    unsigned int next;
     unsigned int r;
-    unsigned int p_len;
-    FS_FAT_DIR dir;
 
-    p = cut_front_blank(p);
-    p_len = kernel_strlen(p);
-    next = each_param(p, pwd, 0, ' ');
-
-    if (fs_open_dir(&dir, pwd)) {
+    if (fs_open_dir(&dir, path)) {
         kernel_printf("open dir(%s) failed : No such directory!\n", pwd);
         return 1;
     }

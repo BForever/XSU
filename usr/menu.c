@@ -22,7 +22,7 @@ char sd_buffer[8192];
 
 #define MAXMENUARGS 16
 
-static void abs_to_rel(char* oldpath, char* newpath)
+static void rel_to_abs(char* oldpath, char* newpath)
 {
     // absolute directory.
     char device[5];
@@ -416,16 +416,33 @@ static int cmd_bootfs(int argc, char** argv)
 
 static int cmd_ls(int argc, char** argv)
 {
+    // ls
     if (argc == 1) {
         char* tmp;
         tmp = kernel_strdup(pwd);
-        return ls(tmp);
+        return ls(tmp, NULL);
     }
 
-    char path[256];
-    abs_to_rel(argv[1], path);
+    // ls path or ls -options
+    if (argc == 2) {
+        if (argv[1][0] == '-') {
+            // options
+            char* tmp;
+            tmp = kernel_strdup(pwd);
+            return ls(tmp, argv[1]);
+        } else {
+            // path
+            char path[256];
+            rel_to_abs(argv[1], path);
+            return ls(path, NULL);
+        }
+    }
 
-    return ls(path);
+    // ls path -options
+    char path[256];
+    rel_to_abs(argv[1], path);
+
+    return ls(path, argv[2]);
 }
 
 static int cmd_mkdir(int argc, char** argv)
@@ -436,7 +453,7 @@ static int cmd_mkdir(int argc, char** argv)
     }
 
     char path[256];
-    abs_to_rel(argv[1], path);
+    rel_to_abs(argv[1], path);
 
     return vfs_mkdir(path, 0);
 }
@@ -449,7 +466,7 @@ static int cmd_create(int argc, char** argv)
     }
 
     char path[256];
-    abs_to_rel(argv[1], path);
+    rel_to_abs(argv[1], path);
 
     return vfs_create(path);
 }
@@ -462,7 +479,7 @@ static int cmd_remove(int argc, char** argv)
     }
 
     char path[256];
-    abs_to_rel(argv[1], path);
+    rel_to_abs(argv[1], path);
 
     return vfs_remove(path);
 }
@@ -476,8 +493,8 @@ static int cmd_move(int argc, char** argv)
 
     char path1[256], path2[256];
 
-    abs_to_rel(argv[1], path1);
-    abs_to_rel(argv[2], path2);
+    rel_to_abs(argv[1], path1);
+    rel_to_abs(argv[2], path2);
 
     return vfs_rename(path1, path2);
 }
@@ -491,8 +508,8 @@ static int cmd_copy(int argc, char** argv)
 
     char path1[256], path2[256];
 
-    abs_to_rel(argv[1], path1);
-    abs_to_rel(argv[2], path2);
+    rel_to_abs(argv[1], path1);
+    rel_to_abs(argv[2], path2);
 
     return vfs_cp(path1, path2);
 }
@@ -506,7 +523,7 @@ static int cmd_cat(int argc, char** argv)
 
     char path[256];
 
-    abs_to_rel(argv[1], path);
+    rel_to_abs(argv[1], path);
 
     return vfs_cat(path);
 }
