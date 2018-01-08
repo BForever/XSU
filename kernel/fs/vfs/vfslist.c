@@ -82,7 +82,7 @@ static char* mk_raw_name(const char* name)
         return NULL;
     }
     kernel_strcpy(s, name);
-    kernel_strcat(s, "raw");
+    s = kernel_strcat(s, "raw");
     return s;
 }
 
