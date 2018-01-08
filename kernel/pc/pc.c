@@ -62,7 +62,7 @@ int sw(int bit)
 
 void pc_create(void (*func)(), char* name)
 {
-    task_struct* task = create_kthread(name, PROC_LEVELS / 2, 1);
+    task_struct* task = create_kthread(name, PROC_LEVELS / 2, 0);
     task->context.epc = (unsigned int)func;
     list_add_tail(&task->ready, &ready_list[task->level]);
     task->state = PROC_STATE_READY;
@@ -358,6 +358,7 @@ void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_contex
     if (task) {
         __kill(task);
         if (task == current) {
+            current = (task_struct*)0;
             __pc_schedule(status, cause, pt_context);
         }
     }
