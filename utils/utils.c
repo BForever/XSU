@@ -197,7 +197,6 @@ char* kernel_strchr(const char* s, int ch_arg)
 
 char* kernel_strcpy(char* dest, const char* src)
 {
-    // if(strlen(dest))
     while ((*dest++ = *src++))
         ;
     return dest;
