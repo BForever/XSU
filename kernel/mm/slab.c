@@ -173,6 +173,7 @@ slalloc_normal:
 slalloc_end:
     // slab may be full after this allocation
     kernel_printf("cache->cpu.page->slabp is %x\n", cache->cpu.page->slabp);
+    kernel_printf("cache----------- is %x\n", *(cache->cpu.page->slabp));
     if (is_bound((unsigned int)(*(cache->cpu.page->slabp)), 1 << PAGE_SHIFT)) {
         kernel_printf("slab is full\n");
         list_add_tail(&(cache->cpu.page->list), &(cache->node.full));
