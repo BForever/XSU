@@ -91,6 +91,10 @@ void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
         current->state = PROC_STATE_RUNNING;
     }
 
+    if ((unsigned int)current <= 0x80000000) {
+        kernel_printf("Fetched invalid task from ready list:(unsigned)current = %x\n");
+    }
+
     // Load context
     copy_context(&current->context, pt_context);
 
