@@ -17,11 +17,20 @@ struct semaphore* create_semaphore(char* name, int count)
 }
 void release_semaphore(struct semaphore* sem)
 {
-    //TODO: kill all possible waiting processes
+    // Kill all possible waiting processes
+    struct list_head *pos, *n;
+    task_struct* waiter;
+    list_for_each_safe(pos, n, &sem->wait_list)
+    {
+        waiter = list_entry(pos, task_struct, wait);
+        __kill(waiter);
+    }
+    // Free struct
     kfree((void*)sem);
 }
 void sem_wait(struct semaphore* sem)
 {
+    int old = disable_interrupts();
     //decrese the count
     sem->count--;
     //if not available
@@ -31,11 +40,17 @@ void sem_wait(struct semaphore* sem)
         //go to wait list
         list_add_tail(&current->wait, &sem->wait_list);
         //run next process
+        enable_interrupts(old);
         __request_schedule();
+    } else {
+        enable_interrupts(old);
     }
+    
+    
 }
 void sem_signal(struct semaphore* sem)
 {
+    int old = disable_interrupts();
     //increase the count
     sem->count++;
     //if there's processes waiting
@@ -47,4 +62,5 @@ void sem_signal(struct semaphore* sem)
         //become the next process in ready list
         list_add(&task->ready, &ready_list[task->level]);
     }
+    enable_interrupts(old);
 }

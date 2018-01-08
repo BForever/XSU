@@ -23,7 +23,7 @@ static int __fork_kthread(task_struct* src);
 static void pc_releasewaiting(task_struct* task);
 static void pc_deletelist(task_struct* task);
 static void pc_deletetask(task_struct* task);
-
+static void pc_init_tasklists(task_struct *task);
 static void pc_killallsons(task_struct* father)
 {
     struct list_head *pos, *n;
@@ -74,7 +74,7 @@ void pc_create_son(void (*func)(), char* name)
     list_add_tail(&task->ready, &ready_list[task->level]);
     task->state = PROC_STATE_READY;
 }
-
+// Delete task from it's linked lists
 static void pc_deletelist(task_struct* task)
 {
     disable_interrupts();
@@ -96,17 +96,18 @@ static void pc_deletelist(task_struct* task)
     }
     enable_interrupts();
 }
-//delete task struct and all it's content space
+// Delete task struct and all it's content space
 static void pc_deletetask(task_struct* task)
 {
+    // Release task's asid
     clearasid(task->ASID);
     if (!task->kernelflag) {
-        //free user address space and heap
+        // Free user address space and heap
         unmap_all(task);
-        //free pagecontent
+        // Free pagecontent
         kfree(task->pagecontent);
     }
-    kfree(task); //delete union
+    kfree(task); // Delete union
 }
 int pc_kill(int asid)
 {
@@ -245,8 +246,7 @@ task_struct* create_kthread(char* name, int level, int asfather)
                  : "=r"(task->context.gp)); //gp
 
     //init lists
-    INIT_LIST_HEAD(&task->be_waited_list);
-    INIT_LIST_HEAD(&task->sons);
+    pc_init_tasklists(task);
     if (current && asfather) {
         list_add_tail(&task->son, &current->sons);
     }
@@ -361,6 +361,8 @@ void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_contex
             current = (task_struct*)0;
             __pc_schedule(status, cause, pt_context);
         }
+    } else {
+        kernel_printf("Kill syscall didn't find the task to be killed.\n");
     }
 }
 
@@ -437,7 +439,7 @@ void fk1()
 }
 void test_sleep1sandprint()
 {
-    kernel_printf("test_sleep 1s and print 2 started.\n");
+    kernel_printf("test_sleep 1s and print tasks started.\n");
     while (1) {
         asm volatile(
             "addi $v0,$0,9\n\t"
@@ -451,7 +453,7 @@ void test_sleep1sandprint()
 }
 void test_sleep5sandkillasid2()
 {
-    kernel_printf("test_sleep5s and kill asid 2 started.\n");
+    kernel_printf("test_sleep 5s and kill asid 2 started.\n");
     call_syscall_a0(SYSCALL_PRINTTASKS, 0);
     call_syscall_a0(SYSCALL_SLEEP, 5000);
     kernel_printf("awaked, try exit.\n");
@@ -463,7 +465,7 @@ void test_forkandkill()
     int id;
     id = call_syscall_a0(SYSCALL_FORK, 0);
     if (id) {
-        kernel_printf("fork new task id:%d\n", id);
+        kernel_printf("fork new task id = %d\n", id);
         call_syscall_a0(SYSCALL_EXIT, 0);
     } else {
         kernel_printf("be forked,get id = %d\n", id);
@@ -481,7 +483,7 @@ void fu1()
         "syscall\n\t"
         "nop");
 }
-//for test purposes
+// For test purposes
 int pc_test()
 {
     // int i;
@@ -561,14 +563,14 @@ void printvmalist(task_struct* task)
         i++;
     }
 }
-//given asid and physical address, get corresponding virtual address
+// Given asid and physical address, get corresponding virtual address
 unsigned int getuseraddr(int asid, unsigned int pa)
 {
     task_struct* task;
     task = pc_find(asid);
     struct list_head* pos;
     vma_node* node;
-    //search task's vma list to compare
+    // Search task's vma list to compare
     list_for_each(pos, &task->vma)
     {
         node = list_entry(pos, vma_node, vma);
@@ -581,27 +583,34 @@ unsigned int getuseraddr(int asid, unsigned int pa)
 static int __fork_kthread(task_struct* src)
 {
     task_struct* new;
-    new = kmalloc(sizeof(task_union));
+    new = (task_struct*)kmalloc(sizeof(task_union));
     kernel_memcpy(new, src, sizeof(task_union));
-    //assign new asid
+    // Assign new asid
     new->ASID = (unsigned int)getemptyasid();
     if ((int)new->ASID == -1) {
         kfree(new);
         return -1;
     }
-    //relocate stack pointer
+    // Relocate stack pointer
     new->context.sp = (unsigned int)src->context.sp - (unsigned int)src + (unsigned int)new;
-    //return value
+    // Return value
     new->context.a0 = 0;
-    //reset state
+    // Reset state
     new->state = PROC_STATE_READY;
     list_add_tail(&new->shed, &shed_list);
     list_add_tail(&new->ready, &ready_list[new->level]);
+    pc_init_tasklists(new);
+
     new->counter = PROC_DEFAULT_TIMESLOTS;
 
     return new->ASID;
 }
-
+static void pc_init_tasklists(task_struct *task)
+{
+    // Init lists
+    INIT_LIST_HEAD(&task->be_waited_list);
+    INIT_LIST_HEAD(&task->sons);
+}
 int call_syscall_a0(int code, int a0)
 {
     int result;
