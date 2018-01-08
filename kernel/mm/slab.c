@@ -172,7 +172,7 @@ slalloc_normal:
     ++(s_head->nr_objs);
 slalloc_end:
     // slab may be full after this allocation
-    kernel_printf("cache->cpu.page->slabp is %x\n", cache->cpu.page->slabbp);
+    kernel_printf("cache->cpu.page->slabp is %x\n", cache->cpu.page->slabp);
     if (is_bound((unsigned int)(*(cache->cpu.page->slabp)), 1 << PAGE_SHIFT)) {
         kernel_printf("slab is full\n");
         list_add_tail(&(cache->cpu.page->list), &(cache->node.full));
@@ -251,7 +251,7 @@ unsigned int get_slab(unsigned int size)
 
 void* kmalloc(unsigned int size)
 {
-    //kernel_printf("call kmalloc, size is: %\n", size);      
+    //kernel_printf("call kmalloc, size is: %\n", size);
     struct kmem_cache* cache;
     unsigned int bf_index;
     unsigned int bplevel;
