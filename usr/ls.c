@@ -92,10 +92,10 @@ readdir:
         } else {
             get_filename((unsigned char*)&entry, name);
             if (entry.attr == 0x10) // sub dir
-                kernel_printf("%s/", name);
+                kernel_puts(name, VGA_GREEN, VGA_BLACK);
             else
                 kernel_printf("%s", name);
-            kernel_printf("\n");
+            kernel_printf("\t");
             goto readdir;
         }
     } else {
