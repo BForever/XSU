@@ -62,7 +62,7 @@ void init_kernel()
     // Drivers
     init_vga();
     init_ps2();
-    init_time();
+    // init_time();
     // Memory management
     log(LOG_START, "Memory Modules.");
     init_bootmm();
