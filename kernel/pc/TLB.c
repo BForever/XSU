@@ -120,7 +120,7 @@ void TLBL_exc(unsigned int status, unsigned int cause, context* context)
     unsigned int seg = (unsigned int)GPIO_SEG;
     asm volatile(
         "sw   $sp, 0(%0)\n\t" ::"r"(seg));
-    kernel_printf("TLBL_exc at %x,EPC = %x,ASID = %d,tasid:%d\n", badaddr, context->epc, getasid(), current->ASID);
+    kernel_printf("TLBL_exc at %x, EPC = %x, ASID = %d, tasid:%d\n", badaddr, context->epc, getasid(), current->ASID);
     while (sw(2))
         ;
     //while(1);
@@ -183,7 +183,7 @@ void TLBS_exc(unsigned int status, unsigned int cause, context* context)
     asm volatile(
         "mfc0   %0, $8\n\t"
         : "=r"(badaddr));
-    kernel_printf("TLBS_exc at %x,EPC = %x,ASID = %d,tasid:%d\n", badaddr, context->epc, getasid(), current->ASID);
+    kernel_printf("TLBS_exc at %x,  EPC = %x,ASID = %d, tasid:%d\n", badaddr, context->epc, getasid(), current->ASID);
     while (sw(2))
         ;
     //while(1);

@@ -507,7 +507,7 @@ int pc_test()
 //print the infomation of single task
 void printtask(task_struct* task)
 {
-    kernel_printf("%s,%d,%d,%d,%d\n", task->name, task->ASID, task->state, task->kernelflag, task->counter);
+    kernel_printf("%s\t%d\t\t%d\t\t%d\n", task->name, task->ASID, task->state, task->counter);
 }
 //print all the tasks that are registered in system
 void printalltask()
@@ -521,8 +521,7 @@ void printalltask()
         cnt++;
     }
     //prompt
-    kernel_printf("%d processes are running:\n", cnt);
-    kernel_printf("name asid state kernelflag counter\n");
+    kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
     list_for_each(pos, &shed_list)
     {
         task = list_entry(pos, task_struct, shed);

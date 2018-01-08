@@ -14,16 +14,16 @@
 // #define BOOTMM_DEBUG
 
 // slab: display debug info
-// #define SLAB_DEBUG
+#define SLAB_DEBUG
 
 // myvi: display debug info
 // #define MYVI_DEBUG
 
 // file system
-#define FS_DEBUG
+// #define FS_DEBUG
 
 // virtual file system
-#define VFS_DEBUG
+// #define VFS_DEBUG
 
 #define FAT32
 
