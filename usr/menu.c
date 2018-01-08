@@ -146,8 +146,12 @@ static int cmd_slubtest(int argc, char** argv)
     unsigned int size_kmem_cache[PAGE_SHIFT] = { 96, 192, 8, 16, 32, 64, 128, 256, 512, 1024 };
     unsigned int i;
     for (i = 0; i < 10; i++) {
-        void* address = kmalloc(size_kmem_cache[4]);
+        void* address = kmalloc(7);
         kernel_printf("kmalloc : %x, size = 1KB\n", address);
+    }
+    for (i = 0; i < 10; i++){
+        void* address = kmalloc(9);
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);    
     }
     return 0;
 }
