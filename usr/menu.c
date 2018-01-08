@@ -146,7 +146,7 @@ static int cmd_slubtest(int argc, char** argv)
     unsigned int size_kmem_cache[PAGE_SHIFT] = { 96, 192, 8, 16, 32, 64, 128, 256, 512, 1024 };
     unsigned int i;
     for (i = 0; i < 10; i++) {
-        void* address = kmalloc(size_kmem_cache[i]);
+        void* address = kmalloc(size_kmem_cache[4]);
         kernel_printf("kmalloc : %x, size = 1KB\n", address);
     }
     return 0;
@@ -651,7 +651,7 @@ static int cmd_dispatch(char* cmd)
  * Evaluate a command line that may contain multiple semicolon-delimited
  * commands.
  */
-static void menu_execute()
+static int menu_execute()
 {
     char* command;
     char* context;
@@ -667,6 +667,7 @@ static void menu_execute()
             kernel_printf("Menu command failed: %s\n", strerror(result));
         }
     }
+    return result;
 }
 
 void menu()
@@ -677,10 +678,18 @@ void menu()
     buf_index = 0;
     buf[0] = 0;
     kernel_clear_screen(31);
-    kernel_puts("PowerShell\n", 0xfff, 0);
+    // Welcome prompt.
+    char time_buf[10];
+    get_time(time_buf, sizeof(time_buf));
+    kernel_printf("Last login: %s on ttys001\n", time_buf);
+    // Command prompt.
     kernel_memcpy(pwd, "sd:/", 5);
-    kernel_puts(pwd, 0xfff, 0);
-    kernel_puts(" PS>", 0xfff, 0);
+    kernel_puts("-> ", VGA_GREEN, VGA_BLACK);
+    kernel_puts(pwd, VGA_CYAN, VGA_BLACK);
+    kernel_puts(" $ ", VGA_YELLOW, VGA_BLACK);
+    // Command result.
+    int result = 0;
+
     while (1) {
         c = kernel_getchar();
         if (c == '\n') {
@@ -690,10 +699,15 @@ void menu()
                 buf[0] = 0;
                 kernel_printf("\nPowerShell exit.\n");
             } else
-                menu_execute();
+                result = menu_execute();
             buf_index = 0;
-            kernel_puts(pwd, 0xfff, 0);
-            kernel_puts(" PS>", 0xfff, 0);
+            if (result) {
+                kernel_puts("-> ", VGA_RED, VGA_BLACK);
+            } else {
+                kernel_puts("-> ", VGA_GREEN, VGA_BLACK);
+            }
+            kernel_puts(pwd, VGA_CYAN, VGA_BLACK);
+            kernel_puts(" $ ", VGA_YELLOW, VGA_BLACK);
         } else if (c == 0x08) {
             if (buf_index) {
                 buf_index--;

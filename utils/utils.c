@@ -216,8 +216,13 @@ char* kernel_strcat(char* dest, const char* src)
 char* kernel_strdup(const char* s)
 {
     char* z;
-
+#ifdef FS_DEBUG
+    kernel_printf("original string is: %s and the size is %x\n", s, kernel_strlen(s)+1);
+#endif
     z = kmalloc(kernel_strlen(s) + 1);
+#ifdef FS_DEBUG
+    kernel_printf("malloc address is: %x\n", z);
+#endif
     if (z == NULL) {
         return NULL;
     }

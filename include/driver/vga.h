@@ -10,6 +10,9 @@ extern int cursor_freq;
 #define VGA_RED 0x00f
 #define VGA_GREEN 0x0f0
 #define VGA_BLUE 0xf00
+#define VGA_CYAN 0xff0
+#define VGA_YELLOW 0x0ff
+#define VGA_MAGENTA 0xf0f
 #define VGA_BLACK 0x000
 #define VGA_WHITE 0xfff
 

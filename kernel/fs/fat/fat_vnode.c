@@ -223,7 +223,14 @@ static int fat_mkdir(struct vnode* vn, const char* name, mode_t mode)
     (void)vn;
     int result;
 
+#if 0
+    assert(false, "going to enter kernel_strdup.");
+#endif
     unsigned char* filename = kernel_strdup(name);
+#if 0
+    assert(false, "leaving kernel_strdup.");
+#endif
+
 #ifdef VFS_DEBUG
     kernel_printf("name: %s\n", name);
     kernel_printf("duplicated file name: %s\n", filename);
