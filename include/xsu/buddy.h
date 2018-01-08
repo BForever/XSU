@@ -72,4 +72,6 @@ extern void init_buddy();
 
 extern void buddy_info();
 
+extern void get_buddy_allocation_state();
+
 #endif
