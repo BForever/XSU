@@ -186,7 +186,7 @@ int vfs_setbootfs(const char* fsname)
             return EINVAL;
         }
     } else {
-        kernel_strcat(tmp, ":");
+        tmp = kernel_strcat(tmp, ":");
     }
 #ifdef VFS_DEBUG
     kernel_printf("fsname: %s\n", tmp);
@@ -226,7 +226,12 @@ int vfs_lookparent(char* path, struct vnode** retval, char* buf, size_t buflen)
 #endif
     if (!result) {
         // Copy the file name to buf.
-        kernel_strcpy(buf, path);
+        if(strlen(buf) >= strlen(path))
+        {
+            kernel_strcpy(buf, path);
+        }else{
+            kernel_printf("too large path\n");
+        }
 #ifdef VFS_DEBUG
         kernel_printf("buf: %s\n", buf);
 #endif

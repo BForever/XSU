@@ -205,9 +205,11 @@ char* kernel_strcpy(char* dest, const char* src)
 char* kernel_strcat(char* dest, const char* src)
 {
     unsigned int offset = kernel_strlen(dest);
-
-    kernel_strcpy(dest + offset, src);
-    return dest;
+    char* result = kmalloc(kernel_strlen(dest) + kernel_strlen(src) + 1);
+    kernel_strcpy(result, dest);
+    kernel_strcpy(result + offset, src);
+    
+    return result;
 }
 
 /*
