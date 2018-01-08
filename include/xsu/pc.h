@@ -136,7 +136,6 @@ void setasid(unsigned int asid);
 //schedule
 void pc_schedule(unsigned int status, unsigned int cause, context* pt_context);
 void copy_context(context* src, context* dest);
-task_struct* __getnexttask();
 void __reset_counter();
 void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context);
 void __request_schedule();

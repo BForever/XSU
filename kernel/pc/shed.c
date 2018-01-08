@@ -42,7 +42,7 @@ void copy_context(context* src, context* dest)
     dest->fp = src->fp;
     dest->ra = src->ra;
 }
-task_struct* __getnexttask()
+static task_struct* __getnexttask()
 {
     flushsleeplist(); //update sleep list
     task_struct* next = (task_struct*)0;
@@ -79,11 +79,15 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
 }
 void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context) //find next task and load context
 {
-    copy_context(pt_context, &current->context);
+    if(current)
+    {
+        copy_context(pt_context, &current->context);
+    }
     // Get next ready task
     current = __getnexttask();
     list_del_init(&current->ready);
-    if (current) {
+    if (current) 
+    {
         current->state = PROC_STATE_RUNNING;
     }
 
