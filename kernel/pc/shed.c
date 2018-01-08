@@ -54,7 +54,7 @@ static task_struct* __getnexttask()
         }
     }
     if (!next) {
-        kernel_printf("No process running!!!\n");
+        kernel_printf("No process running\n");
         while (1)
             ; //panic
     }
