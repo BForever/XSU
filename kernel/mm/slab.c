@@ -299,3 +299,7 @@ void kfree(void *obj) {
     return slab_free(page->virtual, obj);
        
 }
+
+void kmemtop(){
+    get_buddy_allocation_state();
+}

@@ -33,9 +33,6 @@ char* mem_type_msg[] = {
  * RETURN:
  *
  */
-void get_buddy_allocation_state(){
-    
-}
 
 void set_mminfo(struct bootmm_info* info, unsigned int start, unsigned int end, unsigned int type)
 {

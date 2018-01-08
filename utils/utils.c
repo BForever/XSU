@@ -205,11 +205,10 @@ char* kernel_strcpy(char* dest, const char* src)
 char* kernel_strcat(char* dest, const char* src)
 {
     unsigned int offset = kernel_strlen(dest);
-    char* result = kmalloc(kernel_strlen(dest) + kernel_strlen(src) + 1);
-    kernel_strcpy(result, dest);
-    kernel_strcpy(result + offset, src);
-    
-    return result;
+
+    kernel_strcpy(dest + offset, src);
+
+    return dest;
 }
 
 /*
@@ -219,7 +218,7 @@ char* kernel_strdup(const char* s)
 {
     char* z;
 #ifdef FS_DEBUG
-    kernel_printf("original string is: %s and the size is %x\n", s, kernel_strlen(s)+1);
+    kernel_printf("original string is: %s and the size is %x\n", s, kernel_strlen(s) + 1);
 #endif
     z = kmalloc(kernel_strlen(s) + 1);
 #ifdef FS_DEBUG

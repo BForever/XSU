@@ -31,16 +31,13 @@
  * VFS operations relating to pathname translation
  */
 #include <assert.h>
+#include <driver/vga.h>
 #include <kern/errno.h>
 #include <xsu/fs/fs.h>
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
 #include <xsu/utils.h>
-
-#ifdef VFS_DEBUG
-#include <driver/vga.h>
-#endif
 
 static struct vnode* bootfs_vnode = NULL;
 
@@ -226,10 +223,9 @@ int vfs_lookparent(char* path, struct vnode** retval, char* buf, size_t buflen)
 #endif
     if (!result) {
         // Copy the file name to buf.
-        if(strlen(buf) >= strlen(path))
-        {
+        if (kernel_strlen(buf) >= kernel_strlen(path)) {
             kernel_strcpy(buf, path);
-        }else{
+        } else {
             kernel_printf("too large path\n");
         }
 #ifdef VFS_DEBUG

@@ -87,7 +87,19 @@ void buddy_list_add(struct list_head* new, struct list_head* head, int level)
         }
     }
 }
+void get_buddy_allocation_state(){
+    unsigned int totalMemory = buddy.buddy_end_pfn - buddy.buddy_start_pfn;
+    totalMemory <<= 2;
+    unsigned int residual = 0;
+    unsigned int index = 0;
+    unsigned int singleElementSize = 4;
+    for (index = 0; index <= MAX_BUDDY_ORDER; ++index){
+        residual += singleElementSize*(buddy.freelist[index].nr_free);
+        singleElementSize <<= 1;
+    }
+    kernel_printf("MemRegions: %d total, %dK residual.\n",totalMemory, residual);
 
+}
 void buddy_info()
 {
     unsigned int index;

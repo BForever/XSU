@@ -37,19 +37,18 @@ static void abs_to_rel(char* oldpath, char* newpath)
     }
 
     // relative directory.
-    char* tmp = kernel_strdup(pwd);
+    char tmp[256];
+    kernel_memcpy(tmp, pwd, 256);
 
-   if (tmp[kernel_strlen(tmp) - 1] != '/') {
-        tmp = kernel_strcat(tmp, "/");
+    if (tmp[kernel_strlen(tmp) - 1] != '/') {
+        kernel_strcat(tmp, "/");
     }
-
-    tmp = kernel_strcat(tmp, oldpath);
+    kernel_strcat(tmp, oldpath);
     kernel_memcpy(newpath, tmp, kernel_strlen(tmp) + 1);
-    
+
 #ifdef FS_DEBUG
     kernel_printf("new path: %s\n", newpath);
 #endif
-    kfree(tmp);
 
     return;
 }
@@ -320,9 +319,9 @@ static int cmd_cd(int argc, char** argv)
     kernel_memset(tmp, 0, kernel_strlen(tmp) + 1);
     kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
     if (tmp[kernel_strlen(tmp) - 1] != '/') {
-        tmp = kernel_strcat(tmp, "/");
+        kernel_strcat(tmp, "/");
     }
-    tmp = kernel_strcat(tmp, argv[1]);
+    kernel_strcat(tmp, argv[1]);
 #ifdef FS_DEBUG
     kernel_printf("cd directory: %s\n", tmp);
 #endif

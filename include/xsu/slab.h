@@ -49,5 +49,5 @@ struct kmem_cache {
 extern void init_slab();
 extern void* kmalloc(unsigned int size);
 extern void kfree(void* obj);
-
+extern void kmemtop();
 #endif
