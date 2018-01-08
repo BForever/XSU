@@ -34,7 +34,7 @@ void get_time_string(unsigned int ticks_high, unsigned int ticks_low, char *buf)
 #pragma GCC push_options
 #pragma GCC optimize("O0")
 
-void time_handler(unsigned int status, unsigned int cause, context* pt_context) {
+void time_handler() {
     unsigned int ticks_high, ticks_low;
     int i;
     char buffer[8];
