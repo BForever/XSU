@@ -22,6 +22,29 @@ char sd_buffer[8192];
 
 #define MAXMENUARGS 16
 
+static void abs_to_rel(const char* oldpath, char* newpath)
+{
+    // absolute directory.
+    char device[5];
+    kernel_memcpy(device, path, 4);
+    device[4] = 0;
+    if (!kernel_strcmp(device, "sd:/")) {
+        newpath = oldpath;
+        return;
+    }
+
+    // relative directory.
+    char tmp[256];
+    if (pwd[kernel_strlen(pwd) - 1] != '/') {
+        kernel_strcat(pwd, "/");
+    }
+    kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
+    kernel_strcat(tmp, path);
+
+    newpath = tmp;
+    return;
+}
+
 /*
  * Command for basic operations. 
  */
@@ -383,55 +406,64 @@ static int cmd_ls(int argc, char** argv)
         return ls(pwd);
     }
 
-    // absolute directory.
-    char device[5];
-    kernel_memcpy(device, argv[1], 4);
-    device[4] = 0;
-    if (!kernel_strcmp(device, "sd:/")) {
-        return ls(argv[1]);
-    }
+    char path[256];
+    abs_to_rel(argv[1], path);
 
-    // relative directory.
-    char tmp[256];
-    if (pwd[kernel_strlen(pwd) - 1] != '/') {
-        kernel_strcat(pwd, "/");
-    }
-    kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
-    kernel_strcat(tmp, argv[1]);
-
-    return ls(tmp);
+    return ls(path);
 }
 
 static int cmd_mkdir(int argc, char** argv)
 {
     if (argc != 2) {
-        kernel_printf("Usage: make a directory\n");
+        kernel_printf("Usage: make directories\n");
         return EINVAL;
     }
-    return vfs_mkdir(argv[1], 0);
+
+    char path[256];
+    abs_to_rel(argv[1], path);
+
+    return vfs_mkdir(path, 0);
 }
 
 static int cmd_create(int argc, char** argv)
 {
-    return vfs_create(argv[1]);
+    if (argc != 2) {
+        kernel_printf("Usage: change file access and mpdification times");
+        return EINVAL;
+    }
+
+    char path[256];
+    abs_to_rel(argv[1], path);
+
+    return vfs_create(path);
 }
 
 static int cmd_remove(int argc, char** argv)
 {
     if (argc != 2) {
-        kernel_printf("Usage: remove a file\n");
+        kernel_printf("Usage: remove files\n");
         return EINVAL;
     }
-    return vfs_remove(argv[1]);
+
+    char path[256];
+    abs_to_rel(argv[1], path);
+
+    return vfs_remove(path);
 }
 
 static int cmd_move(int argc, char** argv)
 {
     if (argc != 3) {
-        kernel_printf("Usage: move or rename files\n");
+        kernel_printf("Usage: move files\n");
         return EINVAL;
     }
-    return vfs_rename(argv[1], argv[2]);
+
+    char path1[256], path2[256];
+
+    abs_to_rel(argv[1], path1);
+    abs_to_rel(argv[2], path2);
+
+    return vfs_rename(path1, path2);
 }
 
 static int cmd_copy(int argc, char** argv)
@@ -440,7 +472,13 @@ static int cmd_copy(int argc, char** argv)
         kernel_printf("Usage: copy files\n");
         return EINVAL;
     }
-    return vfs_cp(argv[1], argv[2]);
+
+    char path1[256], path2[256];
+
+    abs_to_rel(argv[1], path1);
+    abs_to_rel(argv[2], path2);
+
+    return vfs_cp(path1, path2);
 }
 
 static int cmd_cat(int argc, char** argv)
@@ -449,7 +487,12 @@ static int cmd_cat(int argc, char** argv)
         kernel_printf("Usage: concatenate and print files\n");
         return EINVAL;
     }
-    return vfs_cat(argv[1]);
+
+    char path[256];
+
+    abs_to_rel(argv[1], path);
+
+    return vfs_cat(path);
 }
 
 static int cmd_pctest_sleep(int argc, char** argv)
@@ -536,7 +579,7 @@ static struct {
     { "bootfs", cmd_bootfs },
     { "ls", cmd_ls },
     { "mkdir", cmd_mkdir },
-    { "create", cmd_create },
+    { "touch", cmd_create },
     { "rm", cmd_remove },
     { "mv", cmd_move },
     { "cp", cmd_copy },
