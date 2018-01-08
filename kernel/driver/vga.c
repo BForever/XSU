@@ -87,7 +87,7 @@ int kernel_putchar(int ch, int fc, int bg)
 #endif // VGA_CALIBRATE
         }
     } else if (ch == '\t') {
-        if (cursor_col >= VGA_CHAR_ROW - 4) {
+        if (cursor_col >= VGA_CHAR_COL - 4) {
             kernel_putchar('\n', 0, 0);
         } else {
             kernel_memset_word(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col, w, 4 - (cursor_col & 3));
