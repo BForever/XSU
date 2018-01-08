@@ -13,10 +13,7 @@
 #include <xsu/slab.h>
 #include <xsu/synch.h>
 #include <xsu/utils.h>
-
-#ifdef VFS_DEBUG
 #include <driver/vga.h>
-#endif
 
 /*
  * Structure for a single named device.
