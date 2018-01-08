@@ -55,6 +55,7 @@ void handle_path(char* path, char* newpath)
         return;
     }
     kernel_memcpy(newpath, name, kernel_strlen(name) + 1);
+    kfree(name);
 }
 
 int ls(char* para)
