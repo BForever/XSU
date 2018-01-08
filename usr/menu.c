@@ -539,6 +539,7 @@ static int cmd_ps(int argc, char** argv)
 }
 static int cmd_exit(int argc, char** argv)
 {
+    kernel_printf("exit\n");
     call_syscall_a0(SYSCALL_EXIT, 0);
 }
 static int cmd_syscall(int argc, char** argv)
@@ -637,7 +638,6 @@ static int cmd_dispatch(char* cmd)
     for (i = 0; cmdtable[i].name; i++) {
         if (*cmdtable[i].name && !kernel_strcmp(args[0], cmdtable[i].name)) {
             assert(cmdtable[i].func != NULL, "this command has not been implemented.");
-            kernel_printf("\n");
             result = cmdtable[i].func(nargs, args);
             return result;
         }
@@ -657,7 +657,7 @@ static int menu_execute()
     char* context;
     int result;
 
-    kernel_putchar('\n', 0, 0);
+    kernel_putchar('\n', VGA_BLACK, VGA_BLACK);
     for (command = kernel_strtok_r(buf, ";", &context);
          command != NULL;
          command = kernel_strtok_r(NULL, ";", &context)) {
@@ -694,13 +694,7 @@ void menu()
         c = kernel_getchar();
         if (c == '\n') {
             buf[buf_index] = 0;
-            if (kernel_strcmp(buf, "exit") == 0) {
-                buf_index = 0;
-                buf[0] = 0;
-                kernel_printf("\nPowerShell exit.\n");
-            } else
-                result = menu_execute();
-            buf_index = 0;
+            result = menu_execute();
             if (result) {
                 kernel_puts("-> ", VGA_RED, VGA_BLACK);
             } else {
@@ -708,17 +702,19 @@ void menu()
             }
             kernel_puts(pwd, VGA_CYAN, VGA_BLACK);
             kernel_puts(" $ ", VGA_YELLOW, VGA_BLACK);
+            buf_index = 0;
+            kernel_memset(buf, 0, 64);
         } else if (c == 0x08) {
             if (buf_index) {
                 buf_index--;
-                kernel_putchar_at(' ', 0xfff, 0, cursor_row, cursor_col - 1);
+                kernel_putchar_at(' ', VGA_WHITE, VGA_BLACK, cursor_row, cursor_col - 1);
                 cursor_col--;
                 kernel_set_cursor();
             }
         } else {
             if (buf_index < 63) {
                 buf[buf_index++] = c;
-                kernel_putchar(c, 0xfff, 0);
+                kernel_putchar(c, VGA_WHITE, VGA_BLACK);
             }
         }
     }
