@@ -44,7 +44,7 @@
 // Lists for schedule
 extern struct list_head shed_list;
 extern struct list_head ready_list[PROC_LEVELS];
-extern struct list_head wait_list;
+extern struct list_head sleep_list;
 
 // One Entry's structure in TLB
 typedef struct {

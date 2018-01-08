@@ -12,7 +12,6 @@ unsigned int asidmap[8];
 
 struct list_head shed_list;
 struct list_head ready_list[PROC_LEVELS];
-struct list_head wait_list;
 struct list_head sleep_list;
 task_struct* current;
 
@@ -206,7 +205,6 @@ void init_pc()
     for (i = 0; i < PROC_LEVELS; i++) {
         INIT_LIST_HEAD(&ready_list[i]);
     }
-    INIT_LIST_HEAD(&wait_list);
     INIT_LIST_HEAD(&sleep_list);
     TLB_init();
 
