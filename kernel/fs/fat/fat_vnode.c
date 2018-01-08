@@ -365,7 +365,8 @@ static int fat_lookup(struct vnode* v, char* path, struct vnode** ret)
     char* temp_path = buf_path;
 
     // To suport subdirectories we need to look up every subdirectory in a path.
-    kernel_strcpy(temp_path, path);
+    if(kernel_strlen(path) < 256)
+        kernel_strcpy(temp_path, path);
     char* check = kernel_strchr(path, '/');
     if (check == NULL) {
         result = fat_lookonce(v, path, &final, NULL);

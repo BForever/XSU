@@ -258,7 +258,11 @@ task_struct* create_kthread(char* name, int level, int asfather)
         return (task_struct*)0;
     }
     task->kernelflag = 1; //whether kernal thread
-    kernel_strcpy(task->name, name); //name
+    if(kernel_strlen(name) < sizeof(task->name))
+        kernel_strcpy(task->name, name); //name
+    else{
+        kernel_printf("too large name!\n");
+    }
     //task->start_time = get_time();//start time
 
     //set schedule info
