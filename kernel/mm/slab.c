@@ -250,6 +250,7 @@ unsigned int get_slab(unsigned int size)
 
 void* kmalloc(unsigned int size)
 {
+    kernel_printf("call kmalloc, size is: \n", size);
     struct kmem_cache* cache;
     unsigned int bf_index;
     unsigned int bplevel;
