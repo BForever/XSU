@@ -39,13 +39,13 @@ static void abs_to_rel(char* oldpath, char* newpath)
     // relative directory.
     char* tmp = kernel_strdup(pwd);
 
-    if (tmp[kernel_strlen(tmp) - 1] != '/') {
-        kernel_strcat(tmp, "/");
+   if (tmp[kernel_strlen(tmp) - 1] != '/') {
+        tmp = kernel_strcat(tmp, "/");
     }
 
-    kernel_strcat(tmp, oldpath);
+    tmp = kernel_strcat(tmp, oldpath);
     kernel_memcpy(newpath, tmp, kernel_strlen(tmp) + 1);
-
+    
 #ifdef FS_DEBUG
     kernel_printf("new path: %s\n", newpath);
 #endif
@@ -309,8 +309,8 @@ static int cmd_cd(int argc, char** argv)
             return 1;
         }
         kernel_memset(device, 0, kernel_strlen(device) + 1);
-        kernel_strcat(device, "sd:");
-        kernel_strcat(device, tmp);
+        device = kernel_strcat(device, "sd:");
+        device = kernel_strcat(device, tmp);
         kernel_memcpy(pwd, device, kernel_strlen(device) + 1);
         kfree(device);
         return 0;
@@ -320,9 +320,9 @@ static int cmd_cd(int argc, char** argv)
     kernel_memset(tmp, 0, kernel_strlen(tmp) + 1);
     kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
     if (tmp[kernel_strlen(tmp) - 1] != '/') {
-        kernel_strcat(tmp, "/");
+        tmp = kernel_strcat(tmp, "/");
     }
-    kernel_strcat(tmp, argv[1]);
+    tmp = kernel_strcat(tmp, argv[1]);
 #ifdef FS_DEBUG
     kernel_printf("cd directory: %s\n", tmp);
 #endif
