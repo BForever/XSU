@@ -100,5 +100,7 @@ void init_kernel()
     machine_info();
     *GPIO_SEG = 0x11223344;
     // Enter shell
-    menu();
+    pc_create(time_handler,"time");
+    pc_create(menu,"menu");
+    // menu();
 }

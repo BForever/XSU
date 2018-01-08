@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <driver/vga.h>
 #include <intr.h>
+#include <xsu/pc.h>
+#include <xsu/syscall.h>
 
 void get_time_string(unsigned int ticks_high, unsigned int ticks_low, char *buf) {
     // Divide by 256
@@ -37,28 +39,36 @@ void time_handler(unsigned int status, unsigned int cause, context* pt_context) 
     int i;
     char buffer[8];
     char *day = "2017/08/22 ";
-    asm volatile(
-        "mfc0 %0, $9, 6\n\t"
-        "mfc0 %1, $9, 7\n\t"
-        : "=r"(ticks_low), "=r"(ticks_high));
-    get_time_string(ticks_high, ticks_low, buffer);
 
-    for (i = 0; i < 11; i++)
-        kernel_putchar_at(day[i], 0xfff, 0, 29, 61 + i);
-    for (i = 0; i < 8; i++)
-        kernel_putchar_at(buffer[i], 0xfff, 0, 29, 72 + i);
 
-    asm volatile("mtc0 $zero, $9");
+    while(1)
+    {
+        asm volatile(
+            "mfc0 %0, $9, 6\n\t"
+            "mfc0 %1, $9, 7\n\t"
+            : "=r"(ticks_low), "=r"(ticks_high));
+        get_time_string(ticks_high, ticks_low, buffer);
+
+        for (i = 0; i < 11; i++)
+            kernel_putchar_at(day[i], 0xfff, 0, 29, 61 + i);
+        for (i = 0; i < 8; i++)
+            kernel_putchar_at(buffer[i], 0xfff, 0, 29, 72 + i);
+        
+        call_syscall_a0(SYSCALL_SLEEP,1000);
+    }
+    
+    // asm volatile("mtc0 $zero, $9");
 }
 
-void init_time() {
-    register_interrupt_handler(7, time_handler);
+// Time interrupt occupied by pc_schedule
+// void init_time() {
+//     register_interrupt_handler(7, time_handler);
 
-    asm volatile(
-        "li $v0, 100000000\n\t"
-        "mtc0 $v0, $11\n\t"
-        "mtc0 $zero, $9");
-}
+//     asm volatile(
+//         "li $v0, 100000000\n\t"
+//         "mtc0 $v0, $11\n\t"
+//         "mtc0 $zero, $9");
+// }
 
 void get_time(char *buf, int len) {
     assert(len >= 9, "Buf of get_time too small, at least 9 bytes");

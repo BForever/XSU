@@ -6,4 +6,6 @@ void get_time(char* buf, int len);
 
 void init_time();
 
+void time_handler(unsigned int status, unsigned int cause, context* pt_context);
+
 #endif
