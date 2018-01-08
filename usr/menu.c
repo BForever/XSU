@@ -22,26 +22,34 @@ char sd_buffer[8192];
 
 #define MAXMENUARGS 16
 
-static void abs_to_rel(const char* oldpath, char* newpath)
+static void abs_to_rel(char* oldpath, char* newpath)
 {
     // absolute directory.
     char device[5];
-    kernel_memcpy(device, path, 4);
+    kernel_memcpy(device, oldpath, 4);
     device[4] = 0;
     if (!kernel_strcmp(device, "sd:/")) {
-        newpath = oldpath;
+        kernel_memcpy(newpath, oldpath, kernel_strlen(oldpath) + 1);
+#ifdef FS_DEBUG
+        kernel_printf("new path: %s\n", newpath);
+#endif
         return;
     }
 
     // relative directory.
-    char tmp[256];
-    if (pwd[kernel_strlen(pwd) - 1] != '/') {
-        kernel_strcat(pwd, "/");
-    }
-    kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
-    kernel_strcat(tmp, path);
+    char* tmp = kernel_strdup(pwd);
 
-    newpath = tmp;
+    if (tmp[kernel_strlen(tmp) - 1] != '/') {
+        kernel_strcat(tmp, "/");
+    }
+
+    kernel_strcat(tmp, oldpath);
+    kernel_memcpy(newpath, tmp, kernel_strlen(tmp) + 1);
+
+#ifdef FS_DEBUG
+    kernel_printf("new path: %s\n", newpath);
+#endif
+
     return;
 }
 
@@ -295,18 +303,20 @@ static int cmd_cd(int argc, char** argv)
             kfree(device);
             return 1;
         }
-        kernel_strcat(device, tmp + 1);
+        kernel_memset(device, 0, kernel_strlen(device) + 1);
+        kernel_strcat(device, "sd:");
+        kernel_strcat(device, tmp);
         kernel_memcpy(pwd, device, kernel_strlen(device) + 1);
         kfree(device);
         return 0;
     }
 
     // relative directory.
-    if (pwd[kernel_strlen(pwd) - 1] != '/') {
-        kernel_strcat(pwd, "/");
-    }
     kernel_memset(tmp, 0, kernel_strlen(tmp) + 1);
     kernel_memcpy(tmp, pwd + 3, kernel_strlen(pwd) - 2);
+    if (tmp[kernel_strlen(tmp) - 1] != '/') {
+        kernel_strcat(tmp, "/");
+    }
     kernel_strcat(tmp, argv[1]);
 #ifdef FS_DEBUG
     kernel_printf("cd directory: %s\n", tmp);
@@ -403,7 +413,9 @@ static int cmd_bootfs(int argc, char** argv)
 static int cmd_ls(int argc, char** argv)
 {
     if (argc == 1) {
-        return ls(pwd);
+        char* tmp;
+        tmp = kernel_strdup(pwd);
+        return ls(tmp);
     }
 
     char path[256];

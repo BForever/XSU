@@ -85,7 +85,7 @@ void vnode_cleanup(struct vnode* vn)
     assert(vn->vn_opencount == 0, "vnode's open count is not equal to 0");
     assert(vn->vn_countlock != NULL, "vnode is locked!");
 
-    //	lock_release(vn->vn_countlock);
+    // lock_release(vn->vn_countlock);
     lock_destroy(vn->vn_countlock);
     vn->vn_ops = NULL;
     vn->vn_refcount = 0;
@@ -102,9 +102,9 @@ void vnode_cleanup(struct vnode* vn)
 void vnode_incref(struct vnode* vn)
 {
     assert(vn != NULL, "vnode is null");
-    lock_acquire(vn->vn_countlock);
+    // lock_acquire(vn->vn_countlock);
     vn->vn_refcount++;
-    lock_release(vn->vn_countlock);
+    // lock_release(vn->vn_countlock);
 }
 
 /*
@@ -118,7 +118,7 @@ void vnode_decref(struct vnode* vn)
 
     assert(vn != NULL, "vnode is null");
 
-    lock_acquire(vn->vn_countlock);
+    // lock_acquire(vn->vn_countlock);
 
     assert(vn->vn_refcount > 0, "vnode's reference count is zero");
     if (vn->vn_refcount > 1) {
@@ -126,7 +126,7 @@ void vnode_decref(struct vnode* vn)
     } else {
         do_it = 1;
     }
-    lock_release(vn->vn_countlock);
+    // lock_release(vn->vn_countlock);
     if (do_it) {
         result = VOP_RECLAIM(vn);
         if (result != 0 && result != EBUSY) {
@@ -144,9 +144,9 @@ void vnode_incopen(struct vnode* vn)
 {
     assert(vn != NULL, "vnode is null");
 
-    lock_acquire(vn->vn_countlock);
+    // lock_acquire(vn->vn_countlock);
     vn->vn_opencount++;
-    lock_release(vn->vn_countlock);
+    // lock_release(vn->vn_countlock);
 }
 
 /*
@@ -159,7 +159,7 @@ void vnode_decopen(struct vnode* vn)
 
     assert(vn != NULL, "vnode is null");
 
-    lock_acquire(vn->vn_countlock);
+    // lock_acquire(vn->vn_countlock);
 
     assert(vn->vn_opencount > 0, "vnode's reference count is zero");
     vn->vn_opencount--;
@@ -168,7 +168,7 @@ void vnode_decopen(struct vnode* vn)
         lock_release(vn->vn_countlock);
         return;
     }
-    lock_release(vn->vn_countlock);
+    // lock_release(vn->vn_countlock);
     result = VOP_CLOSE(vn);
     if (result) {
         // XXX: also lame.
@@ -210,7 +210,7 @@ void vnode_check(struct vnode* v, const char* opstr)
         log(LOG_FAIL, "vnode_check: vop_%s: deadbeef fs pointer\n", opstr);
     }
 
-    lock_acquire(v->vn_countlock);
+    // lock_acquire(v->vn_countlock);
 
     if (v->vn_refcount < 0) {
         log(LOG_FAIL, "vnode_check: vop_%s: negative refcount %d\n", opstr, v->vn_refcount);
@@ -226,5 +226,5 @@ void vnode_check(struct vnode* v, const char* opstr)
         kernel_printf("vnode_check: vop_%s: warning: large opencount %d\n", opstr, v->vn_opencount);
     }
 
-    lock_release(v->vn_countlock);
+    // lock_release(v->vn_countlock);
 }
