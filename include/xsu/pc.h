@@ -119,6 +119,7 @@ void pc_create_son(void (*func)(), char* name);
 task_struct* create_kthread(char* name, int level ,int asfather);
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
 int pc_kill(int asid);
+void __kill(task_struct* task);
 task_struct* pc_find(int asid);
 void printtask(task_struct* task);
 void printalltask();

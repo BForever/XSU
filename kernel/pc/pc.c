@@ -17,7 +17,6 @@ struct list_head sleep_list;
 task_struct* current;
 
 // Function prototypes.
-static void __kill(task_struct* task);
 static void pc_killallsons(task_struct* father);
 static int __fork_kthread(task_struct* src);
 static void pc_releasewaiting(task_struct* task);
@@ -44,7 +43,7 @@ static void pc_releasewaiting(task_struct* task)
         __kill(waiter);
     }
 }
-static void __kill(task_struct* task)
+void __kill(task_struct* task)
 {
     pc_releasewaiting(task);
     pc_killallsons(task);
