@@ -49,6 +49,7 @@ static void abs_to_rel(char* oldpath, char* newpath)
 #ifdef FS_DEBUG
     kernel_printf("new path: %s\n", newpath);
 #endif
+    kfree(tmp);
 
     return;
 }
@@ -149,9 +150,9 @@ static int cmd_slubtest(int argc, char** argv)
         void* address = kmalloc(7);
         kernel_printf("kmalloc : %x, size = 1KB\n", address);
     }
-    for (i = 0; i < 10; i++){
+    for (i = 0; i < 10; i++) {
         void* address = kmalloc(9);
-        kernel_printf("kmalloc : %x, size = 1KB\n", address);    
+        kernel_printf("kmalloc : %x, size = 1KB\n", address);
     }
     return 0;
 }
