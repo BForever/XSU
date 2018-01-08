@@ -167,7 +167,9 @@ uint32_t fs_mkdir(uint8_t* filename)
     for (i = 1; i < 11; i++)
         mk_dir_buf[i] = 0x20;
 
-    mk_dir_buf[11] = 0x30;
+    // FIXME: 0x30 (here) or 0x10 (ls) ?
+    // https://www.wikiwand.com/en/Design_of_the_FAT_file_system
+    mk_dir_buf[11] = 0x10;
     for (i = 12; i < 32; i++)
         mk_dir_buf[i] = 0;
 
