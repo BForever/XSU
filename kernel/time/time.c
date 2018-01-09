@@ -5,7 +5,8 @@
 #include <xsu/pc.h>
 #include <xsu/syscall.h>
 
-void get_time_string(unsigned int ticks_high, unsigned int ticks_low, char *buf) {
+void get_time_string(unsigned int ticks_high, unsigned int ticks_low, char* buf)
+{
     // Divide by 256
     ticks_low = (ticks_low >> 8) | (ticks_high << 24);
     ticks_high >>= 8;
@@ -34,15 +35,14 @@ void get_time_string(unsigned int ticks_high, unsigned int ticks_low, char *buf)
 #pragma GCC push_options
 #pragma GCC optimize("O0")
 
-void time_handler() {
+void time_handler()
+{
     unsigned int ticks_high, ticks_low;
     int i;
     char buffer[8];
-    char *day = "2017/08/22 ";
+    char* day = "1970/01/01 ";
 
-
-    while(1)
-    {
+    while (1) {
         asm volatile(
             "mfc0 %0, $9, 6\n\t"
             "mfc0 %1, $9, 7\n\t"
@@ -53,10 +53,10 @@ void time_handler() {
             kernel_putchar_at(day[i], 0xfff, 0, 29, 61 + i);
         for (i = 0; i < 8; i++)
             kernel_putchar_at(buffer[i], 0xfff, 0, 29, 72 + i);
-        
-        call_syscall_a0(SYSCALL_SLEEP,1000);
+
+        call_syscall_a0(SYSCALL_SLEEP, 1000);
     }
-    
+
     // asm volatile("mtc0 $zero, $9");
 }
 
@@ -70,7 +70,8 @@ void time_handler() {
 //         "mtc0 $zero, $9");
 // }
 
-void get_time(char *buf, int len) {
+void get_time(char* buf, int len)
+{
     assert(len >= 9, "Buf of get_time too small, at least 9 bytes");
     unsigned int ticks_high, ticks_low;
     asm volatile(

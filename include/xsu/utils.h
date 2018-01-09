@@ -35,6 +35,7 @@ void kernel_cache(unsigned int block_index);
 void kernel_serial_puts(char* str);
 void kernel_serial_putc(char c);
 void itoa(unsigned long num, char* dst, unsigned int maxlength);
+void zitoa(unsigned long num, char* dst, unsigned int maxlength);
 
 int pow(int x, int z);
 unsigned int is_bound(unsigned int val, unsigned int bound);

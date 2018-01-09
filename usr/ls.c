@@ -123,8 +123,8 @@ readdir:
                     int minute = (time & 0x07e0) >> 5;
                     char hour_disp[3] = "  ";
                     char minute_disp[3] = "  ";
-                    itoa(hour, hour_disp, 2);
-                    itoa(minute, minute_disp, 2);
+                    zitoa(hour, hour_disp, 2);
+                    zitoa(minute, minute_disp, 2);
 
                     // Display.
                     if (name[0] != '.') {
@@ -152,8 +152,8 @@ readdir:
                     int minute = (time & 0x07e0) >> 5;
                     char hour_disp[3] = "  ";
                     char minute_disp[3] = "  ";
-                    itoa(hour, hour_disp, 2);
-                    itoa(minute, minute_disp, 2);
+                    zitoa(hour, hour_disp, 2);
+                    zitoa(minute, minute_disp, 2);
 
                     if (entry.attr == 0x10) {
                         kernel_printf("%s %s %s %s:%s ", size, month_disp, day_disp, hour_disp, minute_disp);
