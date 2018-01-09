@@ -22,8 +22,19 @@ void top()
 
         // Process info.
         kernel_printf("Processes: %d total, %d running, %d sleeping.\n", getprocessnum(), getrunningnum(), getsleepingnum());
+        
         // Mem info.
         kmemtop();
+
+        // Every process
+        struct list_entry *pos;
+        task_struct *task;
+        kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
+        list_for_each(pos, &shed_list)
+        {
+            task = list_entry(pos, task_struct, shed);
+            printtask(task);
+        }
 
         call_syscall_a0(SYSCALL_SLEEP, 1000);
     }

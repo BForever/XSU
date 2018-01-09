@@ -417,7 +417,7 @@ void fk1()
     TLB0->entrylo0 = ((phy & 0x7FFFF000) >> 6) | (0x3 << 3) | (0x1 << 2) | (0x1 << 1); //using cache, D = 1, valid
     TLB0->entrylo1 = 0;
 
-    insertTLB(TLB0, asid);
+    insertTLB(TLB0);
     printTLB();
     // for(i=0;i<3;i++)
     // {
@@ -508,11 +508,7 @@ int pc_test()
     //pc_create(fk2,"k2");
     return 0;
 }
-//print the infomation of single task
-void printtask(task_struct* task)
-{
-    kernel_printf("%s\t%d\t\t%d\t\t%d\n", task->name, task->ASID, task->state, task->counter);
-}
+
 //print all the tasks that are registered in system
 void printalltask()
 {
@@ -531,6 +527,21 @@ void printalltask()
         task = list_entry(pos, task_struct, shed);
         printtask(task);
     }
+}
+//print the infomation of single task
+void printtask(task_struct* task)
+{
+    kernel_printf("%s\t%d\t", task->name, task->ASID);
+    switch(task->state)
+    {
+        case PROC_STATE_CREATING:   kernel_printf("creating");break;
+        case PROC_STATE_READY:      kernel_printf("ready   ");break;
+        case PROC_STATE_RUNNING:    kernal_printf("running ");break;
+        case PROC_STATE_SLEEPING:   kernal_printf("sleeping");break;
+        case PROC_STATE_WAITING:    kernel_printf("waiting ");break;
+        default:                    kernal_printf("unknown ");break;
+    }
+    kernel_printf("\t%d\n", task->counter);
 }
 //print all tasks that are in the ready list
 void printreadylist()

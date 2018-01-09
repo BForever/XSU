@@ -7,6 +7,8 @@
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
 
+static inline int __pc_gettimeslots(int level);
+
 void copy_context(context* src, context* dest)
 {
     dest->epc = src->epc;
@@ -66,11 +68,13 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     current->counter--;
     // Check whether the process' timeslots are used out
     if (current->counter) {
-        current->counter--;
         __reset_counter();
     } else // Restore counter and choose the next process
     {
-        current->counter = PROC_DEFAULT_TIMESLOTS;
+        if(current->level)
+            current->level--;
+
+        current->counter = __pc_gettimeslots(current->level);
         current->state = PROC_STATE_READY;
         list_add_tail(&current->ready, &ready_list[current->level]);
 
@@ -107,4 +111,10 @@ void __reset_counter()
 
     // Reset counter
     asm volatile("mtc0 $zero, $9\n\t");
+}
+
+static inline int __pc_gettimeslots(int level)
+{
+    level = PROC_LEVELS - level;
+    return PROC_DEFAULT_TIMESLOTS << level;
 }
