@@ -12,9 +12,10 @@ static unsigned int getsleepingnum();
 void top()
 {
     while (1) {
-        kernel_clear_screen(31);
+
 
         char c = kernel_getchar();
+        kernel_clear_screen(31);
 
         if (c == 'q') {
             return;
@@ -36,7 +37,7 @@ void top()
             printtask(task);
         }
 
-        call_syscall_a0(SYSCALL_SLEEP, 1000);
+        //call_syscall_a0(SYSCALL_SLEEP, 1000);
     }
 
     // asm volatile("mtc0 $zero, $9");
