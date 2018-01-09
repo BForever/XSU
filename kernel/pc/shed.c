@@ -56,9 +56,9 @@ static task_struct* __getnexttask()
         }
     }
     if (!next) {
-        kernel_printf("No process running\n");
-        while (1)
-            ; //panic
+        next = create_kthread("time", PROC_LEVELS/2 ,0);
+        // while (1)
+        //     ; //panic
     }
 }
 void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
