@@ -724,6 +724,8 @@ void menu()
         c = kernel_getchar();
         if (c == '\n') {
             buf[buf_index] = 0;
+            // clear the previous flag.
+            result = 0;
             result = menu_execute();
             if (result) {
                 kernel_puts("-> ", VGA_RED, VGA_BLACK);

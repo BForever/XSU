@@ -285,8 +285,22 @@ char* kernel_strtok_r(char* string, const char* seps, char** context)
     return head;
 }
 
-/* itoa:  convert n to characters in s */
+// itoa:  convert n to characters in s.
 void itoa(unsigned long num, char* dst, unsigned int maxlength)
+{
+    if (!num) {
+        dst[maxlength - 1] = '0';
+    } else {
+        while (num) {
+            dst[maxlength - 1] = (num % 10) + '0';
+            num /= 10;
+            maxlength--;
+        }
+    }
+}
+
+// zitoa: use zero to fill the remaining blanks.
+void zitoa(unsigned long num, char* dst, unsigned int maxlength)
 {
     int i;
     for (i = maxlength - 1; i >= 0; i--) {

@@ -30,7 +30,7 @@ void top()
         // Every process
         struct list_head* pos;
         task_struct* task;
-        kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
+        kernel_printf("\nNAME\tASID\tSTATE\tCOUNTER\n");
         list_for_each(pos, &shed_list)
         {
             task = list_entry(pos, task_struct, shed);

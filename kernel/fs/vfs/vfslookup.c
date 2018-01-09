@@ -223,11 +223,7 @@ int vfs_lookparent(char* path, struct vnode** retval, char* buf, size_t buflen)
 #endif
     if (!result) {
         // Copy the file name to buf.
-        if (kernel_strlen(buf) >= kernel_strlen(path)) {
-            kernel_strcpy(buf, path);
-        } else {
-            kernel_printf("too large path\n");
-        }
+        kernel_strcpy(buf, path);
 #ifdef VFS_DEBUG
         kernel_printf("buf: %s\n", buf);
 #endif
