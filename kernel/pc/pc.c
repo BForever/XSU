@@ -541,6 +541,20 @@ void printtask(task_struct* task)
     //     case PROC_STATE_WAITING:kernel_printf("waiting ");break;
     //     default:kernal_printf("unknown ");break;
     // }
+    if(task->state == PROC_STATE_CREATING){
+        kernal_printf("creating")
+    }else if(task->state == PROC_STATE_READY){
+        kernal_printf("ready");
+    }
+    else if(task->state == PROC_STATE_RUNNING){
+        kernal_printf("running");
+    }else if(task->state == PROC_STATE_SLEEPING){
+        kernel_printf("sleeping");
+    }else if(task->state == PROC_STATE_WAITING){
+        kernal_printf("waiting");
+    }else{
+        kernal_printf("unknown");
+    }
     kernel_printf("\t%d\n", task->counter);
 }
 //print all tasks that are in the ready list
