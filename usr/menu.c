@@ -466,17 +466,17 @@ static int cmd_mkdir(int argc, char** argv)
     return vfs_mkdir(path, 0);
 }
 
-static int cmd_create(int argc, char** argv)
+static int cmd_touch(int argc, char** argv)
 {
     if (argc != 2) {
-        kernel_printf("Usage: change file access and mpdification times");
+        kernel_printf("Usage: change file access and modification times");
         return EINVAL;
     }
 
     char path[256];
     rel_to_abs(argv[1], path);
 
-    return vfs_create(path);
+    return vfs_touch(path);
 }
 
 static int cmd_remove(int argc, char** argv)
@@ -622,7 +622,7 @@ static struct {
     { "bootfs", cmd_bootfs },
     { "ls", cmd_ls },
     { "mkdir", cmd_mkdir },
-    { "touch", cmd_create },
+    { "touch", cmd_touch },
     { "rm", cmd_remove },
     { "mv", cmd_move },
     { "cp", cmd_copy },

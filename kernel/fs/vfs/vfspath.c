@@ -10,6 +10,7 @@
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
+#include <xsu/time.h>
 
 #define NAME_MAX 255
 
@@ -203,6 +204,43 @@ int vfs_create(char* path)
     }
 
     result = fs_create(name);
+    if (result) {
+        return result;
+    }
+    kfree(name);
+    return result;
+}
+
+int vfs_touch(char* path)
+{
+    struct vnode* vn;
+    char* name;
+    int result;
+
+    name = kmalloc(kernel_strlen(path) + 1);
+    result = vfs_lookparent(path, &vn, name, sizeof(name));
+    if (result) {
+        return result;
+    }
+
+    FILE* file;
+    result = fs_open(&file, name);
+    if (result) {
+        // The file does not exist, create it.
+        result = fs_create(name);
+    } else {
+        // The file exists, change the modification time.
+        char time_buf[10];
+        get_time(time_buf, sizeof(time_buf));
+        int hours = (time_buf[0] - '0') * 10 + (time_buf[1] - '0');
+        int minutes = (time_buf[3] - '0') * 10 + (time_buf[4] - '0');
+        int seconds = 0;
+        uint16_t time = (hours << 11) | (minutes << 5) | seconds;
+        FILE.entry.attr.time = time;
+        // Close file.
+        result = fs_close(&file);
+    }
+
     if (result) {
         return result;
     }
