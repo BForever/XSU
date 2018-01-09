@@ -377,7 +377,7 @@ void flushsleeplist()
         if (task->sleeptime <= 0) {
             list_del_init(&task->sleep);
             task->state = PROC_STATE_READY;
-            task->level = PROC_LEVELS;
+            task->level = PROC_LEVELS - 1;
             list_add(&task->ready, &ready_list[task->level]);
         }
     }
