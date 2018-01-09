@@ -104,13 +104,13 @@ readdir:
                 // https://www.wikiwand.com/en/Design_of_the_FAT_file_system
                 // 4 * 1024 * 1024 * 1024 = 4264967396B = 4GB
                 char size[11] = "          ";
-                uint32_t file_size = get_entry_filesize(entry);
+                uint32_t file_size = entry.size;
                 itoa(file_size, size, 10);
                 uint16_t date = entry.date;
                 int month = (date & 0x00f0) >> 4;
                 int day = date & 0x000f;
                 char month_disp[4] = "   ";
-                get_month_name(month, month_name);
+                get_month_name(month, month_disp);
                 char day_disp[3] = "  ";
                 itoa(day, day_disp, 2);
                 uint16_t time = entry.time;
@@ -133,13 +133,13 @@ readdir:
                 }
             } else if (!kernel_strcmp(options, "-al")) {
                 char size[11] = "          ";
-                uint32_t file_size = get_entry_filesize(entry);
+                uint32_t file_size = entry.size;
                 itoa(file_size, size, 10);
                 uint16_t date = entry.date;
                 int month = (date & 0x00f0) >> 4;
                 int day = date & 0x000f;
                 char month_disp[4] = "   ";
-                get_month_name(month, month_name);
+                get_month_name(month, month_disp);
                 char day_disp[3] = "  ";
                 itoa(day, day_disp, 2);
                 uint16_t time = entry.time;
