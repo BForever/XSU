@@ -541,7 +541,7 @@ void printtask(task_struct* task)
     //     default:kernal_printf("unknown ");break;
     // }
     if(task->state == PROC_STATE_CREATING){
-        kernal_printf("creating")
+        kernal_printf("creating");
     }else if(task->state == PROC_STATE_READY){
         kernal_printf("ready");
     }
