@@ -39,7 +39,7 @@ task_struct* create_process(char* name, unsigned int phy_code, unsigned int leng
     // printTLB();
     // TLBEntry* tlb = task->pagecontent[0];
     // printTLBEntry(tlb);
-    // insertTLB(task->pagecontent[0],2);
+    // insertTLB(task->pagecontent[0]);
     // printTLB();
     // int i;
     // kernel_printf("code of user space:\n");

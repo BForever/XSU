@@ -152,7 +152,7 @@ void TLBrefill();
 TLBEntry* getTLBentry(unsigned int badvpn2,TLBEntry **pagecontent);
 void printTLBEntry(TLBEntry *tlb);
 void printTLB();
-void insertTLB(TLBEntry *entry,int asid);
+void insertTLB(TLBEntry *entry);
 unsigned int testTLB(unsigned int va);
 
 //user process

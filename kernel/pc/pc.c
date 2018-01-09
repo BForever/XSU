@@ -417,7 +417,7 @@ void fk1()
     TLB0->entrylo0 = ((phy & 0x7FFFF000) >> 6) | (0x3 << 3) | (0x1 << 2) | (0x1 << 1); //using cache, D = 1, valid
     TLB0->entrylo1 = 0;
 
-    insertTLB(TLB0, asid);
+    insertTLB(TLB0);
     printTLB();
     // for(i=0;i<3;i++)
     // {

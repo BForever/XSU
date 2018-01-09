@@ -24,6 +24,7 @@ void TLB_init()
             : "r"(vpn2), "r"(i));
     }
     asm volatile("mtc0  %0,$4" ::"r"(PTEBase));
+    setasid(0);
 }
 
 //print one TLB Entry
@@ -143,9 +144,8 @@ void TLBL_exc(unsigned int status, unsigned int cause, context* context)
                 tmp.entrylo0 = ((unsigned)((unsigned)current->pagecontent[content] & 0x7FFFFFFF) >> 12) << 6 | (0x3 << 3) | (0x1 << 2) | (0x1 << 1);
                 tmp.entrylo1 = 0x81000000;
             }
-            // kernel_printf("try insertTLB(&tmp,current->ASID);&tmp=%x\n",&tmp);
-
-            insertTLB(&tmp, current->ASID);
+            // kernel_printf("try insertTLB(&tmp);&tmp=%x\n",&tmp);
+            insertTLB(&tmp);
             kernel_printf("refill tlb:");
             printTLBEntry(&tmp);
             // kernel_printf("pgd's first tlb:");
@@ -203,8 +203,8 @@ void TLBS_exc(unsigned int status, unsigned int cause, context* context)
                 tmp.entrylo0 = ((unsigned)((unsigned)current->pagecontent[content] & 0x7FFFFFFF) >> 12) << 6 | (0x3 << 3) | (0x1 << 2) | (0x1 << 1);
                 tmp.entrylo1 = 0x81000000;
             }
-            kernel_printf("try insertTLB(&tmp,current->ASID);\n");
-            insertTLB(&tmp, current->ASID);
+            kernel_printf("try insertTLB(&tmp);\n");
+            insertTLB(&tmp);
             kernel_printf("refill tlb:");
             printTLBEntry(&tmp);
             kernel_printf("pgd's first tlb:");
@@ -239,6 +239,7 @@ void TLBS_exc(unsigned int status, unsigned int cause, context* context)
 //       incase there are same matches which lead to error mapping
 void TLBrefill()
 {
+    int old = getasid();
     unsigned int t1, t2;
     asm volatile(
         "mfc0    %0, $4\n\t"
@@ -258,10 +259,12 @@ void TLBrefill()
     kernel_printf("refill tlb:");
     printTLBEntry((TLBEntry*)t1);
     printTLB();
+    setasid(old);
 }
 
-void insertTLB(TLBEntry* entry, int asid)
+void insertTLB(TLBEntry* entry)
 {
+    int old = getasid();
     kernel_printf("insertTLB()started--entry=%x\n", entry);
     asm volatile(
         "addi    $sp, $sp, -8\n\t"
@@ -283,7 +286,7 @@ void insertTLB(TLBEntry* entry, int asid)
         :
         : "r"(entry));
     // kernel_printf("inside insertTLB()--try setasid(%d)\n",asid);
-    setasid(asid);
+    setasid(old);
     // kernel_printf("insertTLB() returning\n",asid);
     // kernel_printf("your asid now is: %d\n",getasid());
 }
