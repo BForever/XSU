@@ -34,7 +34,7 @@ int ls(char* path, char* options)
     unsigned int r;
 
     if (fs_open_dir(&dir, path)) {
-        kernel_printf("open dir(%s) failed : No such directory!\n", pwd);
+        kernel_printf("open dir(%s) failed : No such directory!\n", path);
         return 1;
     }
 
