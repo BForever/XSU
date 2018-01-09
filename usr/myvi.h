@@ -31,7 +31,6 @@ void insert_key(char key, int site);
 void delete_key(int site);
 void put_char_on_screen(char ch, int row, int column, int color);
 void screen_flush();
-char get_key();
 void page_location_last_line();
 void page_location_next_line();
 void cursor_prev_line();
@@ -39,6 +38,6 @@ void cursor_next_line();
 void do_command_mode(char key);
 void do_insert_mode(char key);
 void do_last_line_mode(char key);
-int myvi(char* filename);
+int myvi(char* path);
 
 #endif

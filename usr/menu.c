@@ -589,8 +589,11 @@ static int cmd_vim(int argc, char** argv)
         kernel_printf("vim - Vi Improved, a programmers text editor");
         return EINVAL;
     }
-    int result = myvi(argv[1]);
-    return result;
+
+    char path[256];
+    rel_to_abs(argv[1], path);
+
+    return myvi(path);
 }
 
 /*
