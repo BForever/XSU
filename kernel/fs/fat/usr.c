@@ -157,7 +157,7 @@ uint32_t fs_mkdir(uint8_t* filename)
     FILE mk_dir;
     FILE file_creat;
 
-    if (fs_create_with_attr(filename, 0x30) == 1)
+    if (fs_create_with_attr(filename, 0x10) == 1)
         goto fs_mkdir_err;
 
     if (fs_open(&mk_dir, filename) == 1)
@@ -192,7 +192,7 @@ uint32_t fs_mkdir(uint8_t* filename)
     for (i = 2; i < 11; i++)
         mk_dir_buf[i] = 0x20;
 
-    mk_dir_buf[11] = 0x30;
+    mk_dir_buf[11] = 0x10;
     for (i = 12; i < 32; i++)
         mk_dir_buf[i] = 0;
 
