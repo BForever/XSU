@@ -1,5 +1,4 @@
 #include "../usr/menu.h"
-#include "../usr/top.h"
 #include <arch.h>
 #include <driver/ps2.h>
 #include <driver/vga.h>
@@ -102,7 +101,6 @@ void init_kernel()
     *GPIO_SEG = 0x11223344;
     // Enter shell
     pc_create(menu,"menu");
-    pc_create(time_handler,"time");
-    pc_create(top,"top");
+    pc_create(time_handler,"time"); 
     // menu();
 }
