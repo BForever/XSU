@@ -223,7 +223,7 @@ int vfs_touch(char* path)
         return result;
     }
 
-    FILE* file;
+    FILE file;
     result = fs_open(&file, name);
     if (result) {
         // The file does not exist, create it.
@@ -236,7 +236,7 @@ int vfs_touch(char* path)
         int minutes = (time_buf[3] - '0') * 10 + (time_buf[4] - '0');
         int seconds = 0;
         uint16_t time = (hours << 11) | (minutes << 5) | seconds;
-        FILE.entry.attr.time = time;
+        file.entry.attr.time = time;
         // Close file.
         result = fs_close(&file);
     }
