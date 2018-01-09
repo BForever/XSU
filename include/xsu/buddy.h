@@ -15,15 +15,15 @@ struct page {
     unsigned int flag; // the declaration of the usage of this page
     unsigned int reference; //
     struct list_head list; // double-way list
-    void* virtual; // default 0x(-1)
-    unsigned int bplevel; /* the order level of the page
+    void* pageCacheBlock; // default 0x(-1)
+    unsigned int pageOrderLevel; /* the order level of the page
                               *
                               * unsigned int sl_objs;
                               * 		represents the number of objects in current
-                              * if the page is of _PAGE_SLAB, then bplevel is the sl_objs
+                              * if the page is of _PAGE_SLAB, then pageOrderLevel is the sl_objs
                               */
-    void** slabp; /* if the page is used by slab system,
-                              * then slabp represents the base-addr of free space
+    void** slabFreeSpacePtr; /* if the page is used by slab system,
+                              * then slabFreeSpacePtr represents the base-addr of free space
                               */
 };
 
@@ -35,28 +35,36 @@ struct page {
  */
 #define MAX_BUDDY_ORDER 4
 
-struct freelist {
+struct FreeList {
     unsigned int nr_free;
     struct list_head free_head;
 };
 
 struct buddy_sys {
-    unsigned int buddy_start_pfn;
-    unsigned int buddy_end_pfn;
-    struct page* start_page;
-    struct lock_t lock;
-    struct freelist freelist[MAX_BUDDY_ORDER + 1];
+    unsigned int buddyStartPageNumber;
+    unsigned int buddyEndPageNumber;
+    struct page* startPagePtr;
+    struct lock_t buddyLock;
+    struct FreeList freeList[MAX_BUDDY_ORDER + 1];
 };
-
-#define _is_same_bpgroup(page, bage) (((*(page)).bplevel == (*(bage)).bplevel))
-#define _is_same_bplevel(page, lval) ((*(page)).bplevel == (lval))
-#define set_bplevel(page, lval) ((*(page)).bplevel = (lval))
-#define set_flag(page, val) ((*(page)).flag = (val))
-#define clean_flag(page, val) ((*(page)).flag &= ~(val))
-#define has_flag(page, val) ((*(page)).flag & val)
-#define set_ref(page, val) ((*(page)).reference = (val))
-#define inc_ref(page, val) ((*(page)).reference += (val))
-#define dec_ref(page, val) ((*(page)).reference -= (val))
+// two page is in the same level, in other words in the same group
+//#define _is_same_bpgroup(firstPage, secondPage) (((*(firstPage)).pageOrderLevel == (*(secondPage)).pageOrderLevel))
+// two page is in the same level, in other words in the same group 
+#define _is_same_pageOrderLevel(page, levelValue) ((*(page)).pageOrderLevel == (levelValue))
+// set page's level value
+#define set_pageOrderLevel(page, levelValue) ((*(page)).pageOrderLevel = (levelValue))
+// set flag's value
+#define set_flag(page, flagValue) ((*(page)).flag = (flagValue))
+// clean flag's value
+#define clean_flag(page) ((*(page)).flag = 0)
+// judge whether they have the same flag value
+#define has_flag(page, flagValue) ((*(page)).flag & flagValue)
+// set reference value
+#define set_ref(page, referenceValue) ((*(page)).reference = (referenceValue))
+// increase reference value
+#define inc_ref(page, incValue) ((*(page)).reference += (incValue))
+// decrease reference value
+#define dec_ref(page, decValue) ((*(page)).reference -= (decValue))
 
 extern struct page* pages;
 extern struct buddy_sys buddy;

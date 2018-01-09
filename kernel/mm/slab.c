@@ -20,7 +20,7 @@ unsigned int judge_slab_free(struct kmem_cache *cache, void *object){
     //kernel_printf("judeg slab free condition, address is: %x", object);
     struct page* objectPage = pages + ((unsigned int)object >> PAGE_SHIFT);
     object = (void *)((unsigned int)object | KERNEL_ENTRY);
-    void **freeSpacePtr = objectPage->slabp;
+    void **freeSpacePtr = objectPage->slabFreeSpacePtr;
     unsigned int flag = 0;//not found
     if(objectPage->flag != _PAGE_SLAB)
         return 1;
@@ -78,11 +78,11 @@ void init_slab() {
 #endif  // ! SLAB_DEBUG
 }
 
-// ATTENTION: sl_objs is the reuse of bplevel
-// ATTENTION: slabp must be set right to add itself to reach the end of the page
-// 		e.g. if size = 96 then 4096 / 96 = .. .. 64 then slabp starts at
+// ATTENTION: sl_objs is the reuse of pageOrderLevel
+// ATTENTION: slabFreeSpacePtr must be set right to add itself to reach the end of the page
+// 		e.g. if size = 96 then 4096 / 96 = .. .. 64 then slabFreeSpacePtr starts at
 // 64
-void format_slabpage(struct kmem_cache *cache, struct page *page) {
+void format_slab_page(struct kmem_cache *cache, struct page *page) {
     unsigned char *moffset = (unsigned char *)KMEM_ADDR(page, pages);  // physical addr
     struct slab_head *s_head = (struct slab_head *)moffset;
     unsigned int *ptr;
@@ -107,8 +107,8 @@ void format_slabpage(struct kmem_cache *cache, struct page *page) {
 
     cache->cpu.page = page;
     cache->cpu.freeobj = (void **)(&startAddress);
-    page->virtual = (void *)cache;
-    page->slabp = (cache->cpu.freeobj);
+    page->pageCacheBlock = (void *)cache;
+    page->slabFreeSpacePtr = (cache->cpu.freeobj);
 }
 
 void *slab_alloc(struct kmem_cache *cache) {
@@ -130,7 +130,7 @@ slalloc_check:
 
         if (list_empty(&(cache->node.partial))) {
             // call the buddy system to allocate one more page to be slab-cache
-            newpage = __alloc_pages(0);  // get bplevel = 0 page === one page
+            newpage = __alloc_pages(0);  // get pageOrderLevel = 0 page === one page
             if (!newpage) {
                 // allocate failed, memory in system is used up
                 kernel_printf("ERROR: slab request one page in cache failed\n");
@@ -143,7 +143,7 @@ slalloc_check:
 
         // using standard format to shape the new-allocated page,
         // set the new page to be cpu.page
-            format_slabpage(cache, newpage);
+            format_slab_page(cache, newpage);
             object = *(cache->cpu.freeobj);
             // as it's newly allocated no check may be need
             goto slalloc_check;
@@ -158,20 +158,20 @@ slalloc_check:
         //#define container_of(ptr, type, member) ((type*)((char*)ptr - (char*)&(((type*)0)->member)))
         cache->cpu.page = container_of(cache->node.partial.next, struct page, list);
         list_del(cache->node.partial.next);
-        //kernel_printf("cpu.freeobj is: %x\n", cache->cpu.page->slabp);
-        cache->cpu.freeobj = cache->cpu.page->slabp;
+        //kernel_printf("cpu.freeobj is: %x\n", cache->cpu.page->slabFreeSpacePtr);
+        cache->cpu.freeobj = cache->cpu.page->slabFreeSpacePtr;
         object = (void *)(*(cache->cpu.freeobj));
-        //kernel_printf("cpu.page->slabp is: %x\n", object);
+        //kernel_printf("cpu.page->slabFreeSpacePtr is: %x\n", object);
         goto slalloc_check;
     }
 slalloc_normal:
     cache->cpu.freeobj = (void **)((unsigned char *)object + cache->offset);
-    cache->cpu.page->slabp = (cache->cpu.freeobj);
+    cache->cpu.page->slabFreeSpacePtr = (cache->cpu.freeobj);
     s_head = (struct slab_head *)KMEM_ADDR(cache->cpu.page, pages);
     ++(s_head->nr_objs);
 slalloc_end:
     // slab may be full after this allocation
-    if (is_bound((unsigned int )(*(cache->cpu.page->slabp)), 1 << PAGE_SHIFT)) {
+    if (is_bound((unsigned int )(*(cache->cpu.page->slabFreeSpacePtr)), 1 << PAGE_SHIFT)) {
         kernel_printf("slab is full\n");
         list_add_tail(&(cache->cpu.page->list), &(cache->node.full));
         init_kmem_cpu(&(cache->cpu));
@@ -209,11 +209,11 @@ void slab_free(struct kmem_cache *cache, void *object) {
         s_head->end_ptr = ptr;
     }else{
         return;
-    //     opage->slabp = (void**) &object;
+    //     opage->slabFreeSpacePtr = (void**) &object;
     //     // kernel_printf("")
-    //     kernel_printf("opage->slabp is: %x ", *(opage->slabp));
+    //     kernel_printf("opage->slabFreeSpacePtr is: %x ", *(opage->slabFreeSpacePtr));
     //     if(cache->cpu.page == opage)
-    //         cache->cpu.freeobj = opage->slabp;
+    //         cache->cpu.freeobj = opage->slabFreeSpacePtr;
     }
     --(s_head->nr_objs);
     //kernel_printf("slab_free_2\n");
@@ -257,7 +257,7 @@ unsigned int get_slab(unsigned int size) {
 void *kmalloc(unsigned int size) {
     struct kmem_cache *cache;
     unsigned int bf_index;
-    unsigned int bplevel;
+    unsigned int pageOrderLevel;
     if (!size)
         return 0;
 
@@ -266,15 +266,15 @@ void *kmalloc(unsigned int size) {
     if (size > kmalloc_caches[PAGE_SHIFT - 1].objsize) {
         size += (1 << PAGE_SHIFT) - 1;
         size &= ~((1 << PAGE_SHIFT) - 1);    
-        bplevel = 0;
+        pageOrderLevel = 0;
         size = size >> (PAGE_SHIFT);
         size -=1;
         while(size > 0){
             size >>= 1;
-            bplevel++;
+            pageOrderLevel++;
         }
-        //kernel_printf("bplevel is: %x\n", bplevel);
-        return (void *)(KERNEL_ENTRY | (unsigned int)alloc_pages(bplevel));
+        //kernel_printf("pageOrderLevel is: %x\n", pageOrderLevel);
+        return (void *)(KERNEL_ENTRY | (unsigned int)alloc_pages(pageOrderLevel));
     }
 
     bf_index = get_slab(size);
@@ -293,10 +293,10 @@ void kfree(void *obj) {
     obj = (void *)((unsigned int)obj & (~KERNEL_ENTRY));
     page = pages + ((unsigned int)obj >> PAGE_SHIFT);
     if (!(page->flag == _PAGE_SLAB))
-        return free_pages((void *)((unsigned int)obj & ~((1 << PAGE_SHIFT) - 1)), page->bplevel);
+        return free_pages((void *)((unsigned int)obj & ~((1 << PAGE_SHIFT) - 1)), page->pageOrderLevel);
     //kernel_printf("slab_free\n");
-    // return slab_free(page->virtual, (void *)((unsigned int)obj | KERNEL_ENTRY));
-    return slab_free(page->virtual, obj);
+    // return slab_free(page->pageCacheBlock, (void *)((unsigned int)obj | KERNEL_ENTRY));
+    return slab_free(page->pageCacheBlock, obj);
        
 }
 
