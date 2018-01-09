@@ -581,6 +581,13 @@ static int cmd_syscall(int argc, char** argv)
         kernel_printf("Usage: syscall v0 a0\n");
     }
 }
+static int cmd_fk1(int argc, char** argv)
+{
+    fk1();
+}
+static int cmd_pctest_tlb(int argc, char** argv){
+    pc_test();
+}
 
 /*
  * Command table. 
@@ -636,6 +643,8 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
+    { "test_tlb", cmd_fk1},
+    { "pctest_tlb", cmd_pctest_tlb},
     { NULL, NULL }
 };
 

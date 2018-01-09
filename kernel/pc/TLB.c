@@ -279,9 +279,14 @@ void insertTLB(TLBEntry* entry)
         "mtc0    $k1, $10\n\t"
         "lw      $k1, 12($k0)\n\t"
         "mtc0    $k1, $5\n\t"
+        "mfc0    $k1, $9\n\t"
+        "andi    $k1, $k1, 31\n\t"
+        "mtc0    $k1, $0\n\t"
         "lw      $k0, 0($sp)\n\t" //# CP0 hazard
         "lw      $k1, 4($sp)\n\t" //# CP0 hazard
         "addi    $sp, $sp, 8\n\t"
+        "nop\n\t"
+        "nop\n\t"
         "tlbwr"
         :
         : "r"(entry));
