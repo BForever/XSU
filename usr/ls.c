@@ -3,6 +3,7 @@
 #include <xsu/fs/vfs.h>
 #include <xsu/fs/vnode.h>
 #include <xsu/slab.h>
+#include <xsu/utils.h>
 
 void handle_path(char* path, char* newpath)
 {
@@ -17,6 +18,50 @@ void handle_path(char* path, char* newpath)
     }
     kernel_memcpy(newpath, name, kernel_strlen(name) + 1);
     kfree(name);
+}
+
+void get_month_name(int month, char* name)
+{
+    switch (month) {
+    case 1:
+        name = "Jan";
+        break;
+    case 2:
+        name = "Feb";
+        break;
+    case 3:
+        name = "Mar";
+        break;
+    case 4:
+        name = "Apr";
+        break;
+    case 5:
+        name = "May";
+        break;
+    case 6:
+        name = "Jun";
+        break;
+    case 7:
+        name = "Jul";
+        break;
+    case 8:
+        name = "Aug";
+        break;
+    case 9:
+        name = "Sep";
+        break;
+    case 10:
+        name = "Oct";
+        break;
+    case 11:
+        name = "Nov";
+        break;
+    case 12:
+        name = "Dec";
+        break;
+    default:
+        name = "Nam"; // Not a month
+    }
 }
 
 int ls(char* path, char* options)
@@ -54,8 +99,64 @@ readdir:
                 kernel_printf("\t");
             } else if (!kernel_strcmp(options, "-l")) {
                 // List in long format.
+
+                // Change data to a fix-length string.
+                // https://www.wikiwand.com/en/Design_of_the_FAT_file_system
                 // 4 * 1024 * 1024 * 1024 = 4264967396B = 4GB
+                char size[11] = "          ";
+                uint32_t file_size = get_entry_filesize(entry);
+                itoa(file_size, size, 10);
+                uint16_t date = entry.date;
+                int month = (date & 0x00f0) >> 4;
+                int day = date & 0x000f;
+                char month_disp[4] = "   ";
+                get_month_name(month, month_name);
+                char day_disp[3] = "  ";
+                itoa(day, day_disp, 2);
+                uint16_t time = entry.time;
+                int hour = (time & 0xf800) >> 10;
+                int minute = (time & 0x07e0) >> 5;
+                char hour_disp[3] = "  ";
+                char minute_disp[3] = "  ";
+                itoa(hour, hour_disp, 2);
+                itoa(minute, minute_disp, 2);
+
+                // Display.
+                if (name[0] != '.') {
+                    if (entry.attr = 0x10) {
+                        kernel_printf("%s %s %s %s:%s ", size, month_disp, day_disp, hour_disp, minute_disp);
+                        kernel_puts(name, VGA_GREEN, VGA_BLACK);
+                    } else {
+                        kernel_printf("%s %s %s %s:%s %s", size, month_disp, day_disp, hour_disp, minute_disp, name);
+                    }
+                    kernel_printf("\n");
+                }
             } else if (!kernel_strcmp(options, "-al")) {
+                char size[11] = "          ";
+                uint32_t file_size = get_entry_filesize(entry);
+                itoa(file_size, size, 10);
+                uint16_t date = entry.date;
+                int month = (date & 0x00f0) >> 4;
+                int day = date & 0x000f;
+                char month_disp[4] = "   ";
+                get_month_name(month, month_name);
+                char day_disp[3] = "  ";
+                itoa(day, day_disp, 2);
+                uint16_t time = entry.time;
+                int hour = (time & 0xf800) >> 10;
+                int minute = (time & 0x07e0) >> 5;
+                char hour_disp[3] = "  ";
+                char minute_disp[3] = "  ";
+                itoa(hour, hour_disp, 2);
+                itoa(minute, minute_disp, 2);
+
+                if (entry.attr = 0x10) {
+                    kernel_printf("%s %s %s %s:%s ", size, month_disp, day_disp, hour_disp, minute_disp);
+                    kernel_puts(name, VGA_GREEN, VGA_BLACK);
+                } else {
+                    kernel_printf("%s %s %s %s:%s %s", size, month_disp, day_disp, hour_disp, minute_disp, name);
+                }
+                kernel_printf("\n");
             } else {
                 if (name[0] != '.') {
                     if (entry.attr == 0x10) // sub dir

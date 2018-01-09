@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <driver/vga.h>
 #include <xsu/log.h>
+#include <xsu/time.h>
 
 #ifdef FS_DEBUG
 #include "debug.h"
@@ -792,9 +793,37 @@ uint32_t fs_create_with_attr(uint8_t* filename, uint8_t attr)
     // Write file attr.
     *(dir_data_buf[index].buf + empty_entry + 11) = attr;
 
-    // Other should be zero.
-    for (i = 12; i < 32; i++)
-        *(dir_data_buf[index].buf + empty_entry + i) = 0;
+    // Write other info.
+    *(dir_data_buf[index].buf + empty_entry + 12) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 13) = 0;
+    char time_buf[10];
+    get_time(time_buf, sizeof(time_buf));
+    int hours = (time_buf[0] - '0') * 10 + (time_buf[1] - '0');
+    int minutes = (time_buf[3] - '0') * 10 + (time_buf[4] - '0');
+    int seconds = 0;
+    uint16_t ctime = (hours << 11) | (minutes << 5) | seconds;
+    uint8_t ctime_hi = (ctime & 0xff00) >> 8;
+    uint8_t ctime_lo = ctime & 0x00ff;
+    *(dir_data_buf[index].buf + empty_entry + 14) = ctime_lo;
+    *(dir_data_buf[index].buf + empty_entry + 15) = ctime_hi;
+    uint8_t cdate_hi = 0;
+    uint8_t cdate_lo = 0x21;
+    *(dir_data_buf[index].buf + empty_entry + 16) = cdate_lo;
+    *(dir_data_buf[index].buf + empty_entry + 17) = cdate_hi;
+    *(dir_data_buf[index].buf + empty_entry + 18) = cdate_lo;
+    *(dir_data_buf[index].buf + empty_entry + 19) = cdate_hi;
+    *(dir_data_buf[index].buf + empty_entry + 20) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 21) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 22) = ctime_lo;
+    *(dir_data_buf[index].buf + empty_entry + 23) = ctime_hi;
+    *(dir_data_buf[index].buf + empty_entry + 24) = cdate_lo;
+    *(dir_data_buf[index].buf + empty_entry + 25) = cdate_hi;
+    *(dir_data_buf[index].buf + empty_entry + 26) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 27) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 28) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 29) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 30) = 0;
+    *(dir_data_buf[index].buf + empty_entry + 31) = 0;
 
     if (fs_fflush() == 1)
         goto fs_creat_err;
