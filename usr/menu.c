@@ -538,19 +538,19 @@ static int cmd_cat(int argc, char** argv)
 
 static int cmd_pctest_sleep(int argc, char** argv)
 {
-    pc_create(test_sleep1sandprint, "test_sleep1sandprint");
+    pc_create(test_sleep1sandprint, "Test_Sleep1sAndPrint");
     return 0;
 }
 
 static int cmd_pctest_fork(int argc, char** argv)
 {
-    pc_create(test_forkandkill, "test_forkandkill");
+    pc_create(test_forkandkill, "Test_ForkAndKill");
     return 0;
 }
 
 static int cmd_pctest_kill(int argc, char** argv)
 {
-    pc_create(test_sleep5sandkillasid2, "test_sleep5sandkillasid2");
+    pc_create(test_sleep5sandkillasid2, "Test_Sleep5sAndKillAsid2");
     return 0;
 }
 static int cmd_kill(int argc, char** argv)
