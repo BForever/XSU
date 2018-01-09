@@ -541,18 +541,18 @@ void printtask(task_struct* task)
     //     default:kernal_printf("unknown ");break;
     // }
     if(task->state == PROC_STATE_CREATING){
-        kernal_printf("creating");
+        kernel_printf("creating");
     }else if(task->state == PROC_STATE_READY){
-        kernal_printf("ready");
+        kernel_printf("ready");
     }
     else if(task->state == PROC_STATE_RUNNING){
-        kernal_printf("running");
+        kernel_printf("running");
     }else if(task->state == PROC_STATE_SLEEPING){
         kernel_printf("sleeping");
     }else if(task->state == PROC_STATE_WAITING){
-        kernal_printf("waiting");
+        kernel_printf("waiting");
     }else{
-        kernal_printf("unknown");
+        kernel_printf("unknown");
     }
     kernel_printf("\t%d\n", task->counter);
 }
