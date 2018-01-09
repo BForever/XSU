@@ -156,10 +156,10 @@ readdir:
                     itoa(minute, minute_disp, 2);
 
                     if (entry.attr == 0x10) {
-                        kernel_printf("%s %s %s %s %s ", size, month_disp, day_disp, hour_disp, minute_disp);
+                        kernel_printf("%s %s %s %s:%s ", size, month_disp, day_disp, hour_disp, minute_disp);
                         kernel_puts(name, VGA_GREEN, VGA_BLACK);
                     } else {
-                        kernel_printf("%s %s %s %s %s %s", size, month_disp, day_disp, hour_disp, minute_disp, name);
+                        kernel_printf("%s %s %s %s:%s %s", size, month_disp, day_disp, hour_disp, minute_disp, name);
                     }
                     kernel_printf("\n");
                 } else {

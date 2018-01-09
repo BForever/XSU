@@ -22,13 +22,13 @@ void top()
 
         // Process info.
         kernel_printf("Processes: %d total, %d running, %d sleeping.\n", getprocessnum(), getrunningnum(), getsleepingnum());
-        
+
         // Mem info.
         kmemtop();
 
         // Every process
-        struct list_entry *pos;
-        task_struct *task;
+        struct list_head* pos;
+        task_struct* task;
         kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
         list_for_each(pos, &shed_list)
         {

@@ -99,7 +99,7 @@ void get_buddy_allocation_state()
         residual += singleElementSize * (buddy.freelist[index].nr_free);
         singleElementSize <<= 1;
     }
-    kernel_printf("MemRegions: %d total, %dK residual.\n", totalMemory, residual);
+    kernel_printf("MemRegions: %dK total, %dK residual.\n", totalMemory, residual);
 }
 
 void buddy_info()
