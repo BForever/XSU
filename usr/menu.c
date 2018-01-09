@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "ls.h"
+#include "top.h"
 #include <assert.h>
 #include <driver/ps2.h>
 #include <driver/sd.h>
@@ -73,6 +74,13 @@ static int cmd_time(int argc, char** argv)
     char buf[10];
     get_time(buf, sizeof(buf));
     kernel_printf("%s\n", buf);
+    return 0;
+}
+
+static int cmd_top(int argc, char** argv)
+{
+    top();
+    kernel_clear_screen(31);
     return 0;
 }
 
@@ -593,6 +601,7 @@ static struct {
     { "clear", cmd_clear },
     { "echo", cmd_echo },
     { "time", cmd_time },
+    { "top", cmd_top },
     /* hardware */
     { "syscall4", cmd_syscall4 },
     { "sdwi", cmd_sdwi },

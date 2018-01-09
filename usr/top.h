@@ -3,6 +3,4 @@
 
 void top();
 
-void itoa(unsigned int num,char* dst,unsigned int maxlength);
-
 #endif
