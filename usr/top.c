@@ -11,9 +11,9 @@ static unsigned int getsleepingnum();
 
 void top()
 {
-
     while (1) {
         kernel_clear_screen(31);
+
         char c = kernel_getchar();
 
         if (c == 'q') {
