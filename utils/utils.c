@@ -284,3 +284,13 @@ char* kernel_strtok_r(char* string, const char* seps, char** context)
     // Return current word.
     return head;
 }
+
+/* itoa:  convert n to characters in s */
+void itoa(unsigned long num, char* dst, unsigned int maxlength)
+{
+    int i;
+    for (i = maxlength - 1; i >= 0; i--) {
+        dst[i] = (num % 10) + '0';
+        num /= 10;
+    }
+}
