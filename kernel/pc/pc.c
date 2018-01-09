@@ -532,15 +532,15 @@ void printalltask()
 void printtask(task_struct* task)
 {
     kernel_printf("%s\t%d\t", task->name, task->ASID);
-    switch(task->state)
-    {
-        case PROC_STATE_CREATING:kernel_printf("creating");break;
-        case PROC_STATE_READY:kernel_printf("ready   ");break;
-        case PROC_STATE_RUNNING:kernal_printf("running ");break;
-        case PROC_STATE_SLEEPING:kernal_printf("sleeping");break;
-        case PROC_STATE_WAITING:kernel_printf("waiting ");break;
-        default:kernal_printf("unknown ");break;
-    }
+    // switch(task->state)
+    // {
+    //     case PROC_STATE_CREATING:kernel_printf("creating");break;
+    //     case PROC_STATE_READY:kernel_printf("ready   ");break;
+    //     case PROC_STATE_RUNNING:kernal_printf("running ");break;
+    //     case PROC_STATE_SLEEPING:kernal_printf("sleeping");break;
+    //     case PROC_STATE_WAITING:kernel_printf("waiting ");break;
+    //     default:kernal_printf("unknown ");break;
+    // }
     kernel_printf("\t%d\n", task->counter);
 }
 //print all tasks that are in the ready list
