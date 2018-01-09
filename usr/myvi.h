@@ -1,5 +1,5 @@
-#ifndef _USER_MYVI_H
-#define _USER_MYVI_H
+#ifndef _USR_MYVI_H
+#define _USR_MYVI_H
 
 //#define debug
 
@@ -41,4 +41,4 @@ void do_insert_mode(char key);
 void do_last_line_mode(char key);
 int myvi(char* filename);
 
-#endif  // _MYVI_H
+#endif

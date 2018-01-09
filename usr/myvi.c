@@ -1,6 +1,6 @@
 #include "myvi.h"
-#include <xsu/ps2.h>
-#include <xsu/vga.h>
+#include <driver/ps2.h>
+#include <driver/vga.h>
 #include <xsu/fs/fat.h>
 
 extern int cursor_freq;
