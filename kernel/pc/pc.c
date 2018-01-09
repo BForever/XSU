@@ -1,5 +1,4 @@
 #include "pc.h"
-
 #include <driver/vga.h>
 #include <exc.h>
 #include <intr.h>
@@ -21,7 +20,7 @@ static int __fork_kthread(task_struct* src);
 static void pc_releasewaiting(task_struct* task);
 static void pc_deletelist(task_struct* task);
 static void pc_deletetask(task_struct* task);
-static void pc_init_tasklists(task_struct *task);
+static void pc_init_tasklists(task_struct* task);
 static void pc_killallsons(task_struct* father)
 {
     struct list_head *pos, *n;
@@ -255,9 +254,9 @@ task_struct* create_kthread(char* name, int level, int asfather)
         return (task_struct*)0;
     }
     task->kernelflag = 1; //whether kernal thread
-    if(kernel_strlen(name) < sizeof(task->name))
+    if (kernel_strlen(name) < sizeof(task->name))
         kernel_strcpy(task->name, name); //name
-    else{
+    else {
         kernel_printf("too large name!\n");
     }
     //task->start_time = get_time();//start time
@@ -532,6 +531,7 @@ void printalltask()
 void printtask(task_struct* task)
 {
     kernel_printf("%s\t%d\t", task->name, task->ASID);
+<<<<<<< HEAD
     // switch(task->state)
     // {
     //     case PROC_STATE_CREATING:kernel_printf("creating");break;
@@ -554,6 +554,27 @@ void printtask(task_struct* task)
         kernal_printf("waiting");
     }else{
         kernal_printf("unknown");
+=======
+    switch (task->state) {
+    case PROC_STATE_CREATING:
+        kernel_printf("creating");
+        break;
+    case PROC_STATE_READY:
+        kernel_printf("ready   ");
+        break;
+    case PROC_STATE_RUNNING:
+        kernel_printf("running ");
+        break;
+    case PROC_STATE_SLEEPING:
+        kernel_printf("sleeping");
+        break;
+    case PROC_STATE_WAITING:
+        kernel_printf("waiting ");
+        break;
+    default:
+        kernel_printf("unknown ");
+        break;
+>>>>>>> 84ada60c63a7f56730fa46846d28d5d4245f4d28
     }
     kernel_printf("\t%d\n", task->counter);
 }
@@ -631,7 +652,7 @@ static int __fork_kthread(task_struct* src)
 
     return new->ASID;
 }
-static void pc_init_tasklists(task_struct *task)
+static void pc_init_tasklists(task_struct* task)
 {
     // Init lists
     INIT_LIST_HEAD(&task->be_waited_list);

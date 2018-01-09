@@ -3,6 +3,7 @@
  * (the "dev" in "dev:path" syntax).
  */
 
+#include <driver/vga.h>
 #include <kern/errno.h>
 #include <xsu/array.h>
 #include <xsu/device.h>
@@ -13,7 +14,6 @@
 #include <xsu/slab.h>
 #include <xsu/synch.h>
 #include <xsu/utils.h>
-#include <driver/vga.h>
 
 /*
  * Structure for a single named device.
@@ -271,14 +271,16 @@ int vfs_getroot(const char* devname, struct vnode** result, bool file)
 #endif
 
         if (kd->kd_fs != NULL) {
+#ifdef VFS_DEBUG
             kernel_printf("this device has a file system.\n");
+#endif
             const char* volname;
             volname = FSOP_GETVOLNAME(kd->kd_fs);
 #ifdef VFS_DEBUG
             kernel_printf("volume name: %s\n", volname);
 #endif
             if (!kernel_strcmp(kd->kd_name, devname) || (volname != NULL && !kernel_strcmp(volname, devname))) {
-                if(file) {
+                if (file) {
                     *result = FSOP_GETROOT_FILE(kd->kd_fs);
                 } else {
                     *result = FSOP_GETROOT(kd->kd_fs);
