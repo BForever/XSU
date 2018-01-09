@@ -531,7 +531,6 @@ void printalltask()
 void printtask(task_struct* task)
 {
     kernel_printf("%s\t%d\t", task->name, task->ASID);
-<<<<<<< HEAD
     // switch(task->state)
     // {
     //     case PROC_STATE_CREATING:kernel_printf("creating");break;
@@ -554,27 +553,6 @@ void printtask(task_struct* task)
         kernal_printf("waiting");
     }else{
         kernal_printf("unknown");
-=======
-    switch (task->state) {
-    case PROC_STATE_CREATING:
-        kernel_printf("creating");
-        break;
-    case PROC_STATE_READY:
-        kernel_printf("ready   ");
-        break;
-    case PROC_STATE_RUNNING:
-        kernel_printf("running ");
-        break;
-    case PROC_STATE_SLEEPING:
-        kernel_printf("sleeping");
-        break;
-    case PROC_STATE_WAITING:
-        kernel_printf("waiting ");
-        break;
-    default:
-        kernel_printf("unknown ");
-        break;
->>>>>>> 84ada60c63a7f56730fa46846d28d5d4245f4d28
     }
     kernel_printf("\t%d\n", task->counter);
 }
