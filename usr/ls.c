@@ -5,21 +5,6 @@
 #include <xsu/slab.h>
 #include <xsu/utils.h>
 
-void handle_path(char* path, char* newpath)
-{
-    struct vnode* vn;
-    char* name;
-    int result;
-
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &vn, name, sizeof(name));
-    if (result) {
-        return;
-    }
-    kernel_memcpy(newpath, name, kernel_strlen(name) + 1);
-    kfree(name);
-}
-
 void get_month_name(int month, char* name)
 {
     char* tmp = kmalloc(4);
@@ -70,9 +55,8 @@ void get_month_name(int month, char* name)
 
 int ls(char* path, char* options)
 {
-    char* newpath;
-    newpath = kmalloc(kernel_strlen(path) + 1);
-    handle_path(path, newpath);
+    char newpath[256];
+    kernel_memcpy(newpath, path + 3, kernel_strlen(path) - 2);
     assert(kernel_strlen(newpath) != 0, "path handle error.");
 #ifdef VFS_DEBUG
     kernel_printf("ls path: %s\n", newpath);
@@ -183,9 +167,7 @@ readdir:
             goto readdir;
         }
     } else {
-        kfree(newpath);
         return 1;
     }
-    kfree(newpath);
     return 0;
 }
