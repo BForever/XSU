@@ -711,7 +711,7 @@ void menu()
     // Welcome prompt.
     char time_buf[10];
     get_time(time_buf, sizeof(time_buf));
-    kernel_printf("Last login: %s on ttys001\n", time_buf);
+    kernel_printf("Login: %s on ttys001\n", time_buf);
     // Command prompt.
     kernel_memcpy(pwd, "sd:/", 5);
     kernel_puts("-> ", VGA_GREEN, VGA_BLACK);
