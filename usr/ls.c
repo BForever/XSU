@@ -33,8 +33,8 @@ int ls(char* path, char* options)
     char name[32];
     unsigned int r;
 
-    if (fs_open_dir(&dir, path)) {
-        kernel_printf("open dir(%s) failed : No such directory!\n", pwd);
+    if (fs_open_dir(&dir, newpath)) {
+        kernel_printf("open dir(%s) failed : No such directory!\n", path);
         return 1;
     }
 
@@ -45,11 +45,26 @@ readdir:
             kernel_printf("\n");
         } else {
             get_filename((unsigned char*)&entry, name);
-            if (entry.attr == 0x10) // sub dir
-                kernel_puts(name, VGA_GREEN, VGA_BLACK);
-            else
-                kernel_printf("%s", name);
-            kernel_printf("\t");
+            if (!kernel_strcmp(options, "-a")) {
+                // Include directory entries whose names begin with a dot (.).
+                if (entry.attr == 0x10) // sub dir
+                    kernel_puts(name, VGA_GREEN, VGA_BLACK);
+                else
+                    kernel_printf("%s", name);
+                kernel_printf("\t");
+            } else if (!kernel_strcmp(options, "-l")) {
+                // List in long format.
+                // 4 * 1024 * 1024 * 1024 = 4264967396B = 4GB
+            } else if (!kernel_strcmp(options, "-al")) {
+            } else {
+                if (name[0] != '.') {
+                    if (entry.attr == 0x10) // sub dir
+                        kernel_puts(name, VGA_GREEN, VGA_BLACK);
+                    else
+                        kernel_printf("%s", name);
+                    kernel_printf("\t");
+                }
+            }
             goto readdir;
         }
     } else {
