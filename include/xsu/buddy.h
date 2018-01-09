@@ -12,8 +12,15 @@
  * struct buddy page is one info-set for the buddy group of pages
  */
 struct page {
-    unsigned int flag; // the declaration of the usage of this page
-    unsigned int reference; //
+    /* if the page is used by slab system,
+     * then slabFreeSpacePtr represents the base-addr of free space
+     * in this way, slab can get the next allocated block's address
+     */
+    void** slabFreeSpacePtr; 
+    // the declaration of the usage of this page _PAGE_RESERVED, _PAGE_ALLOCED, _PAGE_SLAB
+    unsigned int flag; 
+    // this value hasn't been used 
+    unsigned int reference; 
     struct list_head list; // double-way list
     void* pageCacheBlock; // default 0x(-1)
     unsigned int pageOrderLevel; /* the order level of the page
@@ -22,9 +29,7 @@ struct page {
                               * 		represents the number of objects in current
                               * if the page is of _PAGE_SLAB, then pageOrderLevel is the sl_objs
                               */
-    void** slabFreeSpacePtr; /* if the page is used by slab system,
-                              * then slabFreeSpacePtr represents the base-addr of free space
-                              */
+
 };
 
 #define PAGE_SHIFT 12
@@ -36,8 +41,8 @@ struct page {
 #define MAX_BUDDY_ORDER 4
 
 struct FreeList {
-    unsigned int nr_free;
-    struct list_head free_head;
+    unsigned int freeNumer;
+    struct list_head freeHead;
 };
 
 struct buddy_sys {
