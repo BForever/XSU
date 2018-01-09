@@ -6,21 +6,34 @@
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
 
-int count;
+// ASID bitmap, used for asid allocation
 unsigned int asidmap[8];
 
+// Schedule lists:
+// All tasks' lists
 struct list_head shed_list;
+// Multilevel ready lists
 struct list_head ready_list[PROC_LEVELS];
+// Sleep lists
 struct list_head sleep_list;
+// The current running task
 task_struct* current;
 
 // Function prototypes.
+// Kill all sons of father thread
 static void pc_killallsons(task_struct* father);
+// Fork the src thread, return new thread's asid
 static int __fork_kthread(task_struct* src);
+// Release all threads waiting for this task
 static void pc_releasewaiting(task_struct* task);
+// Delete the corresponding entry in every lists
 static void pc_deletelist(task_struct* task);
+// Delete the task struct and free the space
 static void pc_deletetask(task_struct* task);
+// Initalize all the list_head in task
 static void pc_init_tasklists(task_struct* task);
+
+// Kill all sons of father thread
 static void pc_killallsons(task_struct* father)
 {
     struct list_head *pos, *n;
@@ -31,6 +44,8 @@ static void pc_killallsons(task_struct* father)
         __kill(son);
     }
 }
+
+// Release all threads waiting for this task
 static void pc_releasewaiting(task_struct* task)
 {
     struct list_head *pos, *n;
@@ -41,42 +56,66 @@ static void pc_releasewaiting(task_struct* task)
         __kill(waiter);
     }
 }
+
+// Kill a task
 void __kill(task_struct* task)
 {
+    // First find all tasks waiting for it's exit and release them
     pc_releasewaiting(task);
+    // Kill all it's son threads
     pc_killallsons(task);
+    // Delete the corresponding entry in every lists
     pc_deletelist(task);
+    // Delete the task struct and free the space
     pc_deletetask(task);
 }
 
+// Get whether the corresponding switch is on
 int sw(int bit)
 {
+    // Shift the bits
     if (((*GPIO_SWITCH) >> bit) & 1) {
         return 1;
     }
     return 0;
 }
 
+// Create a kernel thread using a function and name
 void pc_create(void (*func)(), char* name)
 {
+    // Create the kernel thread task struct and set the level
     task_struct* task = create_kthread(name, PROC_LEVELS / 2, 0);
+    // Locate the starting address
     task->context.epc = (unsigned int)func;
+    // Add it to the ready list
     list_add_tail(&task->ready, &ready_list[task->level]);
+    // Set the state
     task->state = PROC_STATE_READY;
 }
-void pc_create_son(void (*func)(), char* name)
+
+// Create a kernel thread using a function and name, and take it as a child thread
+void pc_create_child(void (*func)(), char* name)
 {
+    // Create the kernel thread task struct and set the level, take it as a child thread
     task_struct* task = create_kthread(name, PROC_LEVELS / 2, 1);
+    // Locate the starting address
     task->context.epc = (unsigned int)func;
+    // Add it to the ready list
     list_add_tail(&task->ready, &ready_list[task->level]);
+    // Set the state
     task->state = PROC_STATE_READY;
 }
+
 // Delete task from it's linked lists
 static void pc_deletelist(task_struct* task)
 {
+    // First disable the interrupts
     disable_interrupts();
+    // Delete it from shed list
     list_del_init(&task->shed);
+    // Delete it from it's corresponding list
     switch (task->state) {
+    // If it's running, it is not in any lists
     case PROC_STATE_RUNNING:
         break;
     case PROC_STATE_READY:
@@ -93,6 +132,7 @@ static void pc_deletelist(task_struct* task)
     }
     enable_interrupts();
 }
+
 // Delete task struct and all it's content space
 static void pc_deletetask(task_struct* task)
 {
@@ -106,6 +146,8 @@ static void pc_deletetask(task_struct* task)
     }
     kfree(task); // Delete union
 }
+
+// Kill a task by it's asid
 int pc_kill(int asid)
 {
     asid &= 0xFF;
@@ -637,8 +679,10 @@ static void pc_init_tasklists(task_struct* task)
     INIT_LIST_HEAD(&task->be_waited_list);
     INIT_LIST_HEAD(&task->sons);
 }
+// Call a syscall with code in v0 and parameter a0
 int call_syscall_a0(int code, int a0)
 {
+    // Restore the result in a0
     int result;
     asm volatile(
         "move $v0,%1\n\t"

@@ -13,9 +13,12 @@
 #define PAGETABLE_BASE 0xC0000000
 
 // Schedule info
-#define CPUSPEED 100000   //instructions per ms
-#define ONESHEDTIME 10   //ms
-#define ONESHEDINS CPUSPEED*ONESHEDTIME //cycles per schedule
+// Instructions per ms
+#define CPUSPEED 100000   
+// Unit:ms
+#define ONESHEDTIME 10   
+// Cycles per schedule
+#define ONESHEDINS CPUSPEED*ONESHEDTIME 
 
 // Default time slots
 #define PROC_DEFAULT_TIMESLOTS 1
@@ -42,23 +45,34 @@
 
 
 // Lists for schedule
+// All tasks' lists
 extern struct list_head shed_list;
+// Multilevel ready lists
 extern struct list_head ready_list[PROC_LEVELS];
+// Sleep lists
 extern struct list_head sleep_list;
 
 // One Entry's structure in TLB
 typedef struct {
-    unsigned int entrylo0;//31-6:PFN 5-3:Cache coherence attr 2:Dirty 1:Valid 0:Global//2
-    unsigned int entrylo1;//same as lo0//3
-    unsigned int entryhi;//31-13:VPN2 7-0:ASID//10
-    unsigned int pagemask;//28-13:PageMask//5
+    //31-6:PFN 5-3:Cache coherence attr 2:Dirty 1:Valid 0:Global//2
+    unsigned int entrylo0;
+    //same as lo0//3
+    unsigned int entrylo1;
+    //31-13:VPN2 7-0:ASID//10
+    unsigned int entryhi;
+    //28-13:PageMask//5
+    unsigned int pagemask;
 } TLBEntry;
 
 // Virtual memory area node, linked by list
 typedef struct{
+    // The start of the virtual address area 
     unsigned int va_start;
+    // The corresponding physical address 
     unsigned int pa;
+    // The end of the virtual address area 
     unsigned int va_end;
+    // List node for linking
     struct list_head vma;
 } vma_node;
 
@@ -115,7 +129,7 @@ struct semaphore {
 // Init,create,kill
 void init_pc();
 void pc_create(void (*func)(), char* name);
-void pc_create_son(void (*func)(), char* name);
+void pc_create_child(void (*func)(), char* name);
 task_struct* create_kthread(char* name, int level ,int asfather);
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
 int pc_kill(int asid);
@@ -155,7 +169,7 @@ void printTLB();
 void insertTLB(TLBEntry *entry);
 unsigned int testTLB(unsigned int va);
 
-//user process
+// User process
 void add_code_vma(struct list_head *vmahead,unsigned int pa,unsigned int length);//pa must be the start of a frame
 void add_stack_vma(struct list_head *vmahead,unsigned int pa,unsigned int length);
 int add_vma(struct list_head *vma_prev,unsigned int pa,unsigned int length);
@@ -182,7 +196,7 @@ int pc_test();
 
 
 
-// Pc's syscall define
+// Process control's syscall definition
 void pc_init_syscall();
 // Request memory, address will be in a0
 void syscall_malloc(unsigned int status, unsigned int cause, context* pt_context);
@@ -203,6 +217,7 @@ void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 // wait:blocked entil task a0 ends 
 void syscall_wait(unsigned int status, unsigned int cause, context* pt_context);
 
+// Call a syscall with code in v0 and parameter a0
 int call_syscall_a0(int code,int a0);
 
 // Debug utils
