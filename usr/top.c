@@ -27,6 +27,8 @@ void top()
         kmemtop();
 
         // Every process
+        struct list_entry *pos;
+        task_struct *task;
         kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
         list_for_each(pos, &shed_list)
         {
