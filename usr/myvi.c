@@ -88,7 +88,7 @@ void save_file()
     fs_open(&file, filename);
     fs_lseek(&file, 0);
     fs_write(&file, buffer, size);
-    int ret = fs_close(&file);
+    fs_close(&file);
 }
 
 void insert_key(char key, int site)

@@ -423,8 +423,8 @@ static int cmd_ls(int argc, char** argv)
 {
     // ls
     if (argc == 1) {
-        char* tmp;
-        tmp = kernel_strdup(pwd);
+        char tmp[256];
+        kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
         return ls(tmp, NULL);
     }
 
@@ -432,8 +432,8 @@ static int cmd_ls(int argc, char** argv)
     if (argc == 2) {
         if (argv[1][0] == '-') {
             // options
-            char* tmp;
-            tmp = kernel_strdup(pwd);
+            char tmp[256];
+            kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
             return ls(tmp, argv[1]);
         } else {
             // path
