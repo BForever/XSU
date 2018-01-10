@@ -56,11 +56,30 @@ static task_struct* __getnexttask()
         }
     }
     if (!next) {
-        next = create_kthread("time", PROC_LEVELS/2 ,0);
+        next = create_kthread("time", PROC_LEVELS-1 ,0);
         // while (1)
         //     ; //panic
     }
 }
+
+void flushsleeplist()
+{
+    task_struct* task;
+    struct list_head *pos, *n;
+    list_for_each_safe(pos, n, &sleep_list)
+    {
+        task = list_entry(pos, task_struct, sleep);
+        task->sleeptime -= ONESHEDTIME;
+        if (task->sleeptime <= 0) {
+            kernel_printf("%s:sleep end,wake\n",task->name);
+            list_del_init(&task->sleep);
+            task->state = PROC_STATE_READY;
+            task->level = PROC_LEVELS - 1;
+            list_add(&task->ready, &ready_list[task->level]);
+        }
+    }
+}
+
 void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
 {
     //printalltask();

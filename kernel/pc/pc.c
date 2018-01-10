@@ -427,6 +427,7 @@ void flushsleeplist()
 void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0:sleep time unit:ms
+    kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
     current->sleeptime = pt_context->a0;
     list_add_tail(&current->sleep, &sleep_list);
     current->state = PROC_STATE_SLEEPING;
