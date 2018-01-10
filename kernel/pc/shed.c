@@ -70,7 +70,7 @@ void flushsleeplist()
     {
         task = list_entry(pos, task_struct, sleep);
         time_u64 now;
-        pc_get_time(&now);
+        pc_time_get(&now);
         if (pc_time_cmp(&now,&task->sleeptime) >= 0) {
             list_del_init(&task->sleep);
             task->state = PROC_STATE_READY;
