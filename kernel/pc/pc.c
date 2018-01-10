@@ -412,7 +412,7 @@ void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_contex
 void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0:sleep time unit:ms
-    kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
+    //kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
     pc_time_get(&current->sleeptime);
     pc_time_add(&current->sleeptime,pt_context->a0*CPUSPEED);
     list_add_tail(&current->sleep, &sleep_list);
