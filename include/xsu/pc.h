@@ -76,6 +76,12 @@ typedef struct{
     struct list_head vma;
 } vma_node;
 
+// 64 bits time type
+typedef struct{
+    unsigned int lo;
+    unsigned int hi;
+} time_u64;
+
 // Task struct, represents one task/process/thread
 typedef struct {
     // Register storage, including sp and gp
@@ -86,7 +92,7 @@ typedef struct {
     // Info
     unsigned int ASID;//pid, as well as asid, for tlb to use
     char name[32];
-    unsigned long start_time;
+    time_u64 start_time;
     int kernelflag;//kernal thread flag
 
     // Memory management: for user
@@ -100,7 +106,7 @@ typedef struct {
     struct list_head shed;
     struct list_head ready;
     struct list_head sleep;
-    int sleeptime;
+    time_u64 sleeptime;
     struct list_head wait;
     struct list_head son;
     unsigned int counter;//used for cpu time chips counting
@@ -222,5 +228,10 @@ int call_syscall_a0(int code,int a0);
 
 // Debug utils
 int sw(int bit);
+
+// Time utils
+void pc_time_get(time_u64* dst);
+int pc_time_cmp(time_u64 *large, time_u64 *small);
+void pc_time_add(time_u64 *dst,unsigned int src);
 
 #endif  // !_ZJUNIX_PC_H

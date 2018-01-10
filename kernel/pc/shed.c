@@ -69,10 +69,9 @@ void flushsleeplist()
     list_for_each_safe(pos, n, &sleep_list)
     {
         task = list_entry(pos, task_struct, sleep);
-        task->sleeptime -= ONESHEDTIME;
-        kernel_printf("%s:still have to sleep for %d ms",task->sleeptime);
-        if (task->sleeptime <= 0) {
-            kernel_printf("%s:sleep end,wake\n",task->name);
+        time_u64 now;
+        pc_get_time(&now);
+        if (pc_time_cmp(&now,&task->sleeptime) >= 0) {
             list_del_init(&task->sleep);
             task->state = PROC_STATE_READY;
             task->level = PROC_LEVELS - 1;
@@ -137,4 +136,46 @@ static inline int __pc_gettimeslots(int level)
 {
     level = PROC_LEVELS - level;
     return PROC_DEFAULT_TIMESLOTS << level;
+}
+
+void pc_get_time(time_u64* dst)
+{
+    asm volatile(
+        "mfc0 %0, $9, 6\n\t"
+        "mfc0 %1, $9, 7\n\t"
+        : "=r"(dst->lo), "=r"(dst->hi));
+}
+
+int pc_time_cmp(time_u64 *large, time_u64 *small)
+{
+    if(large->hi > small->hi)
+    {
+        return 1;
+    }
+    else if (large->hi == small->hi)
+    {
+        if(large->lo > small->lo)
+        {
+            return 1;
+        }
+        else if(large->lo == small->lo)
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+void pc_time_add(time_u64 *dst,unsigned int src)
+{
+    if(src + dst->lo <= dst->lo)
+        dst->hi++;
+    dst->lo += src;
 }

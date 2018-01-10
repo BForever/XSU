@@ -294,6 +294,7 @@ task_struct* create_kthread(char* name, int level, int asfather)
         kfree(utask);
         return (task_struct*)0;
     }
+    pc_get_time(&task->start_time);
     task->kernelflag = 1; //whether kernel thread
     if (kernel_strlen(name) < sizeof(task->name))
         kernel_strcpy(task->name, name); //name
@@ -412,7 +413,8 @@ void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0:sleep time unit:ms
     kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
-    current->sleeptime = pt_context->a0;
+    pc_time_get(&current->sleeptime);
+    pc_time_add(&current->sleeptime,pt_context->a0*CPUSPEED);
     list_add_tail(&current->sleep, &sleep_list);
     current->state = PROC_STATE_SLEEPING;
     __pc_schedule(status, cause, pt_context);
