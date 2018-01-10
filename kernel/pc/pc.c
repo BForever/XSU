@@ -294,7 +294,7 @@ task_struct* create_kthread(char* name, int level, int asfather)
         kfree(utask);
         return (task_struct*)0;
     }
-    pc_get_time(&task->start_time);
+    pc_time_get(&task->start_time);
     task->kernelflag = 1; //whether kernel thread
     if (kernel_strlen(name) < sizeof(task->name))
         kernel_strcpy(task->name, name); //name
