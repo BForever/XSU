@@ -53,7 +53,9 @@ static void pc_releasewaiting(task_struct* task)
     list_for_each_safe(pos, n, &task->be_waited_list)
     {
         waiter = list_entry(pos, task_struct, wait);
-        __kill(waiter);
+        waiter->state = PROC_STATE_READY;
+        waiter->level = PROC_LEVELS - 1;
+        list_add_tail(&waiter->ready,&ready_list[waiter->level]);
     }
 }
 
@@ -506,7 +508,7 @@ void test_forkandwait()
     } else {
         kernel_printf("Task %d:Be forked,get id = %d, sleep 3s...\n",current->ASID, id);
         call_syscall_a0(SYSCALL_SLEEP, 3000);
-        kernel_printf("Task %d:be fork task wakes, exit.\n",current->ASID);
+        kernel_printf("Task %d:Be fork task wakes, exit.\n",current->ASID);
         call_syscall_a0(SYSCALL_EXIT,0);
     }
 }
