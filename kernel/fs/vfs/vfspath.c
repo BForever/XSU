@@ -246,7 +246,6 @@ int vfs_mkdir(char* path, mode_t mode)
 
     result = VOP_MKDIR(parent, name, mode);
 
-    kernel_printf("VFS_MKDIR: completed execting vfs_mkdir \n");
     return result;
 }
 

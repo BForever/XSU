@@ -40,7 +40,7 @@ void time_handler()
     unsigned int ticks_high, ticks_low;
     int i;
     char buffer[8];
-    char* day = "1970/01/01 ";
+    char* day = "1980/01/01 ";
 
     while (1) {
         asm volatile(

@@ -34,8 +34,6 @@ void myvi_init()
     mode = 0;
     page_end = 0;
     kernel_memset(buffer, 0, BUFFER_SIZE);
-
-    return 0;
 }
 
 char to_lower_case(char ch)
@@ -190,9 +188,9 @@ void screen_flush()
     int i = 0;
     for (i = 0; i < COLUMN_LEN - 20; i++) {
         if (i < inst_len)
-            put_char_on_screen(instruction[i], ROW_LEN, i, COLOR_GREEN_WHITE);
+            put_char_on_screen(instruction[i], ROW_LEN, i, COLOR_BLACK_WHITE);
         else
-            put_char_on_screen(' ', ROW_LEN, i, COLOR_GREEN_WHITE);
+            put_char_on_screen(' ', ROW_LEN, i, COLOR_BLACK_WHITE);
     }
 }
 
@@ -342,7 +340,7 @@ int myvi(char* path)
     myvi_init();
 
     kernel_memcpy(filename, path + 3, kernel_strlen(path) - 2);
-    kernel_strcpy(file.path, filename, kernel_strlen(filename) + 1);
+    kernel_memcpy(file.path, filename, kernel_strlen(filename) + 1);
     pre_cursor_freq = cursor_freq;
     cursor_freq = 0;
     kernel_set_cursor();

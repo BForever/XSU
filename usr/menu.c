@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "ls.h"
+#include "myvi.h"
 #include "top.h"
 #include <assert.h>
 #include <driver/ps2.h>
@@ -314,8 +315,8 @@ static int cmd_cd(int argc, char** argv)
             return 1;
         }
         kernel_memset(device, 0, kernel_strlen(device) + 1);
-        device = kernel_strcat(device, "sd:");
-        device = kernel_strcat(device, tmp);
+        kernel_strcat(device, "sd:");
+        kernel_strcat(device, tmp);
         kernel_memcpy(pwd, device, kernel_strlen(device) + 1);
         return 0;
     }
@@ -460,6 +461,7 @@ static int cmd_mkdir(int argc, char** argv)
     char path[256];
     rel_to_abs(argv[1], path);
 
+    // return fs_mkdir(argv[1]);
     return vfs_mkdir(path, 0);
 }
 
@@ -642,6 +644,7 @@ static struct {
     { "cp", cmd_copy },
     { "cd", cmd_cd },
     { "cat", cmd_cat },
+    { "vim", cmd_vim },
     /* process control */
     { "ps", cmd_ps },
     { "kill", cmd_kill },
@@ -650,7 +653,6 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
-    { "vim", cmd_vim },
     { NULL, NULL }
 };
 
@@ -689,7 +691,7 @@ static int cmd_dispatch(char* cmd)
     }
 
     kernel_printf("%s: Command not found\n", args[0]);
-    return EINVAL;
+    return EUNIMP;
 }
 
 /*
