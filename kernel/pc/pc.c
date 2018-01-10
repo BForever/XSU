@@ -408,22 +408,7 @@ void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_contex
     }
 }
 
-void flushsleeplist()
-{
-    task_struct* task;
-    struct list_head *pos, *n;
-    list_for_each_safe(pos, n, &sleep_list)
-    {
-        task = list_entry(pos, task_struct, sleep);
-        task->sleeptime -= ONESHEDTIME;
-        if (task->sleeptime <= 0) {
-            list_del_init(&task->sleep);
-            task->state = PROC_STATE_READY;
-            task->level = PROC_LEVELS - 1;
-            list_add(&task->ready, &ready_list[task->level]);
-        }
-    }
-}
+
 void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0:sleep time unit:ms
