@@ -104,4 +104,5 @@ void init_kernel()
     pc_create(time_handler, "time");
     pc_create(menu,"menu");
     //menu();
+    while(1);
 }
