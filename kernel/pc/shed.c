@@ -138,7 +138,7 @@ static inline int __pc_gettimeslots(int level)
     return PROC_DEFAULT_TIMESLOTS << level;
 }
 
-void pc_get_time(time_u64* dst)
+void pc_time_get(time_u64* dst)
 {
     asm volatile(
         "mfc0 %0, $9, 6\n\t"
