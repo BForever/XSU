@@ -14,9 +14,9 @@
 
 // Schedule info
 // Instructions per ms
-#define CPUSPEED 100000   
+#define CPUSPEED 50000   
 // Unit:ms
-#define ONESHEDTIME 300
+#define ONESHEDTIME 10
 // Cycles per schedule
 #define ONESHEDINS CPUSPEED*ONESHEDTIME 
 
