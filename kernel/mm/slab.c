@@ -199,16 +199,18 @@ void slab_free(struct kmem_cache *cache, void *object) {
             ;
     }
 
+    unsigned int listTailValue = *(unsigned int *)(s_head->end_ptr);
     ptr = (unsigned int *)((unsigned char *)object + cache->offset);
     //kernel_printf("ptr is: %x\n", ptr);
     //kernel_printf("end_ptr is: %x\n", s_head->end_ptr);
-    if(ptr != s_head->end_ptr){
-        *ptr = *((unsigned int *)(s_head->end_ptr));
-        //kernel_printf("*ptr is: %x\n", *ptr);
-        *((unsigned int *)(s_head->end_ptr)) = (unsigned int)object;
-        s_head->end_ptr = ptr;
-    }else{
-        return;
+    // if(ptr != s_head->end_ptr){
+    // *ptr = *((unsigned int *)(s_head->end_ptr));
+    //kernel_printf("*ptr is: %x\n", *ptr);
+    *((unsigned int *)(s_head->end_ptr)) = (unsigned int)object;
+    *ptr = listTailValue;
+    s_head->end_ptr = ptr;
+    // }else{
+        // return;
     //     opage->slabFreeSpacePtr = (void**) &object;
     //     // kernel_printf("")
     //     kernel_printf("opage->slabFreeSpacePtr is: %x ", *(opage->slabFreeSpacePtr));

@@ -19,17 +19,17 @@ struct page {
     void** slabFreeSpacePtr; 
     // the declaration of the usage of this page _PAGE_RESERVED, _PAGE_ALLOCED, _PAGE_SLAB
     unsigned int flag; 
-    // this value hasn't been used 
-    unsigned int reference; 
+    // this value hasn't been used    
     struct list_head list; // double-way list
     void* pageCacheBlock; // default 0x(-1)
-    unsigned int pageOrderLevel; /* the order level of the page
-                              *
-                              * unsigned int sl_objs;
-                              * 		represents the number of objects in current
-                              * if the page is of _PAGE_SLAB, then pageOrderLevel is the sl_objs
-                              */
+    /* the order level of the page
+     * when the page is allocated or in free element's first page, the orderlevel is the current buddy's level
+     * but if the page is part of a larger buddy's element(such as the second page), the orderlevel is -1 
+     */
+    unsigned int pageOrderLevel; 
 
+
+    //unsigned int reference; 
 };
 
 #define PAGE_SHIFT 12
