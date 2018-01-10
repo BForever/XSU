@@ -644,6 +644,7 @@ static struct {
     { "cp", cmd_copy },
     { "cd", cmd_cd },
     { "cat", cmd_cat },
+    { "vim", cmd_vim },
     /* process control */
     { "ps", cmd_ps },
     { "kill", cmd_kill },
@@ -652,7 +653,6 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
-    { "vim", cmd_vim },
     { NULL, NULL }
 };
 

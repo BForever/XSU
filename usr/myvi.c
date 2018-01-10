@@ -188,9 +188,9 @@ void screen_flush()
     int i = 0;
     for (i = 0; i < COLUMN_LEN - 20; i++) {
         if (i < inst_len)
-            put_char_on_screen(instruction[i], ROW_LEN, i, COLOR_GREEN_WHITE);
+            put_char_on_screen(instruction[i], ROW_LEN, i, COLOR_BLACK_WHITE);
         else
-            put_char_on_screen(' ', ROW_LEN, i, COLOR_GREEN_WHITE);
+            put_char_on_screen(' ', ROW_LEN, i, COLOR_BLACK_WHITE);
     }
 }
 
