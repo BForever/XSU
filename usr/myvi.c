@@ -1,6 +1,6 @@
 #include "myvi.h"
-#include <xsu/ps2.h>
-#include <xsu/vga.h>
+#include <driver/ps2.h>
+#include <driver/vga.h>
 #include <xsu/fs/fat.h>
 
 extern int cursor_freq;
@@ -11,7 +11,7 @@ int is_new_file;
 
 char buffer[BUFFER_SIZE];
 char instruction[COLUMN_LEN] = "";
-char *filename;
+char* filename;
 int inst_len = 0;
 int size = 0;
 int cursor_location;
@@ -20,7 +20,8 @@ int page_end;
 int err;
 int mode;
 
-char myvi_init() {
+char myvi_init()
+{
     int i;
     size = 0;
     inst_len = 0;
@@ -35,14 +36,16 @@ char myvi_init() {
     return 0;
 }
 
-char to_lower_case(char ch) {
+char to_lower_case(char ch)
+{
     if (ch >= 'A' && ch <= 'Z')
         return ch - 'A' + 'a';
     else
         return ch;
 }
 
-char *mystrcpy(char *dest, const char *src) {
+char* mystrcpy(char* dest, const char* src)
+{
     do {
         *(dest++) = *(src++);
     } while (*src);
@@ -50,7 +53,8 @@ char *mystrcpy(char *dest, const char *src) {
     return dest;
 }
 
-void load_file(char *file_path) {
+void load_file(char* file_path)
+{
     int file_size;
     int cnt = 0;
     unsigned char newch;
@@ -83,18 +87,20 @@ void load_file(char *file_path) {
     fs_close(&file);
 }
 
-void save_file() {
+void save_file()
+{
     if (is_new_file) {
         fs_create(filename);
     }
-
+    kernel_printf
     fs_open(&file, filename);
     fs_lseek(&file, 0);
     fs_write(&file, buffer, size);
     int ret = fs_close(&file);
 }
 
-void insert_key(char key, int site) {
+void insert_key(char key, int site)
+{
     if (size >= BUFFER_SIZE) {
         err = 1;
         return;
@@ -107,18 +113,21 @@ void insert_key(char key, int site) {
     size++;
 }
 
-void delete_key(int site) {
+void delete_key(int site)
+{
     int i = 0;
     for (i = site; i < size - 1; i++)
         buffer[i] = buffer[i + 1];
     size--;
 }
 
-void put_char_on_screen(char ch, int row, int column, int color) {
+void put_char_on_screen(char ch, int row, int column, int color)
+{
     kernel_putchar_at(ch, color & 0xFFFF, (color >> 16) & 0xFFFF, row, column);
 }
 
-void screen_flush() {
+void screen_flush()
+{
     int row = 0, column = 0;
     int loc = page_location;
     int next_column, color;
@@ -130,25 +139,25 @@ void screen_flush() {
             color = COLOR_WHITE_BLACK;
 
         switch (buffer[loc]) {
-            case KEYBOARD_ENTER_N:
+        case KEYBOARD_ENTER_N:
+            put_char_on_screen(KEYBOARD_SPACE, row, column, color);
+            column++;
+            color = COLOR_BLACK_WHITE;
+            for (; column < COLUMN_LEN; column++)
                 put_char_on_screen(KEYBOARD_SPACE, row, column, color);
-                column++;
-                color = COLOR_BLACK_WHITE;
-                for (; column < COLUMN_LEN; column++)
-                    put_char_on_screen(KEYBOARD_SPACE, row, column, color);
-                row++;
-                column = 0;
-                break;
-            case KEYBOARD_ENTER_R:
-                break;
-            case KEYBOARD_TAB:
-                next_column = (column & 0xFFFFFFFC) + 4;
-                for (; column < next_column; column++)
-                    put_char_on_screen(KEYBOARD_SPACE, row, column, color);
-                break;
-            default:  // other ascii character
-                put_char_on_screen(buffer[loc], row, column, color);
-                column++;
+            row++;
+            column = 0;
+            break;
+        case KEYBOARD_ENTER_R:
+            break;
+        case KEYBOARD_TAB:
+            next_column = (column & 0xFFFFFFFC) + 4;
+            for (; column < next_column; column++)
+                put_char_on_screen(KEYBOARD_SPACE, row, column, color);
+            break;
+        default: // other ascii character
+            put_char_on_screen(buffer[loc], row, column, color);
+            column++;
         }
 
         if (column == COLUMN_LEN) {
@@ -195,11 +204,13 @@ void screen_flush() {
     }
 }
 
-char get_key() {
+char get_key()
+{
     return kernel_getchar();
 }
 
-void page_location_last_line() {
+void page_location_last_line()
+{
     int loc = page_location;
     do {
         loc--;
@@ -208,7 +219,8 @@ void page_location_last_line() {
         page_location = loc;
 }
 
-void page_location_next_line() {
+void page_location_next_line()
+{
     int loc = page_location;
     while (loc < size && buffer[loc] != '\n')
         loc++;
@@ -216,7 +228,8 @@ void page_location_next_line() {
         page_location = loc + 1;
 }
 
-void cursor_prev_line() {
+void cursor_prev_line()
+{
     int loc = cursor_location;
     int offset = 0;
     do {
@@ -231,7 +244,8 @@ void cursor_prev_line() {
     cursor_location = loc;
 }
 
-void cursor_next_line() {
+void cursor_next_line()
+{
     int loc = cursor_location;
     while (loc < size && buffer[loc] != '\n')
         loc++;
@@ -240,39 +254,40 @@ void cursor_next_line() {
         cursor_location = loc;
 }
 
-void do_command_mode(char key) {
+void do_command_mode(char key)
+{
     switch (key) {
-        case 'j':
-            cursor_next_line();
-            break;
-        case 'h':
-            if (cursor_location > 0 && buffer[cursor_location - 1] != '\n')
-                cursor_location--;
-            break;
-        case 'k':
-            cursor_prev_line();
-            break;
-        case 'l':
-            if (cursor_location + 1 < size && buffer[cursor_location] != '\n')
-                cursor_location++;
-            break;
-        case 'x':
-            if (cursor_location != size - 1)
-                delete_key(cursor_location);
-            break;
-        case ':':
-            mode = 2;
-            instruction[0] = ':';
-            int i = 0;
-            for (i = 1; i < COLUMN_LEN; i++)
-                instruction[i] = ' ';
-            inst_len = 1;
-            break;
-        case 'i':
-            mode = 1;
-            return;
-        default:
-            break;
+    case 'j':
+        cursor_next_line();
+        break;
+    case 'h':
+        if (cursor_location > 0 && buffer[cursor_location - 1] != '\n')
+            cursor_location--;
+        break;
+    case 'k':
+        cursor_prev_line();
+        break;
+    case 'l':
+        if (cursor_location + 1 < size && buffer[cursor_location] != '\n')
+            cursor_location++;
+        break;
+    case 'x':
+        if (cursor_location != size - 1)
+            delete_key(cursor_location);
+        break;
+    case ':':
+        mode = 2;
+        instruction[0] = ':';
+        int i = 0;
+        for (i = 1; i < COLUMN_LEN; i++)
+            instruction[i] = ' ';
+        inst_len = 1;
+        break;
+    case 'i':
+        mode = 1;
+        return;
+    default:
+        break;
     }
     if (cursor_location < page_location)
         page_location_last_line();
@@ -281,60 +296,63 @@ void do_command_mode(char key) {
     screen_flush();
 }
 
-void do_insert_mode(char key) {
+void do_insert_mode(char key)
+{
     switch (key) {
-        case 27:
-            // case 'q':
-            mode = 0;
-            return;
-        case 0x8:
-            if (cursor_location != 0)
-                delete_key(cursor_location - 1);
-            cursor_location--;
-            screen_flush();
-            if (cursor_location < page_location)
-                page_location_last_line();
-            break;
-        default:
-            insert_key(key, cursor_location);
-            cursor_location++;
-            screen_flush();  // this line is needed because page_end may changed
-                             // after insertion
-            if (cursor_location >= page_end)
-                page_location_next_line();
-            break;
+    case 27:
+        // case 'q':
+        mode = 0;
+        return;
+    case 0x8:
+        if (cursor_location != 0)
+            delete_key(cursor_location - 1);
+        cursor_location--;
+        screen_flush();
+        if (cursor_location < page_location)
+            page_location_last_line();
+        break;
+    default:
+        insert_key(key, cursor_location);
+        cursor_location++;
+        screen_flush(); // this line is needed because page_end may changed
+            // after insertion
+        if (cursor_location >= page_end)
+            page_location_next_line();
+        break;
     }
     screen_flush();
 }
 
-void do_last_line_mode(char key) {
+void do_last_line_mode(char key)
+{
     switch (key) {
-        case 27:  // ESC
-            inst_len = 0;
-            mode = 0;
-            break;
-        case 8:
-            if (inst_len > 0)
-                inst_len--;
-            break;
-        case '\n':
-            if (inst_len > 0 && instruction[0] == ':') {
-                if (inst_len == 3 && instruction[1] == 'q' && instruction[2] == '!') {
-                    err = 1;
-                } else if (inst_len == 3 && instruction[1] == 'w' && instruction[2] == 'q') {
-                    save_file();
-                    err = 1;
-                }
+    case 27: // ESC
+        inst_len = 0;
+        mode = 0;
+        break;
+    case 8:
+        if (inst_len > 0)
+            inst_len--;
+        break;
+    case '\n':
+        if (inst_len > 0 && instruction[0] == ':') {
+            if (inst_len == 3 && instruction[1] == 'q' && instruction[2] == '!') {
+                err = 1;
+            } else if (inst_len == 3 && instruction[1] == 'w' && instruction[2] == 'q') {
+                save_file();
+                err = 1;
             }
-            break;
-        default:
-            instruction[inst_len++] = to_lower_case(key);
-            break;
+        }
+        break;
+    default:
+        instruction[inst_len++] = to_lower_case(key);
+        break;
     }
     screen_flush();
 }
 
-int myvi(char *para) {
+int myvi(char* para)
+{
     myvi_init();
 
     filename = para;
@@ -353,17 +371,17 @@ int myvi(char *para) {
     while (err == 0) {
         char key = get_key();
         switch (mode) {
-            case 0:  // command mode
-                do_command_mode(key);
-                break;
-            case 1:  // insert mode
-                do_insert_mode(key);
-                break;
-            case 2:  // last line mode
-                do_last_line_mode(key);
-                break;
-            default:
-                break;
+        case 0: // command mode
+            do_command_mode(key);
+            break;
+        case 1: // insert mode
+            do_insert_mode(key);
+            break;
+        case 2: // last line mode
+            do_last_line_mode(key);
+            break;
+        default:
+            break;
         }
     }
 

@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "ls.h"
+#include "myvi.h"
 #include "top.h"
 #include <assert.h>
 #include <driver/ps2.h>
@@ -15,6 +16,7 @@
 #include <xsu/syscall.h>
 #include <xsu/time.h>
 #include <xsu/utils.h>
+
 
 char pwd[256];
 char buf[64];
@@ -581,18 +583,17 @@ static int cmd_syscall(int argc, char** argv)
         kernel_printf("Usage: syscall v0 a0\n");
     }
 }
-static int cmd_vi(int argc, char** argv){
-    if(argc != 2)
-    {
+static int cmd_vi(int argc, char** argv)
+{
+    if (argc != 2) {
         kernel_printf("usage wrong.\n");
         kernel_printf("vi - vi Improved, a programmers text editor");
         return EINVAL;
     }
-    result = myvi(argv[1]);
+    int result = myvi(argv[1]);
     kernel_printf("vi return with %d\n", result);
     return result;
 }
-
 
 /*
  * Command table. 
@@ -648,7 +649,7 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
-    {"vi", cmd_vi},
+    { "vi", cmd_vi },
     { NULL, NULL }
 };
 
