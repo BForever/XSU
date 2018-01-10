@@ -240,7 +240,6 @@ void clearasidmap()
 void init_pc()
 {
     int i;
-    count = 0;
     clearasidmap();
     INIT_LIST_HEAD(&shed_list);
     for (i = 0; i < PROC_LEVELS; i++) {
@@ -295,7 +294,7 @@ task_struct* create_kthread(char* name, int level, int asfather)
         kfree(utask);
         return (task_struct*)0;
     }
-    task->kernelflag = 1; //whether kernal thread
+    task->kernelflag = 1; //whether kernel thread
     if (kernel_strlen(name) < sizeof(task->name))
         kernel_strcpy(task->name, name); //name
     else {
@@ -434,7 +433,7 @@ void fk1()
 {
     int i, j;
     unsigned int asid = current->ASID;
-    kernel_printf("kernal thread 1\n");
+    kernel_printf("kernel thread 1\n");
 
     TLBEntry* TLB0;
     TLB0 = kmalloc(sizeof(TLBEntry));
@@ -564,10 +563,10 @@ void printtask(task_struct* task)
     // {
     //     case PROC_STATE_CREATING:kernel_printf("creating");break;
     //     case PROC_STATE_READY:kernel_printf("ready   ");break;
-    //     case PROC_STATE_RUNNING:kernal_printf("running ");break;
-    //     case PROC_STATE_SLEEPING:kernal_printf("sleeping");break;
+    //     case PROC_STATE_RUNNING:kernel_printf("running ");break;
+    //     case PROC_STATE_SLEEPING:kernel_printf("sleeping");break;
     //     case PROC_STATE_WAITING:kernel_printf("waiting ");break;
-    //     default:kernal_printf("unknown ");break;
+    //     default:kernel_printf("unknown ");break;
     // }
     if(task->state == PROC_STATE_CREATING){
         kernel_printf("creating");
