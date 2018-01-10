@@ -109,7 +109,7 @@ typedef struct {
     time_u64 sleeptime;
     struct list_head wait;
     struct list_head son;
-    unsigned int counter;//used for cpu time chips counting
+    int counter;//used for cpu time chips counting
     
     // List as head
     struct list_head sons;
@@ -195,8 +195,9 @@ unsigned int getuseraddr(int asid, unsigned int pa);
 // Test functions
 void fk1();
 void test_sleep1sandprint();
-void test_sleep5sandkillasid2();
+void test_sleep5s();
 void test_forkandkill();
+void test_forkandwait();
 void fu1();
 int pc_test();
 

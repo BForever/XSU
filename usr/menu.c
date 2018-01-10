@@ -549,7 +549,13 @@ static int cmd_pctest_fork(int argc, char** argv)
 
 static int cmd_pctest_kill(int argc, char** argv)
 {
-    pc_create(test_sleep5sandkillasid2, "Test_Sleep5sAndKillAsid2");
+    pc_create(test_sleep5s, "Test_Sleep5s");
+    return 0;
+}
+
+static int cmd_pctest_wait(int argc, char** argv)
+{
+    pc_create(test_forkandwait, "Test_ForkAndWait");
     return 0;
 }
 
@@ -653,6 +659,7 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
+    { "pctest_wait", cmd_pctest_wait },
     { NULL, NULL }
 };
 

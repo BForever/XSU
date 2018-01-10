@@ -20,6 +20,6 @@ void register_syscall(int index, sys_fn fn);
 #define SYSCALL_SCHEDULE 7
 #define SYSCALL_FORK 8
 #define SYSCALL_SLEEP 9
-
+#define SYSCALL_WAIT 10
 
 #endif

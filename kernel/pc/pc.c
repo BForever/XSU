@@ -322,6 +322,7 @@ void pc_init_syscall()
     register_syscall(SYSCALL_SCHEDULE, __syscall_schedule);
     register_syscall(SYSCALL_FORK, syscall_fork);
     register_syscall(SYSCALL_SLEEP, syscall_sleep);
+    register_syscall(SYSCALL_WAIT, syscall_wait);
 }
 
 void syscall_wait(unsigned int status, unsigned int cause, context* pt_context)
@@ -422,11 +423,7 @@ void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 
 void __request_schedule()
 {
-    int code = SYSCALL_SCHEDULE;
-    asm volatile(
-        "move $v0,%0\n\t"
-        "syscall\n\t"
-        "nop" ::"r"(code));
+    call_syscall_a0(SYSCALL_SCHEDULE,0);
 }
 
 //USED FOR TESTING
@@ -469,39 +466,51 @@ void fk1()
 }
 void test_sleep1sandprint()
 {
-    kernel_printf("test_sleep 1s and print tasks started.\n");
+    kernel_printf("\nTask %d:Test_sleep 1s and print tasks started.\n",current->ASID);
     while (1) {
-        asm volatile(
-            "addi $v0,$0,9\n\t"
-            "addi $a0,$0,1000\n\t"
-            "syscall\n\t"
-            "nop\n\t"
-            "addi $v0,$0,6\n\t"
-            "syscall\n\t"
-            "nop");
+        call_syscall_a0(SYSCALL_SLEEP, 1000);
+        call_syscall_a0(SYSCALL_PRINTTASKS,0);
     }
 }
-void test_sleep5sandkillasid2()
+void test_sleep5s()
 {
-    kernel_printf("test_sleep 5s and kill asid 2 started.\n");
+    kernel_printf("\nTask %d:Test_sleep 5s started.\n",current->ASID);
     call_syscall_a0(SYSCALL_PRINTTASKS, 0);
     call_syscall_a0(SYSCALL_SLEEP, 5000);
-    kernel_printf("awaked, try exit.\n");
+    kernel_printf("Task %d:Awaked, try exit.\n",current->ASID);
     call_syscall_a0(SYSCALL_EXIT, 0);
 }
 void test_forkandkill()
 {
-    kernel_printf("test_fork and kill started.\n");
+    kernel_printf("\nTask %d:Test_fork and kill started.\n",current->ASID);
     int id;
     id = call_syscall_a0(SYSCALL_FORK, 0);
     if (id) {
-        kernel_printf("fork new task id = %d\n", id);
+        kernel_printf("Task %d:Fork new task id = %d\n",current->ASID, id);
         call_syscall_a0(SYSCALL_EXIT, 0);
     } else {
-        kernel_printf("be forked,get id = %d\n", id);
+        kernel_printf("Task %d:Be forked,get id = %d\n",current->ASID, id);
         call_syscall_a0(SYSCALL_EXIT, 0);
     }
 }
+void test_forkandwait()
+{
+    kernel_printf("\nTask %d:Test_fork and wait started.\n",current->ASID);
+    int id;
+    id = call_syscall_a0(SYSCALL_FORK, 0);
+    if (id) {
+        kernel_printf("Task %d:Fork new task id = %d, start waiting it\n" ,current->ASID,id);
+        call_syscall_a0(SYSCALL_WAIT, id);
+        kernel_printf("Task %d:Wait ended, exit.\n",current->ASID);
+        call_syscall_a0(SYSCALL_EXIT, 0);
+    } else {
+        kernel_printf("Task %d:Be forked,get id = %d, sleep 3s...\n",current->ASID, id);
+        call_syscall_a0(SYSCALL_SLEEP, 3000);
+        kernel_printf("Task %d:be fork task wakes, exit.\n",current->ASID);
+        call_syscall_a0(SYSCALL_EXIT,0);
+    }
+}
+
 void fu1()
 {
     asm volatile(

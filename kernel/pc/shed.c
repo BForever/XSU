@@ -86,7 +86,7 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     //printreadylist();
     current->counter--;
     // Check whether the process' timeslots are used out
-    if (current->counter) {
+    if (current->counter > 0) {
         __reset_counter();
     } else // Restore counter and choose the next process
     {
