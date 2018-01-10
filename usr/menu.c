@@ -293,8 +293,7 @@ static int cmd_cd(int argc, char** argv)
     }
 
     // absolute directory.
-    char* device;
-    device = kmalloc(260);
+    char device[256];
     kernel_memcpy(device, argv[1], 4);
     device[4] = 0;
 #ifdef FS_DEBUG
@@ -304,7 +303,7 @@ static int cmd_cd(int argc, char** argv)
         if (argv[1][kernel_strlen(argv[1]) - 1] == '/') {
             argv[1][kernel_strlen(argv[1]) - 1] = 0;
         }
-        kernel_memcpy(tmp, argv[1] + 3, kernel_strlen(argv[1]) + 1);
+        kernel_memcpy(tmp, argv[1] + 3, kernel_strlen(argv[1]) - 2);
 #ifdef FS_DEBUG
         kernel_printf("tmp path: %s\n", tmp);
 #endif
@@ -312,14 +311,12 @@ static int cmd_cd(int argc, char** argv)
     check_dir:
         if (fs_open_dir(&f_dir, tmp)) {
             kernel_printf("No such file or directory: %s\n", tmp);
-            kfree(device);
             return 1;
         }
         kernel_memset(device, 0, kernel_strlen(device) + 1);
         device = kernel_strcat(device, "sd:");
         device = kernel_strcat(device, tmp);
         kernel_memcpy(pwd, device, kernel_strlen(device) + 1);
-        kfree(device);
         return 0;
     }
 
@@ -426,8 +423,8 @@ static int cmd_ls(int argc, char** argv)
 {
     // ls
     if (argc == 1) {
-        char* tmp;
-        tmp = kernel_strdup(pwd);
+        char tmp[256];
+        kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
         return ls(tmp, NULL);
     }
 
@@ -435,8 +432,8 @@ static int cmd_ls(int argc, char** argv)
     if (argc == 2) {
         if (argv[1][0] == '-') {
             // options
-            char* tmp;
-            tmp = kernel_strdup(pwd);
+            char tmp[256];
+            kernel_memcpy(tmp, pwd, kernel_strlen(pwd) + 1);
             return ls(tmp, argv[1]);
         } else {
             // path
@@ -553,6 +550,7 @@ static int cmd_pctest_kill(int argc, char** argv)
     pc_create(test_sleep5sandkillasid2, "Test_Sleep5sAndKillAsid2");
     return 0;
 }
+
 static int cmd_kill(int argc, char** argv)
 {
     int i;
@@ -562,15 +560,18 @@ static int cmd_kill(int argc, char** argv)
         }
     }
 }
+
 static int cmd_ps(int argc, char** argv)
 {
     call_syscall_a0(SYSCALL_PRINTTASKS, 0);
 }
+
 static int cmd_exit(int argc, char** argv)
 {
     kernel_printf("exit\n");
     call_syscall_a0(SYSCALL_EXIT, 0);
 }
+
 static int cmd_syscall(int argc, char** argv)
 {
     if (argc == 2) {
@@ -580,6 +581,19 @@ static int cmd_syscall(int argc, char** argv)
     } else {
         kernel_printf("Usage: syscall v0 a0\n");
     }
+}
+
+static int cmd_vim(int argc, char** argv)
+{
+    if (argc != 2) {
+        kernel_printf("vim - Vi Improved, a programmers text editor");
+        return EINVAL;
+    }
+
+    char path[256];
+    rel_to_abs(argv[1], path);
+
+    return myvi(path);
 }
 
 /*
@@ -636,6 +650,7 @@ static struct {
     { "pctest_sleep", cmd_pctest_sleep },
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
+    { "vim", cmd_vim },
     { NULL, NULL }
 };
 

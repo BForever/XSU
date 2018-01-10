@@ -36,14 +36,10 @@ int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret)
         return EINVAL;
     }
 
-    char* name;
+    char name[256];
     FILE* file;
 
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &vn, name, sizeof(name));
-    if (result) {
-        return result;
-    }
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
 
     result = fs_open(file, name);
     if (result) {
@@ -56,9 +52,7 @@ int vfs_open(char* path, int openflags, mode_t mode, struct vnode** ret)
     }
 
     vn->vn_data = file;
-    VOP_INCREF(vn);
     *ret = vn;
-    kfree(name);
 
     return result;
 }
@@ -83,26 +77,16 @@ void vfs_close(struct vnode* vn)
     FILE* file = vn->vn_data;
     fs_close(file);
     vn->vn_data = 0;
-    VOP_DECREF(vn);
 }
 
 /* Does most of the work for remove(). */
 int vfs_remove(char* path)
 {
     struct vnode* dir;
-    char* name;
+    char name[256];
     int result;
 
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &dir, name, sizeof(name));
-#ifdef VFS_DEBUG
-    kernel_printf("result: %d\n", result);
-    kernel_printf("path: %s\n", path);
-    kernel_printf("name: %s\n", name);
-#endif
-    if (result) {
-        return result;
-    }
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
 
     result = vfs_getroot("sd", &dir, false);
     if (result) {
@@ -110,8 +94,6 @@ int vfs_remove(char* path)
     }
 
     result = VOP_REMOVE(dir, name);
-    VOP_DECREF(dir);
-    kfree(name);
 
     return result;
 }
@@ -120,22 +102,13 @@ int vfs_remove(char* path)
 int vfs_rename(char* oldpath, char* newpath)
 {
     struct vnode* olddir;
-    char* oldname;
+    char oldname[256];
     struct vnode* newdir;
-    char* newname;
+    char newname[256];
     int result;
 
-    oldname = kmalloc(kernel_strlen(oldpath) + 1);
-    newname = kmalloc(kernel_strlen(newpath) + 1);
-    result = vfs_lookparent(oldpath, &olddir, oldname, sizeof(oldname));
-    if (result) {
-        return result;
-    }
-    result = vfs_lookparent(newpath, &newdir, newname, sizeof(newname));
-    if (result) {
-        VOP_DECREF(olddir);
-        return result;
-    }
+    kernel_memcpy(oldname, oldpath + 3, kernel_strlen(oldpath) - 2);
+    kernel_memcpy(newname, newpath + 3, kernel_strlen(newpath) - 2);
 
     result = vfs_getroot("sd", &olddir, false);
     if (result) {
@@ -147,17 +120,10 @@ int vfs_rename(char* oldpath, char* newpath)
     }
 
     if (olddir->vn_fs == NULL || newdir->vn_fs == NULL || olddir->vn_fs != newdir->vn_fs) {
-        VOP_DECREF(newdir);
-        VOP_DECREF(olddir);
         return EXDEV;
     }
 
     result = VOP_RENAME(olddir, oldname, newdir, newname);
-
-    VOP_DECREF(newdir);
-    VOP_DECREF(olddir);
-    kfree(oldname);
-    kfree(newname);
 
     return result;
 }
@@ -166,64 +132,40 @@ int vfs_cp(char* oldpath, char* newpath)
 {
     struct vnode* olddir;
     struct vnode* newdir;
-    char* oldname;
-    char* newname;
+    char oldname[256];
+    char newname[256];
     int result;
 
-    oldname = kmalloc(kernel_strlen(oldpath) + 1);
-    newname = kmalloc(kernel_strlen(newpath) + 1);
-    result = vfs_lookparent(oldpath, &olddir, oldname, sizeof(oldname));
-    if (result) {
-        return result;
-    }
-    result = vfs_lookparent(newpath, &newdir, newname, sizeof(newname));
-    if (result) {
-        return result;
-    }
+    kernel_memcpy(oldname, oldpath + 3, kernel_strlen(oldpath) - 2);
+    kernel_memcpy(newname, newpath + 3, kernel_strlen(newpath) - 2);
 
     result = fs_cp(oldname, newname);
-    if (result) {
-        return result;
-    }
 
-    kfree(oldname);
-    kfree(newname);
     return result;
 }
 
 int vfs_create(char* path)
 {
     struct vnode* vn;
-    char* name;
+    char name[256];
     int result;
 
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &vn, name, sizeof(name));
-    if (result) {
-        return result;
-    }
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
 
     result = fs_create(name);
-    if (result) {
-        return result;
-    }
-    kfree(name);
+
     return result;
 }
 
 int vfs_touch(char* path)
 {
     struct vnode* vn;
-    char* name;
+    char name[256];
     int result;
-
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &vn, name, sizeof(name));
-    if (result) {
-        return result;
-    }
-
     FILE file;
+
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
+
     result = fs_open(&file, name);
     if (result) {
         // The file does not exist, create it.
@@ -241,30 +183,18 @@ int vfs_touch(char* path)
         result = fs_close(&file);
     }
 
-    if (result) {
-        return result;
-    }
-    kfree(name);
     return result;
 }
 
 int vfs_cat(char* path)
 {
     struct vnode* vn;
-    char* name;
+    char name[256];
     int result;
 
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &vn, name, sizeof(name));
-    if (result) {
-        return result;
-    }
-
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
     result = fs_cat(name);
-    if (result) {
-        return result;
-    }
-    kfree(name);
+
     return result;
 }
 
@@ -304,14 +234,10 @@ int vfs_readlink(char* path, struct uio* uio)
 int vfs_mkdir(char* path, mode_t mode)
 {
     struct vnode* parent;
-    char* name;
+    char name[256];
     int result;
 
-    name = kmalloc(kernel_strlen(path) + 1);
-    result = vfs_lookparent(path, &parent, name, sizeof(name));
-    if (result) {
-        return result;
-    }
+    kernel_memcpy(name, path + 3, kernel_strlen(path) - 2);
 
     result = vfs_getroot("sd", &parent, false);
     if (result) {
@@ -320,8 +246,6 @@ int vfs_mkdir(char* path, mode_t mode)
 
     result = VOP_MKDIR(parent, name, mode);
 
-    VOP_DECREF(parent);
-    kfree(name);
     kernel_printf("VFS_MKDIR: completed execting vfs_mkdir \n");
     return result;
 }
