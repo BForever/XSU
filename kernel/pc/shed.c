@@ -70,6 +70,7 @@ void flushsleeplist()
     {
         task = list_entry(pos, task_struct, sleep);
         task->sleeptime -= ONESHEDTIME;
+        kernel_printf("%s:still have to sleep for %d ms",task->sleeptime);
         if (task->sleeptime <= 0) {
             kernel_printf("%s:sleep end,wake\n",task->name);
             list_del_init(&task->sleep);
