@@ -5,7 +5,6 @@
 #include <xsu/slab.h>
 
 uint8_t mk_dir_buf[32];
-FILE file_create;
 
 // Remove directory entry.
 uint32_t fs_rm(uint8_t* filename)
@@ -155,58 +154,74 @@ uint32_t fs_mkdir(uint8_t* filename)
 {
     uint32_t i;
     FILE mk_dir;
-    FILE file_creat;
+    FILE file_create;
 
+    // create this directory.
     if (fs_create_with_attr(filename, 0x10) == 1)
         goto fs_mkdir_err;
 
-    if (fs_open(&mk_dir, filename) == 1)
+    // write . in this directory.
+    char dot[256];
+    kernel_memcpy(dot, filename, kernel_strlen(filename) + 1);
+    kernel_strcat(dot, "/..");
+    if (fs_create_with_attr(dot, 0x10) == 1)
         goto fs_mkdir_err;
 
-    mk_dir_buf[0] = '.';
-    for (i = 1; i < 11; i++)
-        mk_dir_buf[i] = 0x20;
-
-    // FIXME: 0x30 (here) or 0x10 (ls) ?
-    // https://www.wikiwand.com/en/Design_of_the_FAT_file_system
-    mk_dir_buf[11] = 0x10;
-    for (i = 12; i < 32; i++)
-        mk_dir_buf[i] = 0;
-
-    if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
+    // write .. in this directory.
+    char dotdot[256];
+    kernel_memcpy(dotdot, filename, kernel_strlen(filename) + 1);
+    kernel_strcat(dotdot, "/...");
+    if (fs_create_with_attr(dotdot, 0x10) == 1)
         goto fs_mkdir_err;
 
-    fs_lseek(&mk_dir, 0);
+    // if (fs_open(&mk_dir, filename) == 1)
+    //     goto fs_mkdir_err;
 
-    mk_dir_buf[20] = mk_dir.entry.data[20];
-    mk_dir_buf[21] = mk_dir.entry.data[21];
-    mk_dir_buf[26] = mk_dir.entry.data[26];
-    mk_dir_buf[27] = mk_dir.entry.data[27];
+    // mk_dir_buf[0] = '.';
+    // for (i = 1; i < 11; i++)
+    //     mk_dir_buf[i] = 0;
 
-    if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
-        goto fs_mkdir_err;
+    // // FIXME: 0x30 (here) or 0x10 (ls)
+    // // https://www.wikiwand.com/en/Design_of_the_FAT_file_system
+    // mk_dir_buf[11] = 0x10;
+    // for (i = 12; i < 32; i++)
+    //     mk_dir_buf[i] = 0;
 
-    mk_dir_buf[0] = '.';
-    mk_dir_buf[1] = '.';
+    // if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
+    //     goto fs_mkdir_err;
 
-    for (i = 2; i < 11; i++)
-        mk_dir_buf[i] = 0x20;
+    // mk_dir_buf[0] = '.';
+    // mk_dir_buf[1] = '.';
 
-    mk_dir_buf[11] = 0x10;
-    for (i = 12; i < 32; i++)
-        mk_dir_buf[i] = 0;
+    // for (i = 2; i < 11; i++)
+    //     mk_dir_buf[i] = 0x20;
 
-    set_uint16_t(mk_dir_buf + 20, (file_creat.dir_entry_pos >> 16) & 0xFFFF);
-    set_uint16_t(mk_dir_buf + 26, file_creat.dir_entry_pos & 0xFFFF);
+    // mk_dir_buf[11] = 0x10;
+    // for (i = 12; i < 32; i++)
+    //     mk_dir_buf[i] = 0;
 
-    if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
-        goto fs_mkdir_err;
+    // mk_dir_buf[14] = mk_dir.entry.data[14];
+    // mk_dir_buf[15] = mk_dir.entry.data[15];
+    // mk_dir_buf[16] = mk_dir.entry.data[16];
+    // mk_dir_buf[17] = mk_dir.entry.data[17];
+    // mk_dir_buf[18] = mk_dir.entry.data[18];
+    // mk_dir_buf[19] = mk_dir.entry.data[19];
+    // mk_dir_buf[22] = mk_dir.entry.data[22];
+    // mk_dir_buf[23] = mk_dir.entry.data[23];
+    // mk_dir_buf[24] = mk_dir.entry.data[24];
+    // mk_dir_buf[25] = mk_dir.entry.data[25];
 
-    for (i = 28; i < 32; i++)
-        mk_dir.entry.data[i] = 0;
+    // set_uint16_t(mk_dir_buf + 20, (file_create.dir_entry_pos >> 16) & 0xFFFF);
+    // set_uint16_t(mk_dir_buf + 26, file_create.dir_entry_pos & 0xFFFF);
 
-    if (fs_close(&mk_dir) == 1)
-        goto fs_mkdir_err;
+    // if (fs_write(&mk_dir, mk_dir_buf, 32) == 1)
+    //     goto fs_mkdir_err;
+
+    // for (i = 28; i < 32; i++)
+    //     mk_dir.entry.data[i] = 0;
+
+    // if (fs_close(&mk_dir) == 1)
+    //     goto fs_mkdir_err;
 
     return 0;
 fs_mkdir_err:

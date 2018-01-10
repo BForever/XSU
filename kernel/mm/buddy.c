@@ -194,9 +194,11 @@ void __free_pages(struct page* pbpage, unsigned int bplevel)
     // if(pbpage->reference)
     //	return;
     if (!(has_flag(pbpage, _PAGE_ALLOCED) || has_flag(pbpage, _PAGE_SLAB))) {
-        //if(!(has_flag(pbpage, _PAGE_ALLOCED))){
-        //original bug!!
+//if(!(has_flag(pbpage, _PAGE_ALLOCED))){
+//original bug!!
+#ifdef BUDDY_DEBUG
         kernel_printf("kfree_again. \n");
+#endif
         return;
     } else if (has_flag(pbpage, _PAGE_SLAB)) {
         // kernel_printf("kfree slab page. \n");
@@ -223,8 +225,10 @@ void __free_pages(struct page* pbpage, unsigned int bplevel)
         }
         // original bug!!
         if (buddy_group_page->flag == _PAGE_ALLOCED) {
-            // another memory has been allocated.
+// another memory has been allocated.
+#ifdef BUDDY_DEBUG
             kernel_printf("the buddy memory has been allocated\n");
+#endif
             break;
         }
         list_del_init(&buddy_group_page->list);

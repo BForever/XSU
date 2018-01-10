@@ -48,7 +48,6 @@ void get_month_name(int month, char* name)
     default:
         tmp = "Nam"; // Not a month
     }
-
     kernel_memcpy(name, tmp, 4);
     kfree(tmp);
 }

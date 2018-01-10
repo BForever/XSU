@@ -1,17 +1,20 @@
 #include "myvi.h"
 #include <driver/ps2.h>
 #include <driver/vga.h>
+#include <kern/errno.h>
 #include <xsu/fs/fat.h>
+#include <xsu/types.h>
+#include <xsu/utils.h>
 
 extern int cursor_freq;
 int pre_cursor_freq;
 
 FILE file;
-int is_new_file;
+bool is_new_file;
 
 char buffer[BUFFER_SIZE];
 char instruction[COLUMN_LEN] = "";
-char* filename;
+char filename[256];
 int inst_len = 0;
 int size = 0;
 int cursor_location;
@@ -20,7 +23,7 @@ int page_end;
 int err;
 int mode;
 
-char myvi_init()
+void myvi_init()
 {
     int i;
     size = 0;
@@ -30,10 +33,7 @@ char myvi_init()
     err = 0;
     mode = 0;
     page_end = 0;
-    for (i = 0; i < BUFFER_SIZE; i++) {
-        buffer[i] = 0;
-    }
-    return 0;
+    kernel_memset(buffer, 0, BUFFER_SIZE);
 }
 
 char to_lower_case(char ch)
@@ -44,31 +44,21 @@ char to_lower_case(char ch)
         return ch;
 }
 
-char* mystrcpy(char* dest, const char* src)
-{
-    do {
-        *(dest++) = *(src++);
-    } while (*src);
-
-    return dest;
-}
-
 void load_file(char* file_path)
 {
-    int file_size;
     int cnt = 0;
     unsigned char newch;
-    unsigned int ret = fs_open(&file, file_path);
+    int result = fs_open(&file, file_path);
 
-    if (ret != 0) {
-        is_new_file = 1;
+    if (result) {
+        is_new_file = true;
         buffer[size++] = '\n';
         return;
     } else {
-        is_new_file = 0;
+        is_new_file = false;
     }
 
-    file_size = get_entry_filesize(file.entry.data);
+    uint32_t file_size = get_entry_filesize(file.entry.data);
     int i = 0;
     for (i = 0; i < file_size; i++) {
         fs_read(&file, &newch, 1);
@@ -92,11 +82,11 @@ void save_file()
     if (is_new_file) {
         fs_create(filename);
     }
-    kernel_printf
+
     fs_open(&file, filename);
     fs_lseek(&file, 0);
     fs_write(&file, buffer, size);
-    int ret = fs_close(&file);
+    fs_close(&file);
 }
 
 void insert_key(char key, int site)
@@ -204,11 +194,6 @@ void screen_flush()
     }
 }
 
-char get_key()
-{
-    return kernel_getchar();
-}
-
 void page_location_last_line()
 {
     int loc = page_location;
@@ -314,8 +299,7 @@ void do_insert_mode(char key)
     default:
         insert_key(key, cursor_location);
         cursor_location++;
-        screen_flush(); // this line is needed because page_end may changed
-            // after insertion
+        screen_flush(); // this line is needed because page_end may change after insertion.
         if (cursor_location >= page_end)
             page_location_next_line();
         break;
@@ -351,16 +335,15 @@ void do_last_line_mode(char key)
     screen_flush();
 }
 
-int myvi(char* para)
+int myvi(char* path)
 {
     myvi_init();
 
-    filename = para;
+    kernel_memcpy(filename, path + 3, kernel_strlen(path) - 2);
+    kernel_memcpy(file.path, filename, kernel_strlen(filename) + 1);
     pre_cursor_freq = cursor_freq;
     cursor_freq = 0;
     kernel_set_cursor();
-
-    mystrcpy(file.path, filename);
 
     load_file(filename);
 
@@ -369,7 +352,7 @@ int myvi(char* para)
     /* global variable initial */
 
     while (err == 0) {
-        char key = get_key();
+        char key = kernel_getchar();
         switch (mode) {
         case 0: // command mode
             do_command_mode(key);
@@ -388,6 +371,10 @@ int myvi(char* para)
     cursor_freq = pre_cursor_freq;
     kernel_set_cursor();
     kernel_clear_screen(31);
+
+    if (err == 2) {
+        return ENOMEM;
+    }
 
     return 0;
 }

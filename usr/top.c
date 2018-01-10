@@ -13,7 +13,6 @@ void top()
 {
     while (1) {
 
-
         char c = kernel_getchar();
         kernel_clear_screen(31);
 
