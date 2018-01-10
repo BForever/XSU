@@ -110,11 +110,11 @@ typedef struct {
     struct list_head sleep;
     time_u64 sleeptime;
     struct list_head wait;
-    struct list_head son;
+    struct list_head child;
     int counter;//used for cpu time chips counting
     
     // List as head
-    struct list_head sons;
+    struct list_head children;
     struct list_head be_waited_list;
 } task_struct;
 

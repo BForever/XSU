@@ -28,26 +28,29 @@ void release_semaphore(struct semaphore* sem)
     // Free struct
     kfree((void*)sem);
 }
+
 void sem_wait(struct semaphore* sem)
 {
-    int old = disable_interrupts();
-    //decrese the count
+    // Ensure atomic
+    disable_interrupts();
+    // Decrese the count
     sem->count--;
-    //if not available
+    // If not available
     if (sem->count <= -1) {
-        //start waiting
+        // Start waiting
         current->state = PROC_STATE_WAITING;
-        //go to wait list
+        // Go to wait list
         list_add_tail(&current->wait, &sem->wait_list);
-        //run next process
-        enable_interrupts(old);
+        // Run next process
+        enable_interrupts();
+        // Request schedule to run next ready task
         __request_schedule();
     } else {
-        enable_interrupts(old);
+        // Successfully get permission
+        enable_interrupts();
     }
-    
-    
 }
+
 void sem_signal(struct semaphore* sem)
 {
     int old = disable_interrupts();

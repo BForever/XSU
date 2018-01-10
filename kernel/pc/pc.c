@@ -33,15 +33,15 @@ static void pc_deletetask(task_struct* task);
 // Initalize all the list_head in task
 static void pc_init_tasklists(task_struct* task);
 
-// Kill all sons of father thread
-static void pc_killallsons(task_struct* father)
+// Kill all children of father thread
+static void pc_killallchildren(task_struct* father)
 {
     struct list_head *pos, *n;
-    task_struct* son;
-    list_for_each_safe(pos, n, &father->sons)
+    task_struct* child;
+    list_for_each_safe(pos, n, &father->children)
     {
-        son = list_entry(pos, task_struct, son);
-        __kill(son);
+        child = list_entry(pos, task_struct, child);
+        __kill(child);
     }
 }
 
@@ -158,32 +158,32 @@ int pc_kill(int asid)
 {
     asid &= 0xFF;
     task_struct* task;
-    int killsyscall = SYSCALL_KILL;
     if (asid != 0 && pc_find(asid)) {
-        asm volatile(
-            "add $v0,$0,%0\n\t"
-            "add $a0,$0,%1\n\t"
-            "syscall"
-            :
-            : "r"(killsyscall), "r"(asid));
+        call_syscall_a0(SYSCALL_KILL,asid);
         return 0;
     } else if (asid == 0)
         return 1;
     else
         return 2;
 }
+
+// Find the corresponding task using asid
 task_struct* pc_find(int asid)
 {
     struct list_head* pos;
+    // Search all tasks in the schedule lists
     list_for_each(pos, &shed_list)
     {
+        // If found
         if (list_entry(pos, task_struct, shed)->ASID == asid) {
             return list_entry(pos, task_struct, shed);
         }
     }
+    // Not found, return 0
     return (task_struct*)0;
 }
 
+// Print process info: old interface in powershell  of ZJUNIX
 int print_proc()
 {
     struct list_head* pos;
@@ -195,6 +195,7 @@ int print_proc()
     return 0;
 }
 
+// Get an asdi from asid bitmap, if asid all allocated, return -1 
 int getemptyasid()
 {
     unsigned int i, j;
@@ -212,6 +213,8 @@ int getemptyasid()
     }
     return -1;
 }
+
+// Get current asid stored in CP0 register 10, select 0
 unsigned int getasid()
 {
     unsigned int asid;
@@ -219,6 +222,8 @@ unsigned int getasid()
                  : "=r"(asid));
     return asid & 0xFF;
 }
+
+// Set current asid stored in CP0 register 10, select 0
 void setasid(unsigned int asid)
 {
     unsigned int tmp;
@@ -228,14 +233,20 @@ void setasid(unsigned int asid)
     tmp |= (asid & 0xFF);
     asm volatile("mtc0 %0,$10" ::"r"(tmp));
 }
+
+// Clear asid in the asid bitmap
 void clearasid(unsigned int asid)
 {
     asidmap[asid / 32] &= ~(1 << (asid % 32));
 }
+
+// Set asdi in the asid bitmap
 int setasidmap(unsigned int asid)
 {
     asidmap[asid / 32] |= 1 << (asid % 32);
 }
+
+// Clear whole asid map
 void clearasidmap()
 {
     int i;
@@ -243,31 +254,47 @@ void clearasidmap()
         asidmap[i] = 0;
     }
 }
+
+// Initalize process control
 void init_pc()
 {
     int i;
+    // Initialize whole asid map
     clearasidmap();
+    // Initalize schedule list
     INIT_LIST_HEAD(&shed_list);
+    // Initalize all ready list
     for (i = 0; i < PROC_LEVELS; i++) {
         INIT_LIST_HEAD(&ready_list[i]);
     }
+    // Initalize sleep list
     INIT_LIST_HEAD(&sleep_list);
+
+    // Initalize TLB, including initialize pagetable base address
     TLB_init();
 
+    // Set initalization as thread init
     current = 0;
     current = create_kthread("init", 0, 0);
     current->state = PROC_STATE_RUNNING;
 
-    //register_syscall(10, pc_kill_syscall);
+    // Register_syscall(10, pc_kill_syscall);
     register_interrupt_handler(7, pc_schedule);
-    //register three TLB exception code
+    
+    // Initialize syscall provided by process control
     pc_init_syscall();
+
+    // Register three TLB exception code
     register_exception_handler(1, TLBMod_exc);
     register_exception_handler(2, TLBL_exc);
     register_exception_handler(3, TLBS_exc);
-    //set timer and reset counter: cp0$11:timer value cp0$9:counter
+
+    // Set timer and reset counter: cp0$11:timer value cp0$9:counter
     unsigned int shedins = ONESHEDINS;
+    
     //printalltask();
+    
+    // Set timer
     asm volatile(
         "move $v0, %0\n\t"
         "mtc0 $v0, $11\n\t"
@@ -278,30 +305,34 @@ void init_pc()
 
 task_struct* create_kthread(char* name, int level, int asfather)
 {
-    //get space
+    // Get space
     task_union* utask = kmalloc(sizeof(task_union));
     if (!utask)
         return (task_struct*)0;
     task_struct* task = &utask->task;
-    //set context
+    // Set context
     task->context.sp = (unsigned int)utask + 4096; //sp
     asm volatile("la %0, _gp"
                  : "=r"(task->context.gp)); //gp
 
-    //init lists
+    // Init lists
     pc_init_tasklists(task);
     if (current && asfather) {
-        list_add_tail(&task->son, &current->sons);
+        list_add_tail(&task->child, &current->children); 
     }
 
-    //set info
+    // Set info
     task->ASID = getemptyasid(); //asid
     if (task->ASID == (unsigned int)-1) {
         kfree(utask);
         return (task_struct*)0;
     }
+    // Get start time
     pc_time_get(&task->start_time);
-    task->kernelflag = 1; //whether kernel thread
+    // Whether kernel thread
+    task->kernelflag = 1; 
+
+    // Set task name
     if (kernel_strlen(name) < sizeof(task->name))
         kernel_strcpy(task->name, name); //name
     else {
@@ -309,15 +340,20 @@ task_struct* create_kthread(char* name, int level, int asfather)
     }
     //task->start_time = get_time();//start time
 
-    //set schedule info
-    task->counter = PROC_DEFAULT_TIMESLOTS; //time chips
-    list_add_tail(&task->shed, &shed_list); //add to shed list
-    task->state = PROC_STATE_CREATING; //set state
+    // Set schedule info
+    // Set time chips
+    task->counter = PROC_DEFAULT_TIMESLOTS; 
+    // Add to shed list
+    list_add_tail(&task->shed, &shed_list); 
+    // Set state
+    task->state = PROC_STATE_CREATING; 
+    // Set level
     task->level = level;
 
     return task;
 }
 
+// Init all syscall provided by process control
 void pc_init_syscall()
 {
     register_syscall(SYSCALL_MALLOC, syscall_malloc);
@@ -331,109 +367,156 @@ void pc_init_syscall()
     register_syscall(SYSCALL_WAIT, syscall_wait);
 }
 
+// wait:blocked entil task a0 ends 
 void syscall_wait(unsigned int status, unsigned int cause, context* pt_context)
 {
+    // Get target asid in a0
     int asid = pt_context->a0;
+    // Find the task
     task_struct* task = pc_find(asid);
+    // If task found
     if (task) {
+        // Move it to target task wait list
         list_add_tail(&current->wait, &task->be_waited_list);
+        // Set state to waiting
         current->state = PROC_STATE_WAITING;
+        // Run next ready task
         __pc_schedule(status, cause, pt_context);
     }
 }
 
+// Process release cpu
 void __syscall_schedule(unsigned int status, unsigned int cause, context* pt_context)
 {
     __pc_schedule(status, cause, pt_context);
 }
+
+// fork: a0 = 0 means caller,a0>0 means new task
 void syscall_fork(unsigned int status, unsigned int cause, context* pt_context)
 {
+    // Store the context
     copy_context(pt_context, &current->context);
+    // Only implemented kernel thread fork
     if (current->kernelflag) {
+        // Fork and get new task's asid
         unsigned int newid = __fork_kthread(current);
+        // Return different value for distinguish
         if (newid != -1) {
             pt_context->a0 = newid;
         } else {
             pt_context->a0 = -1;
         }
     } else {
-        kernel_printf("user fork not implemented!");
+        kernel_printf("User fork not implemented!");
         syscall_exit(status, cause, pt_context);
     }
 }
+
+// print all tasks' infomation
 void syscall_printtasks(unsigned int status, unsigned int cause, context* pt_context)
 {
     printalltask();
 }
+
+// Request memory, address will be in a0
 void syscall_malloc(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0: return address
     //a1: size
     unsigned int addr = (unsigned int)kmalloc(pt_context->a0);
+    // Add vma
     add_vma(current->vma_heap_tail, addr, pt_context->a0);
+    // Set new vma heap pointer
     current->vma_heap_tail = current->vma_heap_tail->next;
+    // Return user space address
     pt_context->a0 = list_entry(current->vma_heap_tail, vma_node, vma)->va_start;
 }
+
+// Free the space started at a0
 void syscall_free(unsigned int status, unsigned int cause, context* pt_context)
 {
     //a0: user space address
     vma_node* vma = findvma(pt_context->a0);
-    if (&vma->vma == current->vma.next) //code segment
+    // If try to free code segment
+    if (&vma->vma == current->vma.next) 
     {
         kernel_printf("Process %d try to free code space!!!\n", current->ASID);
         while (1)
             ; //try to free code space
     }
+    // vma found
     if (vma) {
         kfree((void*)vma->pa);
     }
+    // Remove tlb mapping from task's pagetable
     do_unmapping(vma, current->pagecontent);
+    // Delete vma
     list_del(&vma->vma);
+    // Free the vma struct
     kfree(vma);
 }
+
+// exit: caller be killed
 void syscall_exit(unsigned int status, unsigned int cause, context* pt_context)
 {
+    // Prompt
     kernel_printf("process %s exited with return value:%d.\n", current->name, pt_context->a0);
-    //a0: return value
+    // a0: return value
     int tmp = pt_context->a0;
+    // Use kill to finish exit
     pt_context->a0 = current->ASID;
     pc_kill_syscall(status, cause, pt_context);
     pt_context->a0 = tmp;
 }
+
+// kill: kill process whose asid = a0
 void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_context)
 {
-    //a0:asid of task to be killed
+    // a0:asid of task to be killed
     task_struct* task = pc_find(pt_context->a0);
+    
+    // If found
     if (task) {
+        // Kill it
         __kill(task);
+        // If bekilled task is running
         if (task == current) {
+            // Reset current task
             current = (task_struct*)0;
+            // Run next ready task
             __pc_schedule(status, cause, pt_context);
         }
+    // Task not found
     } else {
         kernel_printf("Kill syscall didn't find the task to be killed.\n");
     }
 }
 
-
+// sleep:process will sleep a0 ms
 void syscall_sleep(unsigned int status, unsigned int cause, context* pt_context)
 {
-    //a0:sleep time unit:ms
-    //kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
+    // a0:sleep time unit:ms
+    // kernel_printf("%s:start sleep for %d ms\n",current->name,pt_context->a0);
+    // Get current time
     pc_time_get(&current->sleeptime);
+    // Calc the wake time
     pc_time_add(&current->sleeptime,pt_context->a0*CPUSPEED);
+    // Add it to the sleep list
     list_add_tail(&current->sleep, &sleep_list);
+    // Set state to sleep
     current->state = PROC_STATE_SLEEPING;
+    // Run next ready task
     __pc_schedule(status, cause, pt_context);
 }
 
+// Process release cpu
 void __request_schedule()
 {
     call_syscall_a0(SYSCALL_SCHEDULE,0);
 }
 
-//USED FOR TESTING
-#define WAITTIME 20000
+// USED FOR TESTING
+// Manully insert TLB to test
 void fk1()
 {
     int i, j;
@@ -470,6 +553,8 @@ void fk1()
     kfree((void*)phy);
     TLB_init();
 }
+
+// Test: every one second, print ps using sleep syscall
 void test_sleep1sandprint()
 {
     kernel_printf("\nTask %d:Test_sleep 1s and print tasks started.\n",current->ASID);
@@ -478,6 +563,8 @@ void test_sleep1sandprint()
         call_syscall_a0(SYSCALL_PRINTTASKS,0);
     }
 }
+
+// Test: sleep 5 seconds
 void test_sleep5s()
 {
     kernel_printf("\nTask %d:Test_sleep 5s started.\n",current->ASID);
@@ -704,7 +791,7 @@ static void pc_init_tasklists(task_struct* task)
 {
     // Init lists
     INIT_LIST_HEAD(&task->be_waited_list);
-    INIT_LIST_HEAD(&task->sons);
+    INIT_LIST_HEAD(&task->child);
 }
 // Call a syscall with code in v0 and parameter a0
 int call_syscall_a0(int code, int a0)
