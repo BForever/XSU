@@ -65,7 +65,7 @@ void __kill(task_struct* task)
     // First find all tasks waiting for it's exit and release them
     pc_releasewaiting(task);
     // Kill all it's son threads
-    pc_killallsons(task);
+    pc_killallchildren(task);  
     // Delete the corresponding entry in every lists
     pc_deletelist(task);
     // Delete the task struct and free the space
