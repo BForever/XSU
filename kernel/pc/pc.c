@@ -83,7 +83,7 @@ int sw(int bit)
 }
 
 // Create a kernel thread using a function and name
-void pc_create(void (*func)(), char* name)
+int pc_create(void (*func)(), char* name)
 {
     // Create the kernel thread task struct and set the level
     task_struct* task = create_kthread(name, PROC_LEVELS / 2, 0);
@@ -93,10 +93,12 @@ void pc_create(void (*func)(), char* name)
     list_add_tail(&task->ready, &ready_list[task->level]);
     // Set the state
     task->state = PROC_STATE_READY;
+    // Return asid for potential use
+    return task->ASID;
 }
 
 // Create a kernel thread using a function and name, and take it as a child thread
-void pc_create_child(void (*func)(), char* name)
+int pc_create_child(void (*func)(), char* name)
 {
     // Create the kernel thread task struct and set the level, take it as a child thread
     task_struct* task = create_kthread(name, PROC_LEVELS / 2, 1);
@@ -106,6 +108,8 @@ void pc_create_child(void (*func)(), char* name)
     list_add_tail(&task->ready, &ready_list[task->level]);
     // Set the state
     task->state = PROC_STATE_READY;
+    // Return asid for potential use
+    return task->ASID;
 }
 
 // Delete task from it's linked lists
@@ -511,6 +515,31 @@ void test_forkandwait()
         kernel_printf("Task %d:Be fork task wakes, exit.\n",current->ASID);
         call_syscall_a0(SYSCALL_EXIT,0);
     }
+}
+
+static void test_child()
+{
+    while(1);
+}
+
+static void test_father()
+{
+    int child[3];
+
+    child[0] = pc_create_child(test_child,"child0");
+    child[1] = pc_create_child(test_child,"child1");
+    child[2] = pc_create_child(test_child,"child2");
+
+    kernel_printf("Task %d:3 children created.\n",current->ASID);
+    call_syscall_a0(SYSCALL_PRINTTASKS,0);
+    while(1);
+}
+
+void test_fatherandchild()
+{
+    int father = pc_create(test_father,"father");
+    kernel_printf("\nFather thread created.\n");
+    return;
 }
 
 void fu1()

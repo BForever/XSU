@@ -38,6 +38,8 @@
 
 // The number of implemented previleges
 #define PROC_LEVELS 3
+// The higest level in multi ready lists
+#define PROC_HIGEST_LEVEL PROC_LEVELS - 1
 
 // Utils for asid allocation
 #define ASIDMAP(asid) ((asidmap[asid/32]>>(asid%32))&1)
@@ -134,8 +136,8 @@ struct semaphore {
 
 // Init,create,kill
 void init_pc();
-void pc_create(void (*func)(), char* name);
-void pc_create_child(void (*func)(), char* name);
+int pc_create(void (*func)(), char* name);
+int pc_create_child(void (*func)(), char* name);
 task_struct* create_kthread(char* name, int level ,int asfather);
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
 int pc_kill(int asid);
@@ -198,6 +200,7 @@ void test_sleep1sandprint();
 void test_sleep5s();
 void test_forkandkill();
 void test_forkandwait();
+void test_fatherandchild();
 void fu1();
 int pc_test();
 
