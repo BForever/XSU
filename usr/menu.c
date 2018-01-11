@@ -151,7 +151,7 @@ static int cmd_mmtest(int argc, char** argv)
 
 static int cmd_slubtest(int argc, char** argv)
 {
-    unsigned int size_kmem_cache[PAGE_SHIFT] = { 96, 192, 8, 16, 32, 64, 128, 256, 512, 1024 };
+    unsigned int kmemCacheSize[PAGE_SHIFT] = { 96, 192, 8, 16, 32, 64, 128, 256, 512, 1024 };
     unsigned int i;
     for (i = 0; i < 10; i++) {
         void* address = kmalloc(7);
