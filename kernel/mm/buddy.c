@@ -177,10 +177,14 @@ int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex){
     struct page* buddyGroupPage;
     buddyGroupIndex = pageIndex ^ (1 << pageLevel);
     buddyGroupPage = judgePage + (buddyGroupIndex - pageIndex);
-    // kernel_printf("group%x %x\n", (pageIndex), buddyGroupIndex);
+#ifdef BUDDY_DEBUG
+    kernel_printf("group%x %x\n", (pageIndex), buddyGroupIndex);
+#endif    
     if (!_is_same_pageOrderLevel(buddyGroupPage, pageLevel)) {
         // condition1: judge the order level
-        // kernel_printf("%x %x\n", buddyGroupPage->pageOrderLevel, pageOrderLevel);
+#ifdef BUDDY_DEBUG     
+        kernel_printf("%x %x\n", buddyGroupPage->pageOrderLevel, pageOrderLevel);
+#endif
         flag = 0;
         return flag;
     }
@@ -270,11 +274,12 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
     unsigned int combinedIndex, tmp;
     struct page* buddyGroupPage;
     unsigned int test = 0;
-    //debug code:
-    //kernel_printf("buddy_free.\n");
-    // dec_ref(pbpage, 1);
-    // if(pbpage->reference)
-    //	return;
+#ifdef BUDDY_DEBUG
+    kernel_printf("buddy_free.\n");
+    dec_ref(pbpage, 1);
+    if(pbpage->reference)
+    	return;
+#endif 
     if (!(has_flag(pbpage, _PAGE_ALLOCED) || has_flag(pbpage, _PAGE_SLAB))) {
         //judge the page, whether it will be freed,if allocated or allocated by slub, then free it.
         //original bug!!, original didn't free.
@@ -288,11 +293,13 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
         kernel_printf("page number is: %x", pbpage);
 #endif
     }
-    // if(pbpage->pageOrderLevel != -1){
-    //     kernel_printf("kfree_again.\n");
-    //     return;
-    // }
-    //kernel_printf("free_pageOrderLevel is: %x", pbpage->pageOrderLevel);
+#ifdef BUDDY_DEBUG
+    if(pbpage->pageOrderLevel != -1){
+        kernel_printf("kfree_again.\n");
+        return;
+    }
+    kernel_printf("free_pageOrderLevel is: %x", pbpage->pageOrderLevel);
+#endif
     lockup(&buddy.lock);
     set_flag(pbpage, _PAGE_RESERVED);
     pageIndex = pbpage - buddy.startPagePtr;
@@ -302,18 +309,6 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
             break;
         buddyGroupIndex = pageIndex ^ (1 << pageOrderLevel);
         buddyGroupPage = pbpage + (buddyGroupIndex - pageIndex);
-        // kernel_printf("group%x %x\n", (pageIndex), buddyGroupIndex);
-        // if (!_is_same_pageOrderLevel(buddyGroupPage, pageOrderLevel)) {
-        //     // kernel_printf("%x %x\n", buddyGroupPage->pageOrderLevel, pageOrderLevel);
-
-        //     break;
-        // }
-        // // original bug!!
-        // if (buddyGroupPage->flag == _PAGE_ALLOCED) {
-        //     // another memory has been allocated.
-        //     kernel_printf("the buddy memory has been allocated\n");
-        //     break;
-        // }
         list_del_init(&buddyGroupPage->list);
         --buddy.freeList[pageOrderLevel].freeNumer;
         set_pageOrderLevel(buddyGroupPage, -1);
@@ -322,25 +317,37 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
         pageIndex = combinedIndex;
         ++pageOrderLevel;
     }
-    // if(test){
-    //     kernel_printf("slab page free nearly finished!\n");
-    // }
+#ifdef BUDDY_DEBUG
+    if(test){
+        kernel_printf("slab page free nearly finished!\n");
+    }
+#endif
     set_pageOrderLevel(pbpage, pageOrderLevel);
     //    list_add(&(pbpage->list), &(buddy.FreeList[pageOrderLevel].freeHead));
-    //kernel_printf("final free_pageOrderLevel is: %x", pageOrderLevel)
+#ifdef BUDDY_DEBUG
+    kernel_printf("final free_pageOrderLevel is: %x", pageOrderLevel)
+#endif
     buddy_list_add(&(pbpage->list), &(buddy.freeList[pageOrderLevel].freeHead), pageOrderLevel);
-    // if(test){
-    //     kernel_printf("slab page free nearly finished!\n");
-    // }
+#ifdef BUDDY_DEBUG
+    if(test){
+        kernel_printf("slab page free nearly finished!\n");
+    }
     ++buddy.freeList[pageOrderLevel].freeNumer;
-    // if(test){
-    //     kernel_printf("slab page free finished!\n");
-    // }
-    // kernel_printf("v%x__addto__%x\n", &(pbpage->list),
-    // &(buddy.FreeList[pageOrderLevel].freeHead));
+    if(test){
+        kernel_printf("slab page free finished!\n");
+    }
+    kernel_printf("v%x__addto__%x\n", &(pbpage->list),
+    &(buddy.FreeList[pageOrderLevel].freeHead));
+#endif
     unlock(&buddy.buddyLock);
 }
-
+/* FUNC@: This function is to allocate the pages
+ * it will call the buddy_list_add function to add the extra node 
+ * INPUT:
+ * @pageOrderLevel: the free page's order level
+ * RETURN:
+ *  return allocated page's value,
+ */
 struct page* __alloc_pages(unsigned int pageOrderLevel)
 {
     unsigned int current_order, size;
@@ -359,6 +366,7 @@ struct page* __alloc_pages(unsigned int pageOrderLevel)
     return 0;
 
 found:
+    // this part will judge whether allocate from the head/tail of the freelist
     if (current_order != pageOrderLevel) {
         // alloc from the samll part
         page = container_of(free->freeHead.prev, struct page, list);
@@ -366,10 +374,10 @@ found:
     } else {
         page = container_of(free->freeHead.next, struct page, list);
     }
+    // set allocated list's state
     list_del_init(&(page->list));
     set_pageOrderLevel(page, pageOrderLevel);
     set_flag(page, _PAGE_ALLOCED);
-    // set_ref(page, 1);
     --(free->freeNumer);
 
     size = 1 << current_order;
@@ -378,7 +386,7 @@ found:
         --current_order;
         size >>= 1;
         buddyPage = page + size;
-        //        list_add(&(buddyPage->list), &(free->freeHead));
+        //list_add(&(buddyPage->list), &(free->freeHead));
         buddy_list_add(&(buddyPage->list), &(free->freeHead), current_order);
         ++(free->freeNumer);
         set_pageOrderLevel(buddyPage, current_order);
@@ -388,19 +396,34 @@ found:
     unlock(&buddy.buddyLock);
     return page;
 }
-
+/* FUNC@: This function is to allocate the pages
+ * it will call "_alloc_pages" function to implement real memory allocation.
+ * it is the exteranl interface.
+ * INPUT:
+ *  pageOrderLevel: the allocated page's order level
+ * RETURN:
+ */
 void* alloc_pages(unsigned int pageOrderLevel)
 {
     struct page* page = __alloc_pages(pageOrderLevel);
 
     if (!page)
         return 0;
-
+    // return the real address
     return (void*)((page - pages) << PAGE_SHIFT);
 }
-
+/* FUNC@: This function is to free the pages
+ * it will call "_free_pages" function to implement real memory free.
+ * it is the exteranl interface.
+ * INPUT:
+ *  addr: the free memory's address
+ *  pageOrderLevel: the free page's orderlevel
+ * RETURN:
+ */
 void free_pages(void* addr, unsigned int pageOrderLevel)
 {
-    //kernel_printf("kfree: %x, size = %x \n", addr, pageOrderLevel);
+#ifdef BUDDY_BUG
+    kernel_printf("kfree: %x, size = %x \n", addr, pageOrderLevel);
+#endif
     __free_pages(pages + ((unsigned int)addr >> PAGE_SHIFT), pageOrderLevel);
 }

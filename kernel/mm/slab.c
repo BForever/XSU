@@ -15,7 +15,15 @@
 struct kmem_cache kmalloc_caches[PAGE_SHIFT];
 
 static unsigned int size_kmem_cache[PAGE_SHIFT] = {96, 192, 8, 16, 32, 64, 128, 256, 512, 1024, 1536, 2048};
-
+/* FUNC@: This function is to judge whether the slab is free
+ * this function is to search the free object's list, if find the same free object, then set the flag,
+ * represent memory free. 
+ * INPUT:
+ * @cache: this free slub's kmem_cache, store the relative information
+ * @object: the free object's first address
+ * RETURN:
+ *  return flag value, indicated whether this slub element has been free
+ */
 unsigned int judge_slab_free(struct kmem_cache *cache, void *object){
     //kernel_printf("judeg slab free condition, address is: %x", object);
     struct page* objectPage = pages + ((unsigned int)object >> PAGE_SHIFT);
@@ -40,18 +48,32 @@ unsigned int judge_slab_free(struct kmem_cache *cache, void *object){
     else
         return 0;
 }
-// init the struct kmem_cache_cpu
+/* FUNC@:  init the struct kmem_cache_cpu
+ * INPUT:
+ * @kcpu: the current page used cache
+ * RETURN:
+ */
 void init_kmem_cpu(struct kmem_cache_cpu *kcpu) {
     kcpu->page = 0;
     kcpu->cpuFreeObjectPtr = 0;
 }
 
-// init the struct kmem_cache_node
+/* FUNC@:  init the struct kmem_cache_node
+ * INPUT:
+ * @knode: the kmem_cache_node will be inited
+ * RETURN:
+ */
 void init_kmem_node(struct kmem_cache_node *knode) {
     INIT_LIST_HEAD(&(knode->full));
     INIT_LIST_HEAD(&(knode->partial));
 }
-
+/* FUNC@:  init every slab(10 in total)
+ * every slab has a kmem_cache, when initial the slab, the cache will be initialize
+ * INPUT:
+ * @cache: the kmem_cache_node will be inited
+ * @size: 
+ * RETURN:
+ */
 void init_each_slab(struct kmem_cache *cache, unsigned int size) {
     cache->objectSize = size;
     cache->objectSize += (SIZE_INT - 1);
@@ -186,12 +208,14 @@ void slab_free(struct kmem_cache *cache, void *object) {
     }
     struct page *opage = pages + ((unsigned int)object >> PAGE_SHIFT);
     object = (void *)((unsigned int)object | KERNEL_ENTRY);
-    //kernel_printf("slab_free is : %x\n", object);
     unsigned int *tempPtr;
     struct slab_head *slabHeadInPage = (struct slab_head *)KMEM_ADDR(opage, pages);
-    //kernel_printf("slab_head is: %x\n", slabHeadInPage);
-    //kernel_printf("slab_free_1\n");
-    //kernel_printf("slab_object is: %x\n", object);
+#ifdef SLAB_DEBUG
+    kernel_printf("slab_free is : %x\n", object);
+    kernel_printf("slab_head is: %x\n", slabHeadInPage);
+    kernel_printf("slab_free_1\n");
+    kernel_printf("slab_object is: %x\n", object);
+#endif
     if (!(slabHeadInPage->allocatedNumber)) {
         kernel_printf("ERROR : slab_free error!\n");
         // die();
@@ -201,24 +225,26 @@ void slab_free(struct kmem_cache *cache, void *object) {
 
     unsigned int listTailValue = *(unsigned int *)(slabHeadInPage->listTailPtr);
     tempPtr = (unsigned int *)((unsigned char *)object + cache->offset);
-    //kernel_printf("tempPtr is: %x\n", tempPtr);
-    //kernel_printf("listTailPtr is: %x\n", slabHeadInPage->listTailPtr);
-    // if(tempPtr != slabHeadInPage->listTailPtr){
-    // *tempPtr = *((unsigned int *)(slabHeadInPage->listTailPtr));
-    //kernel_printf("*tempPtr is: %x\n", *tempPtr);
     *((unsigned int *)(slabHeadInPage->listTailPtr)) = (unsigned int)object;
     *tempPtr = listTailValue;
     slabHeadInPage->listTailPtr = tempPtr;
-    // }else{
-        // return;
-    //     opage->slabFreeSpacePtr = (void**) &object;
-    //     // kernel_printf("")
-    //     kernel_printf("opage->slabFreeSpacePtr is: %x ", *(opage->slabFreeSpacePtr));
-    //     if(cache->cpu.page == opage)
-    //         cache->cpu.cpuFreeObjectPtr = opage->slabFreeSpacePtr;
+#ifdef SLAB_DEBUG
+    kernel_printf("tempPtr is: %x\n", tempPtr);
+    kernel_printf("listTailPtr is: %x\n", slabHeadInPage->listTailPtr);
+    if(tempPtr != slabHeadInPage->listTailPtr){
+    *tempPtr = *((unsigned int *)(slabHeadInPage->listTailPtr));
+    kernel_printf("*tempPtr is: %x\n", *tempPtr);
+    }else{
+        return;
+        opage->slabFreeSpacePtr = (void**) &object;
+        // kernel_printf("")
+        kernel_printf("opage->slabFreeSpacePtr is: %x ", *(opage->slabFreeSpacePtr));
+        if(cache->cpu.page == opage)
+            cache->cpu.cpuFreeObjectPtr = opage->slabFreeSpacePtr;
     }
+    kernel_printf("slab_free_2\n");
+#endif
     --(slabHeadInPage->allocatedNumber);
-    //kernel_printf("slab_free_2\n");
     if (list_empty(&(opage->list))){
         return;
     }
@@ -274,7 +300,9 @@ void *kmalloc(unsigned int size) {
             size >>= 1;
             pageOrderLevel++;
         }
-        //kernel_printf("pageOrderLevel is: %x\n", pageOrderLevel);
+#ifdef SLAB_DEBUG
+        kernel_printf("pageOrderLevel is: %x\n", pageOrderLevel);
+#endif
         return (void *)(KERNEL_ENTRY | (unsigned int)alloc_pages(pageOrderLevel));
     }
 
