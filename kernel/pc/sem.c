@@ -51,18 +51,20 @@ void sem_wait(struct semaphore* sem)
     }
 }
 
+// Release resource
 void sem_signal(struct semaphore* sem)
 {
+    // Disable interrupt to ensure atomic
     int old = disable_interrupts();
-    //increase the count
+    // Increase the count
     sem->count++;
-    //if there's processes waiting
+    // If there's processes waiting
     if (!list_empty(&sem->wait_list)) {
-        //get the first process(FIFO)
+        // Get the first process(FIFO)
         task_struct* task = list_entry(sem->wait_list.next, task_struct, wait);
-        //awake it
+        // Awake it
         list_del(sem->wait_list.next);
-        //become the next process in ready list
+        // Become the next process in ready list
         list_add(&task->ready, &ready_list[task->level]);
     }
     enable_interrupts(old);

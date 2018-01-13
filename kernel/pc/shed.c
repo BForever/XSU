@@ -8,7 +8,10 @@
 #include <xsu/utils.h>
 
 static inline int __pc_gettimeslots(int level);
-
+static void pc_shed_idle()
+{
+    while(1);
+}
 void copy_context(context* src, context* dest)
 {
     dest->epc = src->epc;
@@ -44,19 +47,26 @@ void copy_context(context* src, context* dest)
     dest->fp = src->fp;
     dest->ra = src->ra;
 }
+
+// Get next highest level task in ready lists
 static task_struct* __getnexttask()
 {
-    flushsleeplist(); //update sleep list
+    // Find the time out tasks in sleep list
+    flushsleeplist(); // Update sleep list
     task_struct* next = (task_struct*)0;
     int i;
     for (i = PROC_LEVELS - 1; i >= 0; i--) {
         if (!list_empty(&ready_list[i])) {
+            // Get a task
             next = list_entry(ready_list[i].next, task_struct, ready);
             break;
         }
     }
+    // If not task available, start idle thread 
     if (!next) {
-        next = create_kthread("time", PROC_LEVELS-1 ,0);
+        next = create_kthread("idle",PROC_HIGEST_LEVEL,0);
+        next->context.epc = pc_shed_idle;
+        INIT_LIST_HEAD(&next->ready);
         // while (1)
         //     ; //panic
     }

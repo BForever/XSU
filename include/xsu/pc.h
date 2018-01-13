@@ -92,30 +92,49 @@ typedef struct {
     unsigned int user_stack;
     
     // Info
-    unsigned int ASID;//pid, as well as asid, for tlb to use
+    // Pid, as well as asid, for tlb to use
+    unsigned int ASID;
+    // Task name
     char name[32];
+    // Task start time
     time_u64 start_time;
-    int kernelflag;//kernal thread flag
+    //kernal thread flag
+    int kernelflag;
 
     // Memory management: for user
+    // Second level pagetable
     TLBEntry **pagecontent;
+    // vma list
     struct list_head vma;
+    // Pointer to the last heap vma, in order to quickly add heap vma
     struct list_head *vma_heap_tail;
 
     // Schedule
-    unsigned int level;//0,1,2: 0 is lowest
+    // 0,1,2: 0 is lowest
+    unsigned int level;
+    // Current state
     unsigned int state;
+    // Schedule list node
     struct list_head shed;
+    // Ready list node
     struct list_head ready;
+    // Sleep list node
     struct list_head sleep;
+    // Time when the task will wake
     time_u64 sleeptime;
+    // Wait list node
     struct list_head wait;
+    // Child list node
     struct list_head child;
-    int counter;//used for cpu time chips counting
+    //used for cpu time chips counting
+    int counter;
     
     // List as head
+    // All child list head
     struct list_head children;
+    // All waiting list head
     struct list_head be_waited_list;
+
 } task_struct;
 
 // The current running task
@@ -129,27 +148,41 @@ typedef union {
 
 // Semphore, for single CPU system
 struct semaphore {
+    // Semphore name
     char name[30];
+    // Wait list
     struct list_head wait_list;
+    // Resource count
     int count;
 };
 
 // Init,create,kill
 void init_pc();
+// Create a kernel thread
 int pc_create(void (*func)(), char* name);
+// Create a kernel as it's child
 int pc_create_child(void (*func)(), char* name);
+// Create a kernel thread
 task_struct* create_kthread(char* name, int level ,int asfather);
+// Create a user process
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
+// Kill a task by asid
 int pc_kill(int asid);
+// Delete a task
 void __kill(task_struct* task);
+// Find a task using asid
 task_struct* pc_find(int asid);
+// Print a task's info
 void printtask(task_struct* task);
+// Print all task's info
 void printalltask();
+// Print one task: old interface
 int print_proc();
 // Print all tasks that are in the ready list
 void printreadylist();
 
 // Asid management
+// 
 void clearasid(unsigned int asid);
 int getemptyasid();
 void clearasidmap();
@@ -234,8 +267,11 @@ int call_syscall_a0(int code,int a0);
 int sw(int bit);
 
 // Time utils
+// Get current time
 void pc_time_get(time_u64* dst);
+// Compare time, if large > small,return 1, if equal, return 0, if not, return -1
 int pc_time_cmp(time_u64 *large, time_u64 *small);
+// Add time
 void pc_time_add(time_u64 *dst,unsigned int src);
 
 #endif  // !_ZJUNIX_PC_H

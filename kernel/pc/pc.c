@@ -442,7 +442,7 @@ void syscall_free(unsigned int status, unsigned int cause, context* pt_context)
     {
         kernel_printf("Process %d try to free code space!!!\n", current->ASID);
         while (1)
-            ; //try to free code space
+            ; // Code space was allocated outside, shouldn't free it inside
     }
     // vma found
     if (vma) {
@@ -573,6 +573,8 @@ void test_sleep5s()
     kernel_printf("Task %d:Awaked, try exit.\n",current->ASID);
     call_syscall_a0(SYSCALL_EXIT, 0);
 }
+
+// Test: fork a task and exit
 void test_forkandkill()
 {
     kernel_printf("\nTask %d:Test_fork and kill started.\n",current->ASID);
@@ -586,6 +588,8 @@ void test_forkandkill()
         call_syscall_a0(SYSCALL_EXIT, 0);
     }
 }
+
+// Test: fork and wait for the forked task 
 void test_forkandwait()
 {
     kernel_printf("\nTask %d:Test_fork and wait started.\n",current->ASID);
@@ -604,11 +608,13 @@ void test_forkandwait()
     }
 }
 
+// Test: child thread, do nothing
 static void test_child()
 {
     while(1);
 }
 
+// Test: create children task and wait to be killed
 static void test_father()
 {
     int child[3];
@@ -622,6 +628,7 @@ static void test_father()
     while(1);
 }
 
+// Test: kill father will meanwhile kill all children
 void test_fatherandchild()
 {
     int father = pc_create(test_father,"father");
@@ -629,6 +636,7 @@ void test_fatherandchild()
     return;
 }
 
+// Test: user process code
 void fu1()
 {
     asm volatile(
@@ -665,18 +673,18 @@ int pc_test()
     return 0;
 }
 
-//print all the tasks that are registered in system
+// Print all the tasks that are registered in system
 void printalltask()
 {
     int cnt = 0;
     struct list_head* pos;
     task_struct* task;
-    //count the number
+    // Count the number
     list_for_each(pos, &shed_list)
     {
         cnt++;
     }
-    //prompt
+    // Prompt
     kernel_printf("NAME\tASID\tSTATE\tCOUNTER\n");
     list_for_each(pos, &shed_list)
     {
@@ -684,7 +692,7 @@ void printalltask()
         printtask(task);
     }
 }
-//print the infomation of single task
+// Print the infomation of single task
 void printtask(task_struct* task)
 {
     kernel_printf("%s\t%d\t", task->name, task->ASID);
@@ -713,13 +721,13 @@ void printtask(task_struct* task)
     }
     kernel_printf("\t%d\n", task->counter);
 }
-//print all tasks that are in the ready list
+// Print all tasks that are in the ready list
 void printreadylist()
 {
     struct list_head* pos;
     task_struct* task;
     int i;
-    //ordered by previlege,from low to high
+    // Ordered by previlege,from low to high
     for (i = 0; i < PROC_LEVELS; i++) {
         if (!list_empty(&ready_list[i])) {
             kernel_printf("Ready list level %d:\n", i);
@@ -731,16 +739,19 @@ void printreadylist()
         }
     }
 }
-//print vma list of task
+// Print vma list of task
 void printvmalist(task_struct* task)
 {
     struct list_head* pos;
     vma_node* vma;
     int i = 0;
     kernel_printf("vmainfo of process %s:\n", task->name);
+    // Search every vma node
     list_for_each(pos, &task->vma)
     {
+        // Get vma
         vma = list_entry(pos, vma_node, vma);
+        // Output
         kernel_printf("%d:%x-%x->%x-%x\n", i, vma->va_start, vma->va_end, vma->pa, vma->pa + vma->va_end - vma->va_start);
         i++;
     }
@@ -762,17 +773,23 @@ unsigned int getuseraddr(int asid, unsigned int pa)
     }
     return 0;
 }
+
+// Detail implementation of fork syscall
 static int __fork_kthread(task_struct* src)
 {
     task_struct* new;
+    // Alloc space for new thread
     new = (task_struct*)kmalloc(sizeof(task_union));
+    // Copy task
     kernel_memcpy(new, src, sizeof(task_union));
     // Assign new asid
     new->ASID = (unsigned int)getemptyasid();
+    // If asid bitmap used out
     if ((int)new->ASID == -1) {
         kfree(new);
         return -1;
     }
+
     // Relocate stack pointer
     new->context.sp = (unsigned int)src->context.sp - (unsigned int)src + (unsigned int)new;
     // Return value
@@ -787,12 +804,15 @@ static int __fork_kthread(task_struct* src)
 
     return new->ASID;
 }
+
+// Init all list head in task
 static void pc_init_tasklists(task_struct* task)
 {
     // Init lists
     INIT_LIST_HEAD(&task->be_waited_list);
     INIT_LIST_HEAD(&task->child);
 }
+
 // Call a syscall with code in v0 and parameter a0
 int call_syscall_a0(int code, int a0)
 {
