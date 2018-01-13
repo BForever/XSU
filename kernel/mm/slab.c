@@ -83,25 +83,25 @@ void init_slab() {
 // 		e.g. if size = 96 then 4096 / 96 = .. .. 64 then slabFreeSpacePtr starts at
 // 64
 void format_slab_page(struct kmem_cache *cache, struct page *page) {
-    unsigned char *moffset = (unsigned char *)KMEM_ADDR(page, pages);  // physical addr
-    struct slab_head *slabHeadInPage = (struct slab_head *)moffset;
+    unsigned char *movingPtr = (unsigned char *)KMEM_ADDR(page, pages);  // physical addr
+    struct slab_head *slabHeadInPage = (struct slab_head *)movingPtr;
     unsigned int *tempPtr;
     unsigned int remaining = (1 << PAGE_SHIFT);
     unsigned int startAddress;
-    moffset += (unsigned int)sizeof(struct slab_head);
+    movingPtr += (unsigned int)sizeof(struct slab_head);
     //kernel_printf("slab_head's size is: %x\n", (unsigned int)sizeof(struct slab_head));
 
     remaining -=  sizeof(struct slab_head);
-    startAddress = (unsigned int)moffset;
+    startAddress = (unsigned int)movingPtr;
     set_flag(page, _PAGE_SLAB);
     do {
-        tempPtr = (unsigned int *)(moffset + cache->offset);
-        moffset += cache->size;
-        *tempPtr = (unsigned int)moffset;
+        tempPtr = (unsigned int *)(movingPtr + cache->offset);
+        movingPtr += cache->size;
+        *tempPtr = (unsigned int)movingPtr;
         remaining -= cache->size;
     } while (remaining >= cache->size);
 
-    *tempPtr = (unsigned int)moffset & ~((1 << PAGE_SHIFT) - 1);
+    *tempPtr = (unsigned int)movingPtr & ~((1 << PAGE_SHIFT) - 1);
     slabHeadInPage->listTailPtr = tempPtr;
     slabHeadInPage->allocatedNumber = 0;
 
@@ -242,23 +242,22 @@ void slab_free(struct kmem_cache *cache, void *object) {
 
 // find the best-fit slab system for (size)
 unsigned int get_slab(unsigned int size) {
-    unsigned int itop = PAGE_SHIFT;
     unsigned int i;
-    unsigned int bf_num = (1 << (PAGE_SHIFT - 1));  // half page
-    unsigned int bf_index = PAGE_SHIFT;             // record the best fit num & index
+    unsigned int slubSize = (1 << (PAGE_SHIFT - 1));  // half page
+    unsigned int fitIndex = PAGE_SHIFT;             // record the best fit num & index
 
-    for (i = 0; i < itop; i++) {
-        if ((kmalloc_caches[i].objectSize >= size) && (kmalloc_caches[i].objectSize < bf_num)) {
-            bf_num = kmalloc_caches[i].objectSize;
-            bf_index = i;
+    for (i = 0; i < PAGE_SHIFT; i++) {
+        if ((kmalloc_caches[i].objectSize >= size) && (kmalloc_caches[i].objectSize < slubSize)) {
+            slubSize = kmalloc_caches[i].objectSize;
+            fitIndex = i;
         }
     }
-    return bf_index;
+    return fitIndex;
 }
 
 void *kmalloc(unsigned int size) {
     struct kmem_cache *cache;
-    unsigned int bf_index;
+    unsigned int fitIndex;
     unsigned int pageOrderLevel;
     if (!size)
         return 0;
@@ -279,26 +278,26 @@ void *kmalloc(unsigned int size) {
         return (void *)(KERNEL_ENTRY | (unsigned int)alloc_pages(pageOrderLevel));
     }
 
-    bf_index = get_slab(size);
-    if (bf_index >= PAGE_SHIFT) {
+    fitIndex = get_slab(size);
+    if (fitIndex >= PAGE_SHIFT) {
         kernel_printf("ERROR: No available slab\n");
         while (1)
             ;
     }
-    return (void *)(KERNEL_ENTRY | (unsigned int)slab_alloc(&(kmalloc_caches[bf_index])));
+    return (void *)(KERNEL_ENTRY | (unsigned int)slab_alloc(&(kmalloc_caches[fitIndex])));
 }
 
-void kfree(void *obj) {
+void kfree(void *freePtr) {
     struct page *page;
     //kernel_printf("kfree\n");
 
-    obj = (void *)((unsigned int)obj & (~KERNEL_ENTRY));
-    page = pages + ((unsigned int)obj >> PAGE_SHIFT);
+    freePtr = (void *)((unsigned int)freePtr & (~KERNEL_ENTRY));
+    page = pages + ((unsigned int)freePtr >> PAGE_SHIFT);
     if (!(page->flag == _PAGE_SLAB))
-        return free_pages((void *)((unsigned int)obj & ~((1 << PAGE_SHIFT) - 1)), page->pageOrderLevel);
+        return free_pages((void *)((unsigned int)freePtr & ~((1 << PAGE_SHIFT) - 1)), page->pageOrderLevel);
     //kernel_printf("slab_free\n");
-    // return slab_free(page->pageCacheBlock, (void *)((unsigned int)obj | KERNEL_ENTRY));
-    return slab_free(page->pageCacheBlock, obj);
+    // return slab_free(page->pageCacheBlock, (void *)((unsigned int)freePtr | KERNEL_ENTRY));
+    return slab_free(page->pageCacheBlock, freePtr);
        
 }
 

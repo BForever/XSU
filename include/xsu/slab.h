@@ -42,8 +42,8 @@ struct kmem_cache_cpu {
 /*
  * this is the slab information block, record the information of every single slub system
  * each slub contains a kmem_cache
- * @size: input parameters, such as 8, 16, 32....., but it doesn't means the really allocated size
- * @objectSize: the real allocated size, contains the memory(allocated to user) and the pointers(user cannot access)
+ * @objectSize: input parameters, such as 8, 16, 32....., but it doesn't means the really allocated size
+ * @size: the real allocated size, contains the memory(allocated to user) and the pointers(user cannot access)
  * @offset: pointer's offset in slub element
  * @name: this slub element's name
  */

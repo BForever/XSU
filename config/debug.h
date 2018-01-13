@@ -15,7 +15,7 @@
 
 // slab: display debug info
 #define SLAB_DEBUG
-
+#define BUDDY_DEBUG
 // myvi: display debug info
 // #define MYVI_DEBUG
 
