@@ -591,6 +591,11 @@ static int cmd_syscall(int argc, char** argv)
     }
 }
 
+
+static int cmd_pctest_tlb(int argc, char** argv)
+{
+    pc_test();
+}
 static int cmd_vim(int argc, char** argv)
 {
     if (argc != 2) {
@@ -660,6 +665,7 @@ static struct {
     { "pctest_fork", cmd_pctest_fork },
     { "pctest_kill", cmd_pctest_kill },
     { "pctest_wait", cmd_pctest_wait },
+    { "pctest_tlb", cmd_pctest_tlb },
     { NULL, NULL }
 };
 
