@@ -47,7 +47,30 @@ task_struct* create_process(char* name, unsigned int phy_code, unsigned int leng
     // {
     //     kernel_printf("%x\n",*((unsigned int*)(i*4)));
     // }
-
+    unsigned badaddr = 0xc0000000;
+    unsigned content;
+    content = badaddr - PAGETABLE_BASE;
+    content >>= 12;
+    if (task->pagecontent[content]) {
+        TLBEntry tmp;
+        tmp.entryhi = ((badaddr >> 13) << 13) | task->ASID;
+        tmp.pagemask = 0;
+        if (content & 1) {
+            kernel_printf("if(content&1)\n");
+            tmp.entrylo0 = 0x81000000;
+            tmp.entrylo1 = ((unsigned)((unsigned)task->pagecontent[content] & 0x7FFFFFFF) >> 12) << 6 | (0x3 << 3) | (0x1 << 2) | (0x1 << 1);
+        } else {
+            kernel_printf("else(content&1==0)\n");
+            tmp.entrylo0 = ((unsigned)((unsigned)task->pagecontent[content] & 0x7FFFFFFF) >> 12) << 6 | (0x3 << 3) | (0x1 << 2) | (0x1 << 1);
+            tmp.entrylo1 = 0x81000000;
+        }
+        kernel_printf("try insertTLB(&tmp);\n");
+        insertTLB(&tmp);
+        kernel_printf("refill tlb:");
+        printTLBEntry(&tmp);
+        kernel_printf("pgd's first tlb:");
+        printTLBEntry((TLBEntry*)(((tmp.entrylo0 >> 6) << 12) | 0x80000000));
+    }
     //to run
     list_add_tail(&task->ready, &ready_list[task->level]);
     task->state = PROC_STATE_READY;

@@ -651,24 +651,24 @@ void fu1()
 // For test purposes
 int pc_test()
 {
-    // int i;
-    // unsigned *u1;
-    // u1 = kmalloc(8192);
-    // kernel_memcpy(u1,((unsigned int)fu1)+12,8192);
+    int i;
+    unsigned *u1;
+    u1 = kmalloc(8192);
+    kernel_memcpy(u1,((unsigned int)fu1)+12,8192);
 
-    // for(i = 0;i<7;i++)
-    // {
-    //     kernel_printf("%x ",*(unsigned*)(u1+i));
-    // }
+    for(i = 0;i<7;i++)
+    {
+        kernel_printf("%x ",*(unsigned*)(u1+i));
+    }
 
-    // if(sw(0))
-    //     fk1();
-    // else
-    //     create_process("u1",(unsigned int)u1,8192,PROC_LEVELS/2);
+    if(sw(0))
+        fk1();
+    else
+        create_process("u1",(unsigned int)u1,8192,PROC_LEVELS/2);
     //pc_create(test_sleep1sandprint,"test_sleep1sandprint");
     //pc_create(test_sleep5sandkillasid2,"test_sleep5sandkillasid2");
-    call_syscall_a0(SYSCALL_PRINTTASKS, 0);
-    pc_create(test_forkandkill, "test_forkandkill");
+    // call_syscall_a0(SYSCALL_PRINTTASKS, 0);
+    // pc_create(test_forkandkill, "test_forkandkill");
     //pc_create(fk2,"k2");
     return 0;
 }
