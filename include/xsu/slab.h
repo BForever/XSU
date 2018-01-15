@@ -9,19 +9,20 @@
 #define SLAB_USED 0xff
 
 /*
- * slab_head makes the allocation accessible from end_ptr to the end of the page
- * @end_ptr : points to the head of the rest of the page
- * @nr_objs : keeps the numbers of memory segments that has been allocated
+ * slab_head makes the allocation accessible from listTailPtr to the end of the page
+ * @listTailPtr : points to tail of the page's slab element list
+ * @allocatedNumber : keeps the numbers of memory segments that has been allocated
  */
 struct slab_head {
-    void* end_ptr;
-    unsigned int nr_objs;
+    void* listTailPtr;
+    unsigned int allocatedNumber;
 };
 
 /*
- * slab pages is chained in this struct
- * @partial keeps the list of un-totally-allocated pages
- * @full keeps the list of totally-allocated pages
+ * this is the slab control block, record the information and control the slub' allocation
+ * each slub contains a kmem_cache_node
+ * @partial keeps the list of un-totally-allocated slub element
+ * @full keeps the list of totally-allocated slub element
  */
 struct kmem_cache_node {
     struct list_head partial;
@@ -30,15 +31,26 @@ struct kmem_cache_node {
 
 /*
  * current being allocated page unit
+ * @cpuFreeObjectPtr: points to the free-space head addr inside current page
+ * @page: points to the current page(which is being allocated!)
  */
 struct kmem_cache_cpu {
-    void** freeobj; // points to the free-space head addr inside current page
+    // attention, it is a two-level pointer
+    void** cpuFreeObjectPtr; 
     struct page* page;
 };
+/*
+ * this is the slab information block, record the information of every single slub system
+ * each slub contains a kmem_cache
+ * @objectSize: input parameters, such as 8, 16, 32....., but it doesn't means the really allocated size
+ * @size: the real allocated size, contains the memory(allocated to user) and the pointers(user cannot access)
+ * @offset: pointer's offset in slub element
+ * @name: this slub element's name
+ */
 
 struct kmem_cache {
     unsigned int size;
-    unsigned int objsize;
+    unsigned int objectSize;
     unsigned int offset;
     struct kmem_cache_node node;
     struct kmem_cache_cpu cpu;
