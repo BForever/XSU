@@ -86,33 +86,49 @@ typedef struct{
 typedef struct {
     // Register storage, including sp and gp
     context context;
+    // Kernel stack
     unsigned int kernel_stack;
+    // User stack
     unsigned int user_stack;
     
     // Info
-    unsigned int ASID;//pid, as well as asid, for tlb to use
+    // Pid, as well as asid, for tlb to use
+    unsigned int ASID;
+    // Task name
     char name[32];
+    // When the task start
     time_u64 start_time;
-    int kernelflag;//kernal thread flag
+    //kernal thread flag
+    int kernelflag;
 
     // Memory management: for user
     TLBEntry **pagecontent;
+    // VMA list
     struct list_head vma;
+    // Used for quickli insert heap vma
     struct list_head *vma_heap_tail;
 
     // Schedule
-    unsigned int level;//0,1,2: 0 is lowest
+    // Task level 0,1,2: 0 is lowest
+    unsigned int level;
+    // Task state
     unsigned int state;
+    // All tasks list node
     struct list_head shed;
+    // Ready list node
     struct list_head ready;
+    // Sleep list node
     struct list_head sleep;
+    // Wake time
     time_u64 sleeptime;
+    // Wait list node 
     struct list_head wait;
-    struct list_head son;
+    // Children list node  
+    struct list_head child;
     int counter;//used for cpu time chips counting
     
     // List as head
-    struct list_head sons;
+    struct list_head children;
     struct list_head be_waited_list;
 } task_struct;
 
@@ -213,7 +229,7 @@ void syscall_free(unsigned int status, unsigned int cause, context* pt_context);
 void syscall_exit(unsigned int status, unsigned int cause, context* pt_context);
 // kill: kill process whose asid = a0
 void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_context);
-// print all tasks' infomation
+// Print all tasks' infomation
 void syscall_printtasks(unsigned int status, unsigned int cause, context* pt_context);
 // Process release cpu
 void __syscall_schedule(unsigned int status, unsigned int cause, context* pt_context);

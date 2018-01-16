@@ -6,15 +6,23 @@
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
 
-//Semaphore
+// Semaphore
+// Create a semaphore
 struct semaphore* create_semaphore(char* name, int count)
 {
+    // Malloc space
     struct semaphore* new = kmalloc(sizeof(struct semaphore));
+    // Set name
     kernel_memcpy(new->name, name, 29);
+    // Cut the name
     new->name[29] = 0;
+    // Initialize count
     new->count = count;
+    // Initalize wait list
     INIT_LIST_HEAD(&new->wait_list);
 }
+
+// Release semaphore
 void release_semaphore(struct semaphore* sem)
 {
     // Kill all possible waiting processes
@@ -28,8 +36,11 @@ void release_semaphore(struct semaphore* sem)
     // Free struct
     kfree((void*)sem);
 }
+
+// Wait fo resource
 void sem_wait(struct semaphore* sem)
 {
+    // Disable interrupt
     int old = disable_interrupts();
     //decrese the count
     sem->count--;
@@ -42,25 +53,30 @@ void sem_wait(struct semaphore* sem)
         //run next process
         enable_interrupts(old);
         __request_schedule();
-    } else {
+    } 
+    else 
+    {
+        // Enable interrupt
         enable_interrupts(old);
     }
-    
-    
 }
+
+// Resource released
 void sem_signal(struct semaphore* sem)
 {
+    // Disable interrupt
     int old = disable_interrupts();
-    //increase the count
+    // Increase the count
     sem->count++;
-    //if there's processes waiting
+    // If there's processes waiting
     if (!list_empty(&sem->wait_list)) {
-        //get the first process(FIFO)
+        // Get the first process(FIFO)
         task_struct* task = list_entry(sem->wait_list.next, task_struct, wait);
-        //awake it
+        // Awake it
         list_del(sem->wait_list.next);
-        //become the next process in ready list
+        // Become the next process in ready list
         list_add(&task->ready, &ready_list[task->level]);
     }
+    // Enable interrupt
     enable_interrupts(old);
 }

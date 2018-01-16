@@ -5,9 +5,12 @@
 #include <xsu/slab.h>
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
+
+// Initilize TLB
 void TLB_init()
 {
     unsigned int i;
+    // Set vpn in kernel space, thus no conflicts
     unsigned int vpn2 = 0x81000000;
     unsigned int PTEBase = PAGETABLE_BASE;
     for (i = 0; i < 32; i++) {
@@ -23,16 +26,19 @@ void TLB_init()
             :
             : "r"(vpn2), "r"(i));
     }
+    // Write PTEBase address 0xC0000000
     asm volatile("mtc0  %0,$4" ::"r"(PTEBase));
+    // Initialize asid to 0
     setasid(0);
 }
 
-//print one TLB Entry
+// Print one TLB Entry
 void printTLBEntry(TLBEntry* tlb)
 {
     kernel_printf("entryhi:%x entrylo0:%x entrylo1:%x pagemask:%x\n", tlb->entryhi, tlb->entrylo0, tlb->entrylo1, tlb->pagemask);
 }
 
+// Test TLB
 unsigned int testTLB(unsigned int va)
 {
     int asid = getasid();
@@ -60,7 +66,8 @@ unsigned int testTLB(unsigned int va)
     setasid(asid);
     return result;
 }
-//print all noninital TLB Entry
+
+// Print all noninital TLB Entry
 void printTLB()
 {
     int asid = getasid();
@@ -85,7 +92,7 @@ void printTLB()
             "nop\n\t"
             : "=r"(entrylo0), "=r"(entrylo1), "=r"(entryhi), "=r"(pagemask)
             : "r"(i));
-        //whether initial Entry
+        // Whether initial Entry
         if (entryhi != 0x81000000) {
             kernel_printf("index %d:", i);
             kernel_printf("entryhi:%x entrylo0:%x entrylo1:%x pagemask:%x\n", entryhi, entrylo0, entrylo1, pagemask);
@@ -94,8 +101,8 @@ void printTLB()
     setasid(asid);
 }
 
-//ocurrs when process want to write on a page which TLBentry's Dirty bit is zero
-//used for copy on write
+// Ocurrs when process want to write on a page which TLBentry's Dirty bit is zero
+// Used for copy on write
 void TLBMod_exc(unsigned int status, unsigned int cause, context* context)
 {
     unsigned int badaddr;
@@ -103,14 +110,15 @@ void TLBMod_exc(unsigned int status, unsigned int cause, context* context)
     asm volatile(
         "mfc0   %0, $8\n\t"
         : "=r"(badaddr));
-    //first lookup the process's write privilege on this page
-    //if it's able to write, copy to a new physical page and set Dirty
+    // First lookup the process's write privilege on this page
+    // If it's able to write, copy to a new physical page and set Dirty
     kernel_printf("TLBMod_exc at %x", badaddr);
-    //if not, invalid write and kill the process
+    // If not, invalid write and kill the process
 }
-//ocurrs for two situations:
-//1:invalid TLBentry
-//2:no match TLBentry :which means refill failed, status[EXL]=1
+
+// Ocurrs for two situations:
+// 1:invalid TLBentry
+// 2:no match TLBentry :which means refill failed, status[EXL]=1
 void TLBL_exc(unsigned int status, unsigned int cause, context* context)
 {
     unsigned int badaddr;
@@ -176,6 +184,10 @@ void TLBL_exc(unsigned int status, unsigned int cause, context* context)
     kernel_printf("TLBL_exc finished\n");
     printTLB();
 }
+
+// Ocurrs for two situations:
+// 1:invalid TLBentry
+// 2:no match TLBentry :which means refill failed, status[EXL]=1
 void TLBS_exc(unsigned int status, unsigned int cause, context* context)
 {
     unsigned int badaddr;
@@ -237,6 +249,8 @@ void TLBS_exc(unsigned int status, unsigned int cause, context* context)
 //TO DO: when schedule exception return to user process, set user mode
 //TO DO: TLB initialize set all valid 0, and set all vpn2 different and asid 0
 //       incase there are same matches which lead to error mapping
+
+// Manually refill TLB
 void TLBrefill()
 {
     int old = getasid();
