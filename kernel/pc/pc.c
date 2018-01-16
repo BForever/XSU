@@ -645,7 +645,7 @@ int pc_test()
     int i;
     unsigned *u1;
     u1 = kmalloc(8192);
-    kernel_memcpy(u1, ((unsigned int)fu1) + 12, 8192);
+    kernel_memcpy(u1, (void*)(((unsigned int)fu1) + 12), 8192);
 
     for (i = 0; i < 7; i++)
     {
