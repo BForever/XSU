@@ -15,7 +15,15 @@
 struct kmem_cache kmalloc_caches[PAGE_SHIFT];
 
 static unsigned int size_kmem_cache[PAGE_SHIFT] = {96, 192, 8, 16, 32, 64, 128, 256, 512, 1024, 1536, 2048};
-
+/* FUNC@: This function is to judge whether the slab is free
+ * this function is to search the free object's list, if find the same free object, then set the flag,
+ * represent memory free. 
+ * INPUT:
+ * @cache: this free slub's kmem_cache, store the relative information
+ * @object: the free object's first address
+ * RETURN:
+ *  return flag value, indicated whether this slub element has been free
+ */
 unsigned int judge_slab_free(struct kmem_cache *cache, void *object){
     //kernel_printf("judeg slab free condition, address is: %x", object);
     struct page* objectPage = pages + ((unsigned int)object >> PAGE_SHIFT);
@@ -40,18 +48,32 @@ unsigned int judge_slab_free(struct kmem_cache *cache, void *object){
     else
         return 0;
 }
-// init the struct kmem_cache_cpu
+/* FUNC@:  init the struct kmem_cache_cpu
+ * INPUT:
+ * @kcpu: the current page used cache
+ * RETURN:
+ */
 void init_kmem_cpu(struct kmem_cache_cpu *kcpu) {
     kcpu->page = 0;
     kcpu->cpuFreeObjectPtr = 0;
 }
 
-// init the struct kmem_cache_node
+/* FUNC@:  init the struct kmem_cache_node
+ * INPUT:
+ * @knode: the kmem_cache_node will be inited
+ * RETURN:
+ */
 void init_kmem_node(struct kmem_cache_node *knode) {
     INIT_LIST_HEAD(&(knode->full));
     INIT_LIST_HEAD(&(knode->partial));
 }
-
+/* FUNC@:  init every slab(10 in total)
+ * every slab has a kmem_cache, when initial the slab, the cache will be initialize
+ * INPUT:
+ * @cache: the kmem_cache_node will be inited
+ * @size: 
+ * RETURN:
+ */
 void init_each_slab(struct kmem_cache *cache, unsigned int size) {
     cache->objectSize = size;
     cache->objectSize += (SIZE_INT - 1);
@@ -61,7 +83,11 @@ void init_each_slab(struct kmem_cache *cache, unsigned int size) {
     init_kmem_cpu(&(cache->cpu));
     init_kmem_node(&(cache->node));
 }
-
+/* FUNC@:  init slab system
+ * this function will call the init_each_slab function
+ * INPUT:
+ * RETURN:
+ */
 void init_slab() {
     unsigned int i;
 
@@ -78,10 +104,13 @@ void init_slab() {
 #endif  // ! SLAB_DEBUG
 }
 
-// ATTENTION: sl_objs is the reuse of pageOrderLevel
-// ATTENTION: slabFreeSpacePtr must be set right to add itself to reach the end of the page
-// 		e.g. if size = 96 then 4096 / 96 = .. .. 64 then slabFreeSpacePtr starts at
-// 64
+
+/* FUNC@:  format_slab_page
+ * INPUT:
+ * @cache: the kmem_cache_node which refer to this page
+ * @page: the page needed to be format 
+ * RETURN:
+ */
 void format_slab_page(struct kmem_cache *cache, struct page *page) {
     unsigned char *movingPtr = (unsigned char *)KMEM_ADDR(page, pages);  // physical addr
     struct slab_head *slabHeadInPage = (struct slab_head *)movingPtr;
@@ -95,12 +124,13 @@ void format_slab_page(struct kmem_cache *cache, struct page *page) {
     startAddress = (unsigned int)movingPtr;
     set_flag(page, _PAGE_SLAB);
     do {
+        // fotmat every slab element
         tempPtr = (unsigned int *)(movingPtr + cache->offset);
         movingPtr += cache->size;
         *tempPtr = (unsigned int)movingPtr;
         remaining -= cache->size;
     } while (remaining >= cache->size);
-
+    // make the endPtr points to the tail of the linked-list
     *tempPtr = (unsigned int)movingPtr & ~((1 << PAGE_SHIFT) - 1);
     slabHeadInPage->listTailPtr = tempPtr;
     slabHeadInPage->allocatedNumber = 0;
@@ -110,7 +140,12 @@ void format_slab_page(struct kmem_cache *cache, struct page *page) {
     page->pageCacheBlock = (void *)cache;
     page->slabFreeSpacePtr = (cache->cpu.cpuFreeObjectPtr);
 }
-
+/* FUNC@: slab_alloc
+ * allocate the slab in the cache's order
+ * INPUT:
+ * @cache: the kmem_cache_node which tells which order of slub page should be allocated
+ * RETURN:
+ */
 void *slab_alloc(struct kmem_cache *cache) {
     struct slab_head *slabHeadInPage;
     void *object = 0;
@@ -178,7 +213,14 @@ slalloc_end:
     }
     return object;
 }
-
+/* FUNC@: slab_free
+ * free the element.
+ * INPUT:
+ * @cache: the kmem_cache which tells which order of slub page should be free, 
+ * and other information
+ * @object: the object which will be free
+ * RETURN:
+ */
 void slab_free(struct kmem_cache *cache, void *object) {
     if(judge_slab_free(cache, object)){
         kernel_printf("slab_free_failed, because it has been freed before\n");
@@ -258,7 +300,13 @@ unsigned int get_slab(unsigned int size) {
     }
     return fitIndex;
 }
-
+/* FUNC@: kmalloc
+ * the external interface for the kmalloc function
+ * INPUT:
+ * @size: the kmalloc's size
+ * RETURN:
+ *   return the malloc block's address
+ */
 void *kmalloc(unsigned int size) {
     struct kmem_cache *cache;
     unsigned int fitIndex;
@@ -292,7 +340,13 @@ void *kmalloc(unsigned int size) {
     }
     return (void *)(KERNEL_ENTRY | (unsigned int)slab_alloc(&(kmalloc_caches[fitIndex])));
 }
-
+/* FUNC@: kfree
+ * the external interface for the freefunction
+ * INPUT:
+ * @freePtr: the free pointer
+ * RETURN:
+ *   return the free block's address
+ */
 void kfree(void *freePtr) {
     struct page *page;
     //kernel_printf("kfree\n");
@@ -306,7 +360,13 @@ void kfree(void *freePtr) {
     return slab_free(page->pageCacheBlock, freePtr);
        
 }
-
+/* FUNC@: kmemtop
+ * the external interface for the kmemtop
+ * to demonstrate the memory usage condition
+ * INPUT:
+ * RETURN:
+ *   return the free block's address
+ */
 void kmemtop(){
     get_buddy_allocation_state();
 }
