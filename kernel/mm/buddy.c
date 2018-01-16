@@ -47,7 +47,7 @@ void buddy_list_add(struct list_head* new, struct list_head* head, int level)
             // search the list to find the best place to insert into a list
             unsigned int currentPageNumber = tmp - pages;
             if (currentPageNumber >= newPageNumber) {
-            // find the best place to insert
+                // find the best place to insert
                 flag = 1;
                 list_add(new, tempList->prev);
                 break;
@@ -58,8 +58,8 @@ void buddy_list_add(struct list_head* new, struct list_head* head, int level)
         if (!flag) {
             // flag is represent whether find the best place,if find it,
             // then insert into that place.
-            // if not find, then insert into the head/end of the list, 
-            // according to the pagenumber 
+            // if not find, then insert into the head/end of the list,
+            // according to the pagenumber
             unsigned int currentPageNumber = end - pages;
             if (currentPageNumber >= newPageNumber) {
                 flag = 1;
@@ -111,7 +111,7 @@ void get_buddy_allocation_state()
 {
     // totalMemory is the max physical memory, a fix number
     unsigned int totalMemory = buddy.buddyEndPageNumber - buddy.buddyStartPageNumber;
-    totalMemory <<= 2;// 4K every page
+    totalMemory <<= 2; // 4K every page
     // compute the residual memory
     unsigned int residual = 0;
     unsigned int index = 0;
@@ -150,9 +150,9 @@ void init_pages(unsigned int startPhysicalFrameNumber, unsigned int endPhysicalF
     for (i = startPhysicalFrameNumber; i < endPhysicalFrameNumber; i++) {
         clean_flag(pages + i);
         set_flag(pages + i, _PAGE_ALLOCED);
-        (pages + i)->reference = 1;
+        // (pages + i)->reference = 1;
         (pages + i)->pageCacheBlock = (void*)(-1);
-        (pages + i)->pageOrderLevel = (-1);// initial state
+        (pages + i)->pageOrderLevel = (-1); // initial state
         (pages + i)->slabFreeSpacePtr = 0; // initially, the free space is the whole page
         INIT_LIST_HEAD(&(pages[i].list));
     }
@@ -171,7 +171,8 @@ void init_pages(unsigned int startPhysicalFrameNumber, unsigned int endPhysicalF
  * 0 represent the false, in different buddy
  * 1 represent the true, in the same buddy
  */
-int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex){
+int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex)
+{
     int flag = 1; // flag represent the judged result.
     unsigned int buddyGroupIndex;
     struct page* buddyGroupPage;
@@ -179,10 +180,10 @@ int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex){
     buddyGroupPage = judgePage + (buddyGroupIndex - pageIndex);
 #ifdef BUDDY_DEBUG
     kernel_printf("group%x %x\n", (pageIndex), buddyGroupIndex);
-#endif    
+#endif
     if (!_is_same_pageOrderLevel(buddyGroupPage, pageLevel)) {
-        // condition1: judge the order level
-#ifdef BUDDY_DEBUG     
+    // condition1: judge the order level
+#ifdef BUDDY_DEBUG
         kernel_printf("%x %x\n", buddyGroupPage->pageOrderLevel, pageOrderLevel);
 #endif
         flag = 0;
@@ -196,7 +197,7 @@ int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex){
         kernel_printf("the buddy memory has been allocated\n");
         return flag;
     }
-    return flag;    
+    return flag;
 }
 /* FUNC@: inti the buddy systemn
  * this function will initialize every buddy page.
@@ -208,7 +209,7 @@ int judge_in_same_buddy(struct page* judgePage, int pageLevel, int pageIndex){
 void init_buddy()
 {
     //base_page's size
-    unsigned int basePageSize = sizeof(struct page); 
+    unsigned int basePageSize = sizeof(struct page);
     unsigned char* bp_base;
     unsigned int i;
 
@@ -232,7 +233,7 @@ void init_buddy()
     kernel_startPhysicalFrameNumber = 0;
     kernel_endPhysicalFrameNumber = 0;
     for (i = 0; i < bmm.countInfos; ++i) {
-    // get the kernel's endFramePtr by searching all the list
+        // get the kernel's endFramePtr by searching all the list
         if (bmm.info[i].endFramePtr > kernel_endPhysicalFrameNumber)
             kernel_endPhysicalFrameNumber = bmm.info[i].endFramePtr;
     }
@@ -250,7 +251,7 @@ void init_buddy()
         INIT_LIST_HEAD(&(buddy.freeList[i].freeHead));
     }
     buddy.startPagePtr = pages + buddy.buddyStartPageNumber;
-    init_lock(&(buddy.lock));
+    init_lock(&(buddy.buddyLock));
 
     // free all the page to transform the memory control to the buddy system
     for (i = buddy.buddyStartPageNumber; i < buddy.buddyEndPageNumber; ++i) {
@@ -268,7 +269,7 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
 {
     //pageIndex -> the current page
     //buddyGroupIndex -> the buddy group that current page is in
-    
+
     unsigned int pageIndex;
     unsigned int buddyGroupIndex;
     unsigned int combinedIndex, tmp;
@@ -277,35 +278,35 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
 #ifdef BUDDY_DEBUG
     kernel_printf("buddy_free.\n");
     dec_ref(pbpage, 1);
-    if(pbpage->reference)
-    	return;
-#endif 
+    if (pbpage->reference)
+        return;
+#endif
     if (!(has_flag(pbpage, _PAGE_ALLOCED) || has_flag(pbpage, _PAGE_SLAB))) {
         //judge the page, whether it will be freed,if allocated or allocated by slub, then free it.
         //original bug!!, original didn't free.
         kernel_printf("kfree_again. \n");
         return;
     } else if (has_flag(pbpage, _PAGE_SLAB)) {
-#ifdef BUDDY_DEBUG 
-        // judge whether free the slab page   
+#ifdef BUDDY_DEBUG
+        // judge whether free the slab page
         kernel_printf("kfree slab page. \n");
         test = 1;
         kernel_printf("page number is: %x", pbpage);
 #endif
     }
 #ifdef BUDDY_DEBUG
-    if(pbpage->pageOrderLevel != -1){
+    if (pbpage->pageOrderLevel != -1) {
         kernel_printf("kfree_again.\n");
         return;
     }
     kernel_printf("free_pageOrderLevel is: %x", pbpage->pageOrderLevel);
 #endif
-    lockup(&buddy.lock);
+    lockup(&buddy.buddyLock);
     set_flag(pbpage, _PAGE_RESERVED);
     pageIndex = pbpage - buddy.startPagePtr;
     // complier do the sizeof(struct) operation, and now pageIndex is the index
     while (pageOrderLevel < MAX_BUDDY_ORDER) {
-        if(!judge_in_same_buddy(pbpage, pageOrderLevel, pageIndex))
+        if (!judge_in_same_buddy(pbpage, pageOrderLevel, pageIndex))
             break;
         buddyGroupIndex = pageIndex ^ (1 << pageOrderLevel);
         buddyGroupPage = pbpage + (buddyGroupIndex - pageIndex);
@@ -318,7 +319,7 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
         ++pageOrderLevel;
     }
 #ifdef BUDDY_DEBUG
-    if(test){
+    if (test) {
         kernel_printf("slab page free nearly finished!\n");
     }
 #endif
@@ -327,18 +328,18 @@ void __free_pages(struct page* pbpage, unsigned int pageOrderLevel)
 #ifdef BUDDY_DEBUG
     kernel_printf("final free_pageOrderLevel is: %x", pageOrderLevel)
 #endif
-    buddy_list_add(&(pbpage->list), &(buddy.freeList[pageOrderLevel].freeHead), pageOrderLevel);
+        buddy_list_add(&(pbpage->list), &(buddy.freeList[pageOrderLevel].freeHead), pageOrderLevel);
 #ifdef BUDDY_DEBUG
-    if(test){
+    if (test) {
         kernel_printf("slab page free nearly finished!\n");
     }
-    ++buddy.freeList[pageOrderLevel].freeNumer;
-    if(test){
+    if (test) {
         kernel_printf("slab page free finished!\n");
     }
     kernel_printf("v%x__addto__%x\n", &(pbpage->list),
-    &(buddy.FreeList[pageOrderLevel].freeHead));
+        &(buddy.FreeList[pageOrderLevel].freeHead));
 #endif
+    ++buddy.freeList[pageOrderLevel].freeNumer;
     unlock(&buddy.buddyLock);
 }
 /* FUNC@: This function is to allocate the pages

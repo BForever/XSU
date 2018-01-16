@@ -102,7 +102,7 @@ void init_kernel()
     // Enter shell
     // pc_create(menu,"menu");
     pc_create(time_handler, "time");
-    pc_create(menu,"menu");
-    //menu();
-    while(1);
+    //pc_create(menu,"menu");
+    menu();
+    //while(1);
 }
