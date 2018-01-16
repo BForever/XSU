@@ -190,7 +190,7 @@ void free_heap(task_struct *task)
         list_del(pos);
         vma = list_entry(pos, vma_node, vma);
         // Free space  
-        free(vma->pa);
+        kfree(vma->pa);
         // Free vma_node struction     
         kfree(vma); 
         pos = tmp;
