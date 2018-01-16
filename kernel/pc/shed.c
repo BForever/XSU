@@ -8,10 +8,7 @@
 #include <xsu/utils.h>
 
 static inline int __pc_gettimeslots(int level);
-static void pc_shed_idle()
-{
-    while(1);
-}
+
 void copy_context(context* src, context* dest)
 {
     dest->epc = src->epc;
@@ -47,49 +44,52 @@ void copy_context(context* src, context* dest)
     dest->fp = src->fp;
     dest->ra = src->ra;
 }
-
-// Get next highest level task in ready lists
 static task_struct* __getnexttask()
 {
-    // Find the time out tasks in sleep list
-    flushsleeplist(); // Update sleep list
+    flushsleeplist(); //update sleep list
     task_struct* next = (task_struct*)0;
     int i;
     for (i = PROC_LEVELS - 1; i >= 0; i--) {
         if (!list_empty(&ready_list[i])) {
-            // Get a task
             next = list_entry(ready_list[i].next, task_struct, ready);
             break;
         }
     }
-    // If not task available, start idle thread 
     if (!next) {
-        next = create_kthread("idle",PROC_HIGEST_LEVEL,0);
-        next->context.epc = pc_shed_idle;
-        INIT_LIST_HEAD(&next->ready);
+        next = create_kthread("time", PROC_LEVELS-1 ,0);
         // while (1)
         //     ; //panic
     }
 }
 
+// Update all sleep tasks
 void flushsleeplist()
 {
     task_struct* task;
     struct list_head *pos, *n;
+    // Search the sleep list
     list_for_each_safe(pos, n, &sleep_list)
     {
+        // Get one sleep task
         task = list_entry(pos, task_struct, sleep);
+        // Get current time 
         time_u64 now;
         pc_time_get(&now);
+        // If time's over
         if (pc_time_cmp(&now,&task->sleeptime) >= 0) {
+            // Remove it from sleep list
             list_del_init(&task->sleep);
+            // Set state
             task->state = PROC_STATE_READY;
+            // Increase level
             task->level = PROC_LEVELS - 1;
+            // Add to ready list
             list_add(&task->ready, &ready_list[task->level]);
         }
     }
 }
 
+// When one time chip was over
 void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
 {
     //printalltask();
@@ -102,28 +102,35 @@ void pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     {
         if(current->level)
             current->level--;
-
+        // Get corresponding time slots
         current->counter = __pc_gettimeslots(current->level);
+        // Set state
         current->state = PROC_STATE_READY;
+        // Add to ready list
         list_add_tail(&current->ready, &ready_list[current->level]);
-
+        // Start schedule
         __pc_schedule(status, cause, pt_context);
     }
 }
-void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context) //find next task and load context
+// Find next task and load context
+void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context) 
 {
+    // If one task is running, then store it's registers
     if(current)
     {
         copy_context(pt_context, &current->context);
     }
     // Get next ready task
     current = __getnexttask();
+    // Remove it from ready list
     list_del_init(&current->ready);
+    // Get one task
     if (current) 
     {
         current->state = PROC_STATE_RUNNING;
     }
 
+    // Get wrong task
     if ((unsigned int)current <= 0x80000000) {
         kernel_printf("Fetched invalid task from ready list:(unsigned)current = %x\n");
     }
@@ -131,6 +138,7 @@ void __pc_schedule(unsigned int status, unsigned int cause, context* pt_context)
     // Load context
     copy_context(&current->context, pt_context);
 
+    // Reset counter and start running
     __reset_counter();
 }
 void __reset_counter()
@@ -148,6 +156,7 @@ static inline int __pc_gettimeslots(int level)
     return PROC_DEFAULT_TIMESLOTS << level;
 }
 
+// Get current time
 void pc_time_get(time_u64* dst)
 {
     asm volatile(
@@ -156,6 +165,7 @@ void pc_time_get(time_u64* dst)
         : "=r"(dst->lo), "=r"(dst->hi));
 }
 
+// Compare time,if large>small return 1, if equal return 0,e lse return -1
 int pc_time_cmp(time_u64 *large, time_u64 *small)
 {
     if(large->hi > small->hi)
@@ -183,6 +193,7 @@ int pc_time_cmp(time_u64 *large, time_u64 *small)
     }
 }
 
+// Add 32 bits time to 64 bits time 
 void pc_time_add(time_u64 *dst,unsigned int src)
 {
     if(src + dst->lo <= dst->lo)

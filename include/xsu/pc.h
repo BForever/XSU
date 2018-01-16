@@ -38,8 +38,6 @@
 
 // The number of implemented previleges
 #define PROC_LEVELS 3
-// The higest level in multi ready lists
-#define PROC_HIGEST_LEVEL PROC_LEVELS - 1
 
 // Utils for asid allocation
 #define ASIDMAP(asid) ((asidmap[asid/32]>>(asid%32))&1)
@@ -88,7 +86,9 @@ typedef struct{
 typedef struct {
     // Register storage, including sp and gp
     context context;
+    // Kernel stack
     unsigned int kernel_stack;
+    // User stack
     unsigned int user_stack;
     
     // Info
@@ -96,45 +96,40 @@ typedef struct {
     unsigned int ASID;
     // Task name
     char name[32];
-    // Task start time
+    // When the task start
     time_u64 start_time;
     //kernal thread flag
     int kernelflag;
 
     // Memory management: for user
-    // Second level pagetable
     TLBEntry **pagecontent;
-    // vma list
+    // VMA list
     struct list_head vma;
-    // Pointer to the last heap vma, in order to quickly add heap vma
+    // Used for quickli insert heap vma
     struct list_head *vma_heap_tail;
 
     // Schedule
-    // 0,1,2: 0 is lowest
+    // Task level 0,1,2: 0 is lowest
     unsigned int level;
-    // Current state
+    // Task state
     unsigned int state;
-    // Schedule list node
+    // All tasks list node
     struct list_head shed;
     // Ready list node
     struct list_head ready;
     // Sleep list node
     struct list_head sleep;
-    // Time when the task will wake
+    // Wake time
     time_u64 sleeptime;
-    // Wait list node
+    // Wait list node 
     struct list_head wait;
-    // Child list node
+    // Children list node  
     struct list_head child;
-    //used for cpu time chips counting
-    int counter;
+    int counter;//used for cpu time chips counting
     
     // List as head
-    // All child list head
     struct list_head children;
-    // All waiting list head
     struct list_head be_waited_list;
-
 } task_struct;
 
 // The current running task
@@ -148,41 +143,27 @@ typedef union {
 
 // Semphore, for single CPU system
 struct semaphore {
-    // Semphore name
     char name[30];
-    // Wait list
     struct list_head wait_list;
-    // Resource count
     int count;
 };
 
 // Init,create,kill
 void init_pc();
-// Create a kernel thread
-int pc_create(void (*func)(), char* name);
-// Create a kernel as it's child
-int pc_create_child(void (*func)(), char* name);
-// Create a kernel thread
+void pc_create(void (*func)(), char* name);
+void pc_create_child(void (*func)(), char* name);
 task_struct* create_kthread(char* name, int level ,int asfather);
-// Create a user process
 task_struct* create_process (char* name,unsigned int phy_code,unsigned int length,unsigned int level);
-// Kill a task by asid
 int pc_kill(int asid);
-// Delete a task
 void __kill(task_struct* task);
-// Find a task using asid
 task_struct* pc_find(int asid);
-// Print a task's info
 void printtask(task_struct* task);
-// Print all task's info
 void printalltask();
-// Print one task: old interface
 int print_proc();
 // Print all tasks that are in the ready list
 void printreadylist();
 
 // Asid management
-// 
 void clearasid(unsigned int asid);
 int getemptyasid();
 void clearasidmap();
@@ -233,7 +214,6 @@ void test_sleep1sandprint();
 void test_sleep5s();
 void test_forkandkill();
 void test_forkandwait();
-void test_fatherandchild();
 void fu1();
 int pc_test();
 
@@ -249,7 +229,7 @@ void syscall_free(unsigned int status, unsigned int cause, context* pt_context);
 void syscall_exit(unsigned int status, unsigned int cause, context* pt_context);
 // kill: kill process whose asid = a0
 void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_context);
-// print all tasks' infomation
+// Print all tasks' infomation
 void syscall_printtasks(unsigned int status, unsigned int cause, context* pt_context);
 // Process release cpu
 void __syscall_schedule(unsigned int status, unsigned int cause, context* pt_context);
@@ -267,11 +247,8 @@ int call_syscall_a0(int code,int a0);
 int sw(int bit);
 
 // Time utils
-// Get current time
 void pc_time_get(time_u64* dst);
-// Compare time, if large > small,return 1, if equal, return 0, if not, return -1
 int pc_time_cmp(time_u64 *large, time_u64 *small);
-// Add time
 void pc_time_add(time_u64 *dst,unsigned int src);
 
 #endif  // !_ZJUNIX_PC_H

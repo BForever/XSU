@@ -6,15 +6,23 @@
 #include <xsu/syscall.h>
 #include <xsu/utils.h>
 
-//Semaphore
+// Semaphore
+// Create a semaphore
 struct semaphore* create_semaphore(char* name, int count)
 {
+    // Malloc space
     struct semaphore* new = kmalloc(sizeof(struct semaphore));
+    // Set name
     kernel_memcpy(new->name, name, 29);
+    // Cut the name
     new->name[29] = 0;
+    // Initialize count
     new->count = count;
+    // Initalize wait list
     INIT_LIST_HEAD(&new->wait_list);
 }
+
+// Release semaphore
 void release_semaphore(struct semaphore* sem)
 {
     // Kill all possible waiting processes
@@ -29,32 +37,34 @@ void release_semaphore(struct semaphore* sem)
     kfree((void*)sem);
 }
 
+// Wait fo resource
 void sem_wait(struct semaphore* sem)
 {
-    // Ensure atomic
-    disable_interrupts();
-    // Decrese the count
+    // Disable interrupt
+    int old = disable_interrupts();
+    //decrese the count
     sem->count--;
-    // If not available
+    //if not available
     if (sem->count <= -1) {
-        // Start waiting
+        //start waiting
         current->state = PROC_STATE_WAITING;
-        // Go to wait list
+        //go to wait list
         list_add_tail(&current->wait, &sem->wait_list);
-        // Run next process
-        enable_interrupts();
-        // Request schedule to run next ready task
+        //run next process
+        enable_interrupts(old);
         __request_schedule();
-    } else {
-        // Successfully get permission
-        enable_interrupts();
+    } 
+    else 
+    {
+        // Enable interrupt
+        enable_interrupts(old);
     }
 }
 
-// Release resource
+// Resource released
 void sem_signal(struct semaphore* sem)
 {
-    // Disable interrupt to ensure atomic
+    // Disable interrupt
     int old = disable_interrupts();
     // Increase the count
     sem->count++;
@@ -67,5 +77,6 @@ void sem_signal(struct semaphore* sem)
         // Become the next process in ready list
         list_add(&task->ready, &ready_list[task->level]);
     }
+    // Enable interrupt
     enable_interrupts(old);
 }
